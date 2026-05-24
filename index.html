@@ -101,6 +101,7 @@ if(!visitorId){visitorId=crypto.randomUUID();localStorage.setItem('auction_visit
 let state={id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS};
 let captains=[],bids=[],logs=[],teams=[],visitorCount=0,lastError='',finishing=false,lastFinishedKey='',processingSeenAt=0,lastSeenRoundKey='';
 let lastRoundKeyForNextSound='', lastRoundKeyForCountSound='', finishRoundPromise=null, finishStartedAt=0;
+let adminAuthorized=localStorage.getItem('auction_admin_authorized')==='true';
 let audioUnlocked=false;
 const audioNext=new Audio(SOUND_NEXT);
 const audioCount=new Audio(SOUND_COUNT);
@@ -111,24 +112,36 @@ const nowIso=()=>new Date().toISOString();
 const money=n=>Number(n||0).toLocaleString('ko-KR');
 const isEditing=()=>['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName);
 let lastRenderedSyncKey='';
+let pendingRender=false;
+let lastUserInputAt=0;
 function getSyncKey(){
   return `${state?.status||''}_${state?.current_index??''}_${state?.round_started_at||''}_${teams.length}_${bids.length}_${captains.map(c=>`${c.name}:${c.coins}:${c.online}:${c.session_id||''}`).join('|')}`;
 }
-function renderSafe(){
-  const active=document.activeElement;
-  const activeId=active?.id||'';
-  const activeValue=(active && ['INPUT','TEXTAREA','SELECT'].includes(active.tagName)) ? active.value : null;
-  const s1=active?.selectionStart, s2=active?.selectionEnd;
-  render();
-  if(activeId){
-    const el=document.getElementById(activeId);
-    if(el && ['INPUT','TEXTAREA','SELECT'].includes(el.tagName)){
-      // 경매 화면 동기화를 위해 항상 렌더링하되, 입력 중인 값은 최대한 보존합니다.
-      if(activeValue!==null && el.type!=='button') el.value=activeValue;
-      try{ el.focus(); if(typeof s1==='number') el.setSelectionRange(s1,s2); }catch(_){}
-    }
-  }
+function isFormActive(){
+  const el=document.activeElement;
+  if(!el) return false;
+  if(!['INPUT','SELECT','TEXTAREA'].includes(el.tagName)) return false;
+  return true;
 }
+function renderSafe(force=false){
+  // 중요: 로그인 드롭다운/비밀번호/입찰금 입력 중에는 DOM 전체를 다시 그리지 않습니다.
+  // 250ms 자동 렌더링이 select/input을 갈아끼우면 드롭다운이 닫히고 비밀번호 숫자가 사라집니다.
+  if(!force && isFormActive()){
+    pendingRender=true;
+    lastUserInputAt=Date.now();
+    return;
+  }
+  pendingRender=false;
+  lastRenderedSyncKey=getSyncKey();
+  render();
+}
+function flushPendingRenderSoon(){
+  setTimeout(()=>{
+    if(pendingRender && !isFormActive()) renderSafe(true);
+  },80);
+}
+window.addEventListener('focusout', flushPendingRenderSoon, true);
+window.addEventListener('change', flushPendingRenderSoon, true);
 
 function toast(m){alert(m)}
 function unlockAudio(){
@@ -331,16 +344,20 @@ function closeAdminPassword(ok){
   if(!resolve) return;
   if(!ok) return resolve(false);
   if(pw!==ADMIN_PASSWORD){toast('운영진 비밀번호가 맞지 않습니다.');return resolve(false)}
+  adminAuthorized=true;
+  localStorage.setItem('auction_admin_authorized','true');
   return resolve(true);
 }
 async function promptStart(){ if(await askAdminPassword()) await startAuction(); }
+async function authorizeAdminOnly(){ if(await askAdminPassword()){ toast('이 브라우저가 라운드 종료를 처리합니다.'); renderSafe(true); } }
 function openAdmin(){
   // 운영진 패널 입장 자체는 비밀번호 없이 열립니다.
   // 실제 버튼을 누를 때마다 비밀번호를 확인합니다.
   modalRoot.innerHTML=`<div class="modalBg"><div class="modal">
-    <div class="sectionHead"><h2>운영진 패널</h2><button class="ghost" onclick="closeAdmin()">닫기</button></div>
+    <div class="sectionHead"><h2>운영진 패널</h2><span class="tinyBadge">라운드 처리: ${adminAuthorized?'운영진 브라우저':'비활성'}</span><button class="ghost" onclick="closeAdmin()">닫기</button></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="gold" onclick="promptStart()">경매 시작</button>
+      <button class="ok" onclick="authorizeAdminOnly()">이 브라우저로 진행처리</button>
       <button class="danger" onclick="resetAll()">모든리셋</button>
       <button class="danger" onclick="factoryResetAll()" title="모든 주장 로그인까지 강제 해제">공장초기화</button>
       <button class="warn" onclick="pauseAuction()">정지</button>
@@ -496,6 +513,9 @@ async function completeRoundAndMove(localIndex, reason='normal'){
 }
 
 async function finishRound(){
+  // 중요: 모든 접속자가 라운드 종료를 실행하면 화면이 갈라집니다.
+  // 운영진 비밀번호를 입력한 브라우저 1곳만 낙찰/유찰/다음 선수 이동을 처리합니다.
+  if(!adminAuthorized) return;
   if(state.status!=='running'||remainingSeconds()>0) return;
   if(finishing) return;
 
@@ -589,6 +609,7 @@ async function factoryResetAll(){
     await q(sb.from('auction_state').update({current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS}).eq('id',1),'상태 초기화');
     localStorage.removeItem('auction_me'); me=null;
     lastFinishedKey=''; processingSeenAt=0; finishRoundPromise=null; finishStartedAt=0; finishing=false;
+    adminAuthorized=false; localStorage.removeItem('auction_admin_authorized');
     await addAuctionLog('운영진 공장초기화');
     closeAdmin(); await loadAll();
   }catch(e){showErr('공장초기화 실패',e)}
@@ -629,7 +650,8 @@ function render(){
     ${lastError?`<div class="errorBox">${escapeHtml(lastError)}</div>`:''}
     <div class="top">
       <div class="title"><h1>🏁 아시아리그 팀원 경매</h1><p>로그인 없이 관람 가능 · 주장 로그인 후 입찰 가능 · 최소 입찰 10 coin · 제한시간 30초</p></div>
-      <div class="topBtns"><button class="gold" onclick="promptStart()">경매 시작</button><button class="ghost" onclick="openAdmin()">운영진 패널</button>${me?`<span class="badge">로그인: ${me.name}</span>`:`<span class="badge">미로그인</span>`}</div>
+      <div class="topBtns"><button class="gold" onclick="promptStart()">경매 시작</button>
+      <button class="ok" onclick="authorizeAdminOnly()">이 브라우저로 진행처리</button><button class="ghost" onclick="openAdmin()">운영진 패널</button>${adminAuthorized?`<span class="badge">운영진 진행처리 ON</span>`:''}${me?`<span class="badge">로그인: ${me.name}</span>`:`<span class="badge">미로그인</span>`}</div>
     </div>
     ${renderAuthBox()}
     <div class="mainGrid">
@@ -643,7 +665,7 @@ function render(){
           <h2 style="margin-bottom:10px">현재 경매</h2>
           ${state.status==='waiting'?`<p class="muted" style="font-weight:900">대기중입니다. 위쪽 경매 시작 버튼 → 운영진 비밀번호 입력 시 시작됩니다.</p>`:
           state.status==='ended'?`<p class="muted" style="font-weight:900;color:#34d399">경매가 종료되었습니다.</p>`:
-          (state.status==='processing'||finishing||rem<=0)?`<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">처리중</div><div class="highest">낙찰/유찰 처리 후 다음 선수로 이동 중입니다.</div></div></div>`:
+          (state.status==='processing'||finishing||rem<=0)?`<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">처리중</div><div class="highest">${adminAuthorized?'낙찰/유찰 처리 후 다음 선수로 이동 중입니다.':'운영진 브라우저에서 다음 선수 이동을 처리 중입니다.'}</div></div></div>`:
           `<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">${rem}초</div><div class="highest">현재 최고 입찰: ${hi?`<span class="highestName">${hi.captain_name}</span> / <span class="highestAmount">${money(hi.amount)}</span> coin`:'아직 없음'}</div>${me?`<div class="bidBox"><input id="customBid" type="number" step="10" placeholder="직접 입찰 금액"><button class="gold" onclick="customBid()" ${!canBid()?'disabled':''}>입찰하기</button><button onclick="placeBid()" ${!canBid()?'disabled':''}>+10 자동입찰</button></div>`:`<p class="muted">관람 중입니다. 입찰하려면 상단에서 주장 로그인하세요.</p>`}</div></div>`}
         </div>
 
@@ -668,6 +690,8 @@ function render(){
   </div>`;
 }
 async function recoverProcessingIfStuck(force=false){
+  // 처리중 복구도 운영진 브라우저만 실행합니다. 관람자/주장 브라우저는 보기만 합니다.
+  if(!adminAuthorized) { processingSeenAt=0; return; }
   if(state.status!=='processing') { processingSeenAt=0; return; }
   if(!processingSeenAt) processingSeenAt=Date.now();
 
@@ -703,13 +727,14 @@ async function boot(){
     await visitorHeartbeat();
     await ensureData();
     await loadAll();
-    if(state.status==='processing') recoverProcessingIfStuck(true);
+    if(adminAuthorized && state.status==='processing') recoverProcessingIfStuck(true);
     sb.channel('auction-live').on('postgres_changes',{event:'*',schema:'public'},()=>loadAll()).subscribe();
+    setInterval(()=>loadAll().catch(()=>{}),1500);
   setInterval(()=>{
     try{
       if(finishRoundPromise && finishStartedAt && Date.now()-finishStartedAt>9000){
         finishRoundPromise=null; finishStartedAt=0; finishing=false;
-        recoverProcessingIfStuck();
+        if(adminAuthorized) recoverProcessingIfStuck();
       }
       const rem=remainingSeconds();
       if(state.status==='running'){
@@ -719,17 +744,19 @@ async function boot(){
           playSound('count');
         }
         if(rem<=0){
-          if(!finishRoundPromise){
-            renderSafe();
-            finishStartedAt=Date.now();
-            finishRoundPromise=finishRound().finally(()=>{finishRoundPromise=null; finishStartedAt=0;});
-          }else renderSafe();
+          renderSafe();
+          if(adminAuthorized){
+            if(!finishRoundPromise){
+              finishStartedAt=Date.now();
+              finishRoundPromise=finishRound().finally(()=>{finishRoundPromise=null; finishStartedAt=0;});
+            }
+          }
         }else{
           processingSeenAt=0;
           renderSafe();
         }
       }else if(state.status==='processing'){
-        recoverProcessingIfStuck();
+        if(adminAuthorized) recoverProcessingIfStuck();
         renderSafe();
       }else{
         processingSeenAt=0;
