@@ -89,7 +89,7 @@ const ADMIN_PASSWORD='0473';
 const START_COINS=1000;
 const BID_STEP=10;
 const ROUND_SECONDS=30;
-const PROCESSING_STUCK_MS=8000;
+const PROCESSING_STUCK_MS=3000;
 const TEAM_SIZE=3;
 const SOUND_NEXT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EB%9D%B5%EB%8F%99.mp3';
 const SOUND_COUNT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/5%EC%B9%B4%EC%9A%B4%ED%8A%B8.mp3';
@@ -110,6 +110,25 @@ const $=s=>document.querySelector(s);
 const nowIso=()=>new Date().toISOString();
 const money=n=>Number(n||0).toLocaleString('ko-KR');
 const isEditing=()=>['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName);
+let lastRenderedSyncKey='';
+function getSyncKey(){
+  return `${state?.status||''}_${state?.current_index??''}_${state?.round_started_at||''}_${teams.length}_${bids.length}_${captains.map(c=>`${c.name}:${c.coins}:${c.online}:${c.session_id||''}`).join('|')}`;
+}
+function renderSafe(){
+  const active=document.activeElement;
+  const activeId=active?.id||'';
+  const activeValue=(active && ['INPUT','TEXTAREA','SELECT'].includes(active.tagName)) ? active.value : null;
+  const s1=active?.selectionStart, s2=active?.selectionEnd;
+  render();
+  if(activeId){
+    const el=document.getElementById(activeId);
+    if(el && ['INPUT','TEXTAREA','SELECT'].includes(el.tagName)){
+      // 경매 화면 동기화를 위해 항상 렌더링하되, 입력 중인 값은 최대한 보존합니다.
+      if(activeValue!==null && el.type!=='button') el.value=activeValue;
+      try{ el.focus(); if(typeof s1==='number') el.setSelectionRange(s1,s2); }catch(_){}
+    }
+  }
+}
 
 function toast(m){alert(m)}
 function unlockAudio(){
@@ -196,7 +215,7 @@ async function loadAll(skipRender=false){
       playSound('next');
     }
     await loadVisitorCount(); lastError='';
-    if(!skipRender && !isEditing()) render();
+    if(!skipRender) renderSafe();
   }catch(e){showErr('데이터 불러오기 실패',e)}
 }
 
@@ -477,7 +496,7 @@ async function finishRound(){
 
   finishing=true;
   lastFinishedKey=finishKey;
-  if(!isEditing()) render();
+  renderSafe();
 
   try{
     // 0초를 여러 접속자가 동시에 감지해도 이 조건을 통과한 1명만 라운드를 종료합니다.
@@ -666,27 +685,27 @@ async function boot(){
         }
         if(rem<=0){
           if(!finishRoundPromise){
-            if(!isEditing()) render();
+            renderSafe();
             finishStartedAt=Date.now();
             finishRoundPromise=finishRound().finally(()=>{finishRoundPromise=null; finishStartedAt=0;});
-          }else if(!isEditing()) render();
+          }else renderSafe();
         }else{
           processingSeenAt=0;
-          if(!isEditing()) render();
+          renderSafe();
         }
       }else if(state.status==='processing'){
         recoverProcessingIfStuck();
-        if(!isEditing()) render();
+        renderSafe();
       }else{
         processingSeenAt=0;
-        if(!isEditing()) render();
+        renderSafe();
       }
     }catch(e){console.error(e)}
   },250);
     setInterval(()=>{
       visitorHeartbeat();
       if(me) heartbeat();
-      loadVisitorCount().then(()=>{ if(!isEditing() && !finishing) render(); }).catch(()=>{});
+      loadVisitorCount().then(()=>{ if(!finishing) renderSafe(); }).catch(()=>{});
     },4000);
   }catch(e){
     console.error('boot failed',e);
