@@ -88,6 +88,7 @@ const START_COINS=1000;
 const BID_STEP=10;
 const ROUND_SECONDS=30;
 const TEAM_SIZE=3;
+const PROCESSING_STUCK_MS=7000;
 const SOUND_NEXT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EB%9D%B5%EB%8F%99.mp3';
 const SOUND_COUNT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/5%EC%B9%B4%EC%9A%B4%ED%8A%B8.mp3';
 
@@ -224,11 +225,18 @@ function currentPlayer(){
   const idx=nextUnsoldIndex((state.current_index||0)-1);
   return idx>=0?PLAYERS[idx]:PLAYERS[0];
 }
+function clampRemaining(v){
+  const n=Number(v);
+  if(!Number.isFinite(n)) return ROUND_SECONDS;
+  return Math.max(0, Math.min(ROUND_SECONDS, n));
+}
 function remainingSeconds(){
-  if(state.status==='paused') return state.paused_remaining??ROUND_SECONDS;
-  if(state.status!=='running') return state.paused_remaining??ROUND_SECONDS;
+  if(state.status==='paused') return clampRemaining(state.paused_remaining);
+  if(state.status!=='running') return clampRemaining(state.paused_remaining);
   if(!state.round_started_at) return ROUND_SECONDS;
-  return Math.max(0,ROUND_SECONDS-Math.floor((Date.now()-new Date(state.round_started_at).getTime())/1000));
+  const started=new Date(state.round_started_at).getTime();
+  if(!Number.isFinite(started)) return ROUND_SECONDS;
+  return Math.max(0, Math.min(ROUND_SECONDS, ROUND_SECONDS-Math.floor((Date.now()-started)/1000)));
 }
 function highestBid(){
   const p=currentPlayer();
@@ -388,14 +396,8 @@ async function finishRound(){
     );
     if(!lock.length){ finishing=false; return; }
 
-    let freshSold=await getFreshSoldTeams();
-    let player=PLAYERS[localIndex];
-
-    if(!player || freshSold.some(t=>t.player_name===player)){
-      const ni=nextUnsoldIndexFrom(localIndex, freshSold);
-      if(ni<0 || allTeamsFullFrom(freshSold)) await endAuction();
-      else await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
-      await loadAll(); return;
+    await settleRoundAndAdvance(localIndex);
+    await loadAll(); return;
     }
 
     const fresh=await q(
@@ -465,7 +467,7 @@ async function endAuction(){
 }
 async function resetAll(){
   if(!askAdminPassword()) return;
-  if(!confirm('정말 모든 경매를 초기화할까요?')) return;
+  if(!confirm('정말 모든 경매를 초기화할까요?\n※ 주장 로그인 상태는 유지됩니다.')) return;
   try{
     await Promise.all([
       q(sb.from('auction_bids').delete().neq('id',0),'입찰 삭제'),
@@ -473,10 +475,11 @@ async function resetAll(){
       q(sb.from('auction_teams').delete().neq('id',0),'팀 삭제')
     ]);
     for(const c of CAPTAINS){
-      await q(sb.from('auction_captains').upsert({name:c.name,coins:START_COINS,online:false,session_id:null},{onConflict:'name'}),'주장 초기화');
+      // 리셋해도 주장 로그인/세션은 건드리지 않고 coin만 초기화합니다.
+      await q(sb.from('auction_captains').update({coins:START_COINS}).eq('name',c.name),'주장 coin 초기화');
     }
     await q(sb.from('auction_state').update({current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS}).eq('id',1),'상태 초기화');
-    localStorage.removeItem('auction_me'); me=null; lastFinishedKey='';
+    lastFinishedKey=''; processingSeenAt=0; finishRoundPromise=null; finishStartedAt=0; finishing=false;
     await addAuctionLog('운영진 전체 리셋');
     closeAdmin(); await loadAll();
   }catch(e){showErr('리셋 실패',e)}
@@ -489,8 +492,14 @@ async function pauseAuction(){
 async function resumeAuction(){
   if(!askAdminPassword()) return;
   const ni=soldPlayers().has(PLAYERS[state.current_index])?nextUnsoldIndex(state.current_index-1):state.current_index;
-  const passed=ROUND_SECONDS-(state.paused_remaining||ROUND_SECONDS);
-  await q(sb.from('auction_state').update({status:'running',current_index:ni>=0?ni:0,round_started_at:new Date(Date.now()-passed*1000).toISOString()}).eq('id',1),'재개');
+  const remain=clampRemaining(state.paused_remaining);
+  const passed=ROUND_SECONDS-remain;
+  await q(sb.from('auction_state').update({
+    status:'running',
+    current_index:ni>=0?ni:0,
+    round_started_at:new Date(Date.now()-passed*1000).toISOString(),
+    paused_remaining:remain
+  }).eq('id',1),'재개');
   await addAuctionLog('경매 재개'); await loadAll();
 }
 async function editCoin(name){
@@ -553,30 +562,109 @@ function render(){
     </div>
   </div>`;
 }
+
+async function settleRoundAndAdvance(localIndex, forceProcessing=false){
+  let freshSold=await getFreshSoldTeams();
+  let player=PLAYERS[localIndex];
+
+  if(!player || freshSold.some(t=>t.player_name===player)){
+    const ni=nextUnsoldIndexFrom(localIndex, freshSold);
+    if(ni<0 || allTeamsFullFrom(freshSold)) await endAuction();
+    else await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
+    return;
+  }
+
+  const fresh=await q(
+    sb.from('auction_bids')
+      .select('*')
+      .eq('player_name',player)
+      .order('amount',{ascending:false})
+      .order('created_at',{ascending:true})
+      .limit(1),
+    '최고 입찰 확인'
+  );
+  const hi=fresh[0];
+
+  if(hi){
+    const price=Number(hi.amount);
+    const cap=await q(sb.from('auction_captains').select('*').eq('name',hi.captain_name).single(), '낙찰 주장 확인');
+    freshSold=await getFreshSoldTeams();
+    const alreadySold=freshSold.some(t=>t.player_name===player);
+    const winnerFull=captainTeamCountFrom(hi.captain_name,freshSold)>=TEAM_SIZE;
+    const coinEnough=Number(cap?.coins||0)>=price;
+    if(!alreadySold && !winnerFull && coinEnough){
+      const inserted=await q(
+        sb.from('auction_teams')
+          .insert({captain_name:hi.captain_name,player_name:player,price,group_name:groupNameByCaptain(hi.captain_name),sold_order:nextSoldOrderFrom(freshSold)})
+          .select(),
+        '낙찰 저장'
+      );
+      if(inserted.length){
+        await q(sb.from('auction_captains').update({coins:Math.max(0,Number(cap.coins)-price)}).eq('name',hi.captain_name),'코인 차감');
+        await addAuctionLog(`${player} 낙찰: ${hi.captain_name}님 ${price} 낙찰`);
+      }
+    }else if(!alreadySold){
+      await addAuctionLog(`${player} 유찰`);
+    }
+  }else{
+    await addAuctionLog(`${player} 유찰`);
+  }
+
+  freshSold=await getFreshSoldTeams();
+  if(allTeamsFullFrom(freshSold)) await endAuction();
+  else{
+    const ni=nextUnsoldIndexFrom(localIndex, freshSold);
+    if(ni<0) await endAuction();
+    else await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
+  }
+}
+
+async function forceFinishProcessingRound(){
+  if(state.status!=='processing') return;
+  const localIndex=state.current_index;
+  const startedAt=state.round_started_at;
+  const key=`force_${localIndex}_${startedAt||''}`;
+  if(lastFinishedKey===key) return;
+  lastFinishedKey=key;
+  finishing=true;
+  try{
+    const lock=await q(
+      sb.from('auction_state')
+        .update({status:'processing',paused_remaining:0})
+        .eq('id',1)
+        .eq('status','processing')
+        .eq('current_index',localIndex)
+        .select('*'),
+      '처리중 복구 잠금'
+    );
+    if(!lock.length) return;
+    await settleRoundAndAdvance(localIndex, true);
+    await loadAll();
+  }catch(e){
+    showErr('처리중 복구 실패',e);
+    try{
+      const freshSold=await getFreshSoldTeams();
+      const ni=nextUnsoldIndexFrom(localIndex, freshSold);
+      if(ni>=0 && !allTeamsFullFrom(freshSold)){
+        await sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1);
+      }else{
+        await sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1);
+      }
+      await loadAll();
+    }catch(_){}
+  }finally{
+    finishing=false;
+  }
+}
+
 async function recoverProcessingIfStuck(){
-  // 다른 접속자가 라운드 종료를 처리하는 잠깐의 processing 상태는 기다립니다.
-  // 단, 네트워크 오류 등으로 processing이 오래 지속되면 같은 선수를 30초부터 다시 진행하여 0초 멈춤을 해제합니다.
+  // processing은 정상적으로 낙찰/유찰을 저장하는 짧은 잠금 상태입니다.
+  // 예전처럼 같은 선수를 30초로 되돌리지 않고, 오래 멈췄을 때만 낙찰/유찰 처리 후 다음 선수로 넘깁니다.
   if(state.status!=='processing') { processingSeenAt=0; return; }
   if(!processingSeenAt) processingSeenAt=Date.now();
-  if(Date.now()-processingSeenAt < 1200) return;
-  try{
-    const freshSold=await getFreshSoldTeams();
-    if(allTeamsFullFrom(freshSold)){
-      await sb.from('auction_state').update({status:'ended',round_started_at:null}).eq('id',1);
-    }else{
-      let idx=state.current_index;
-      if(!PLAYERS[idx] || freshSold.some(t=>t.player_name===PLAYERS[idx])) idx=nextUnsoldIndexFrom(idx, freshSold);
-      if(idx<0) idx=nextUnsoldIndexFrom(-1, freshSold);
-      await sb.from('auction_state').update({
-        status:'running',
-        current_index:idx>=0?idx:0,
-        round_started_at:nowIso(),
-        paused_remaining:ROUND_SECONDS
-      }).eq('id',1);
-    }
-    processingSeenAt=0;
-    await loadAll();
-  }catch(e){ console.warn(e); }
+  if(Date.now()-processingSeenAt < PROCESSING_STUCK_MS) return;
+  processingSeenAt=0;
+  await forceFinishProcessingRound();
 }
 
 
@@ -588,7 +676,7 @@ async function boot(){
   sb.channel('auction-live').on('postgres_changes',{event:'*',schema:'public'},()=>loadAll()).subscribe();
   setInterval(()=>{
     try{
-      if(finishRoundPromise && finishStartedAt && Date.now()-finishStartedAt>6000){
+      if(finishRoundPromise && finishStartedAt && Date.now()-finishStartedAt>PROCESSING_STUCK_MS){
         finishRoundPromise=null; finishStartedAt=0; finishing=false;
         recoverProcessingIfStuck();
       }
