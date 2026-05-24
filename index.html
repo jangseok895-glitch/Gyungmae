@@ -208,6 +208,15 @@ async function loadAll(skipRender=false){
     ]);
     const prevRoundKey = state ? `${state.status}_${state.current_index}_${state.round_started_at||''}` : '';
     state=st||state; captains=cs||[]; bids=bd||[]; logs=lg||[]; teams=tm||[];
+    // 모든 화면은 DB의 주장 session_id를 기준으로 로그인 유효성을 맞춥니다.
+    // 공장초기화로 session_id가 null이 되면 접속 중인 모든 주장이 자동 로그아웃됩니다.
+    if(me){
+      const currentCap=captains.find(c=>c.name===me.name);
+      if(currentCap && currentCap.session_id !== me.sessionId){
+        localStorage.removeItem('auction_me');
+        me=null;
+      }
+    }
     const newRoundKey = `${state.status}_${state.current_index}_${state.round_started_at||''}`;
     if(state.status==='running' && state.round_started_at && newRoundKey!==prevRoundKey && newRoundKey!==lastRoundKeyForNextSound){
       lastRoundKeyForNextSound=newRoundKey;
@@ -291,10 +300,10 @@ async function logout(){
 async function heartbeat(){
   if(!me) return;
   const cap=captains.find(c=>c.name===me.name);
-  if(cap&&cap.session_id&&cap.session_id!==me.sessionId){
+  // 공장초기화 또는 다른 곳 재로그인으로 session_id가 바뀌거나 null이 되면 즉시 로그아웃 처리합니다.
+  if(cap && cap.session_id !== me.sessionId){
     localStorage.removeItem('auction_me'); me=null;
-    toast('다른 곳에서 다시 로그인되어 현재 접속은 종료됩니다.');
-    loadAll(); return;
+    await loadAll(); return;
   }
   try{await sb.from('auction_captains').update({online:true,last_seen:nowIso()}).eq('name',me.name).eq('session_id',me.sessionId)}catch(e){}
 }
@@ -333,6 +342,7 @@ function openAdmin(){
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="gold" onclick="promptStart()">경매 시작</button>
       <button class="danger" onclick="resetAll()">모든리셋</button>
+      <button class="danger" onclick="factoryResetAll()" title="모든 주장 로그인까지 강제 해제">공장초기화</button>
       <button class="warn" onclick="pauseAuction()">정지</button>
       <button class="ok" onclick="resumeAuction()">재개</button>
     </div>
@@ -559,6 +569,31 @@ async function resetAll(){
     closeAdmin(); await loadAll();
   }catch(e){showErr('리셋 실패',e)}
 }
+async function factoryResetAll(){
+  if(!await askAdminPassword()) return;
+  if(!confirm('정말 공장초기화를 할까요?\n\n※ 경매 데이터가 초기화되고, 로그인된 모든 주장이 강제 로그아웃됩니다.\n※ 모두 새로고침 후 다시 로그인해야 합니다.')) return;
+  try{
+    await Promise.all([
+      q(sb.from('auction_bids').delete().neq('id',0),'입찰 삭제'),
+      q(sb.from('auction_logs').delete().neq('id',0),'로그 삭제'),
+      q(sb.from('auction_teams').delete().neq('id',0),'팀 삭제')
+    ]);
+    for(const c of CAPTAINS){
+      await q(
+        sb.from('auction_captains')
+          .update({coins:START_COINS,online:false,session_id:null,last_seen:null})
+          .eq('name',c.name),
+        '주장 공장초기화'
+      );
+    }
+    await q(sb.from('auction_state').update({current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS}).eq('id',1),'상태 초기화');
+    localStorage.removeItem('auction_me'); me=null;
+    lastFinishedKey=''; processingSeenAt=0; finishRoundPromise=null; finishStartedAt=0; finishing=false;
+    await addAuctionLog('운영진 공장초기화');
+    closeAdmin(); await loadAll();
+  }catch(e){showErr('공장초기화 실패',e)}
+}
+
 async function pauseAuction(){
   if(!await askAdminPassword()) return;
   await q(sb.from('auction_state').update({status:'paused',paused_remaining:remainingSeconds(),round_started_at:null}).eq('id',1),'정지');
