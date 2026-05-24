@@ -89,7 +89,7 @@ const ADMIN_PASSWORD='0473';
 const START_COINS=1000;
 const BID_STEP=10;
 const ROUND_SECONDS=30;
-const PROCESSING_STUCK_MS=2500;
+const PROCESSING_STUCK_MS=1200;
 const TEAM_SIZE=3;
 const SOUND_NEXT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EB%9D%B5%EB%8F%99.mp3';
 const SOUND_COUNT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/5%EC%B9%B4%EC%9A%B4%ED%8A%B8.mp3';
@@ -395,38 +395,46 @@ function nextSoldOrderFrom(freshSold){
 async function finishRound(){
   if(state.status!=='running'||remainingSeconds()>0) return;
   if(finishing) return;
+
   const localIndex=state.current_index;
   const localStartedAt=state.round_started_at;
   const finishKey=`${localIndex}_${localStartedAt}`;
   if(lastFinishedKey===finishKey) return;
-  finishing=true; lastFinishedKey=finishKey;
-  // 0초에서 멈춰 보이지 않도록 즉시 처리중 화면으로 바꿉니다.
-  render();
 
+  finishing=true;
+  lastFinishedKey=finishKey;
+  if(!isEditing()) render();
+
+  let logMessage='';
   try{
-    const processingStartedAt=nowIso();
+    // 1) 먼저 이 라운드를 한 사람만 처리하도록 아주 짧게 잠급니다.
     const lock=await q(
       sb.from('auction_state')
-        .update({status:'processing',round_started_at:processingStartedAt,paused_remaining:0})
+        .update({status:'processing',round_started_at:nowIso(),paused_remaining:0})
         .eq('id',1)
         .eq('status','running')
         .eq('current_index',localIndex)
         .eq('round_started_at',localStartedAt)
-        .select('*'),
+        .select('id'),
       '라운드 잠금'
     );
     if(!lock.length){ finishing=false; return; }
 
+    const player=PLAYERS[localIndex];
     let freshSold=await getFreshSoldTeams();
-    let player=PLAYERS[localIndex];
 
     if(!player || freshSold.some(t=>t.player_name===player)){
       const ni=nextUnsoldIndexFrom(localIndex, freshSold);
-      if(ni<0 || allTeamsFullFrom(freshSold)) await endAuction();
-      else await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
-      await loadAll(); return;
+      if(ni<0 || allTeamsFullFrom(freshSold)){
+        await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
+      }else{
+        await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
+      }
+      await loadAll();
+      return;
     }
 
+    // 2) 최고 입찰만 확인합니다. 처리중 화면이 길어지는 원인이던 중복 조회를 줄였습니다.
     const fresh=await q(
       sb.from('auction_bids')
         .select('*')
@@ -440,36 +448,42 @@ async function finishRound(){
 
     if(hi){
       const price=Number(hi.amount);
-      const cap=await q(sb.from('auction_captains').select('*').eq('name',hi.captain_name).single(), '낙찰 주장 확인');
-      freshSold=await getFreshSoldTeams();
+      const cap=captains.find(c=>c.name===hi.captain_name) || await q(sb.from('auction_captains').select('*').eq('name',hi.captain_name).single(), '낙찰 주장 확인');
       const alreadySold=freshSold.some(t=>t.player_name===player);
       const winnerFull=captainTeamCountFrom(hi.captain_name,freshSold)>=TEAM_SIZE;
       const coinEnough=Number(cap?.coins||0)>=price;
+
       if(!alreadySold && !winnerFull && coinEnough){
-        const inserted=await q(
+        await q(
           sb.from('auction_teams')
             .insert({captain_name:hi.captain_name,player_name:player,price,group_name:groupNameByCaptain(hi.captain_name),sold_order:nextSoldOrderFrom(freshSold)})
-            .select(),
+            .select('id'),
           '낙찰 저장'
         );
-        if(inserted.length){
-          await q(sb.from('auction_captains').update({coins:Math.max(0,Number(cap.coins)-price)}).eq('name',hi.captain_name),'코인 차감');
-          await addAuctionLog(`${player} 낙찰: ${hi.captain_name}님 ${price} 낙찰`);
-        }
+        await q(sb.from('auction_captains').update({coins:Math.max(0,Number(cap.coins)-price)}).eq('name',hi.captain_name),'코인 차감');
+        freshSold=[...freshSold,{captain_name:hi.captain_name,player_name:player,price,group_name:groupNameByCaptain(hi.captain_name),sold_order:nextSoldOrderFrom(freshSold)}];
+        logMessage=`${player} 낙찰: ${hi.captain_name}님 ${price} 낙찰`;
       }else{
-        await addAuctionLog(`${player} 유찰`);
+        logMessage=`${player} 유찰`;
       }
     }else{
-      await addAuctionLog(`${player} 유찰`);
+      logMessage=`${player} 유찰`;
     }
 
-    freshSold=await getFreshSoldTeams();
-    if(allTeamsFullFrom(freshSold)) await endAuction();
-    else{
+    // 3) 화면 전환을 최우선으로 합니다. 로그 저장보다 다음 선수 이동을 먼저 처리합니다.
+    if(allTeamsFullFrom(freshSold)){
+      await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
+    }else{
       const ni=nextUnsoldIndexFrom(localIndex, freshSold);
-      if(ni<0) await endAuction();
-      else await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
+      if(ni<0){
+        await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
+      }else{
+        await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
+      }
     }
+
+    // 4) 로그는 상태 전환 후 저장해서 '처리중' 화면 체감 시간을 줄입니다.
+    if(logMessage) addAuctionLog(logMessage);
     await loadAll();
   }catch(e){
     showErr('라운드 종료 실패',e);
@@ -479,10 +493,10 @@ async function finishRound(){
       if(ni>=0 && !allTeamsFullFrom(freshSold)){
         await sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1);
       }else{
-        await sb.from('auction_state').update({status:'ended',round_started_at:null}).eq('id',1);
+        await sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1);
       }
       await loadAll();
-    }catch(_){}
+    }catch(_){ }
   }finally{
     finishing=false;
   }
