@@ -114,6 +114,8 @@ const PROCESSING_STUCK_MS=3000;
 const TEAM_SIZE=3;
 const SOUND_NEXT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EB%9D%B5%EB%8F%99.mp3';
 const SOUND_COUNT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/5%EC%B9%B4%EC%9A%B4%ED%8A%B8.mp3';
+const SOUND_WHEEL_SPIN='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EB%8F%8C%EB%A6%BC%ED%8C%90%EC%86%8C%EB%A6%AC.mp3';
+const SOUND_WHEEL_RESULT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EC%A0%95%EB%8B%B5.mp3';
 
 let me=JSON.parse(localStorage.getItem('auction_me')||'null');
 let visitorId=localStorage.getItem('auction_visitor_id');
@@ -126,7 +128,10 @@ let adminAuthorized=false; // 새로고침/다른 브라우저에 권한이 남�
 let audioUnlocked=false;
 const audioNext=new Audio(SOUND_NEXT);
 const audioCount=new Audio(SOUND_COUNT);
-audioNext.preload='auto'; audioCount.preload='auto';
+const audioWheelSpin=new Audio(SOUND_WHEEL_SPIN);
+const audioWheelResult=new Audio(SOUND_WHEEL_RESULT);
+audioWheelSpin.loop=true;
+audioNext.preload='auto'; audioCount.preload='auto'; audioWheelSpin.preload='auto'; audioWheelResult.preload='auto';
 const app=document.getElementById('app'), modalRoot=document.getElementById('modalRoot');
 const $=s=>document.querySelector(s);
 const nowIso=()=>new Date().toISOString();
@@ -168,7 +173,7 @@ function toast(m){alert(m)}
 function unlockAudio(){
   if(audioUnlocked) return;
   audioUnlocked=true;
-  [audioNext,audioCount].forEach(a=>{try{a.volume=0.85; const p=a.play(); if(p&&p.then)p.then(()=>{a.pause();a.currentTime=0}).catch(()=>{});}catch(e){}});
+  [audioNext,audioCount,audioWheelSpin,audioWheelResult].forEach(a=>{try{a.volume=0.85; const p=a.play(); if(p&&p.then)p.then(()=>{a.pause();a.currentTime=0}).catch(()=>{});}catch(e){}});
 }
 function playSound(kind){
   if(!audioUnlocked) return;
@@ -176,6 +181,22 @@ function playSound(kind){
     const a=kind==='count'?audioCount:audioNext;
     a.pause(); a.currentTime=0;
     const p=a.play(); if(p&&p.catch)p.catch(()=>{});
+  }catch(e){}
+}
+function playWheelSpinSound(){
+  try{
+    audioWheelResult.pause(); audioWheelResult.currentTime=0;
+    audioWheelSpin.pause(); audioWheelSpin.currentTime=0;
+    const p=audioWheelSpin.play(); if(p&&p.catch)p.catch(()=>{});
+  }catch(e){}
+}
+function stopWheelSpinSound(){
+  try{audioWheelSpin.pause(); audioWheelSpin.currentTime=0;}catch(e){}
+}
+function playWheelResultSound(){
+  try{
+    audioWheelResult.pause(); audioWheelResult.currentTime=0;
+    const p=audioWheelResult.play(); if(p&&p.catch)p.catch(()=>{});
   }catch(e){}
 }
 document.addEventListener('click', unlockAudio, {once:true});
@@ -729,7 +750,7 @@ function openMapWheel(){
   </div></div>`;
   setTimeout(()=>{drawMapWheel(); renderMapWheelList(); applyWheelRotation(false);},0);
 }
-function closeMapWheel(){ if(wheelSpinning) return; modalRoot.innerHTML=''; }
+function closeMapWheel(){ if(wheelSpinning) return; stopWheelSpinSound(); modalRoot.innerHTML=''; }
 function renderMapWheelList(){
   const box=document.getElementById('mapWheelList');
   if(!box) return;
@@ -749,6 +770,7 @@ function setMapWheelButtons(disabled){
 function spinMapWheel(){
   if(wheelSpinning || !wheelMaps.length) return;
   wheelSpinning=true; setMapWheelButtons(true);
+  playWheelSpinSound();
   const n=wheelMaps.length;
   const seg=360/n;
   const picked=Math.floor(Math.random()*n);
@@ -762,6 +784,8 @@ function spinMapWheel(){
   if(resultEl) resultEl.textContent='돌리는 중...';
   applyWheelRotation(true);
   setTimeout(()=>{
+    stopWheelSpinSound();
+    playWheelResultSound();
     wheelLastResult=wheelMaps[picked];
     const el=document.getElementById('mapWheelResultName');
     if(el) el.textContent=wheelLastResult;
