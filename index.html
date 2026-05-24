@@ -248,11 +248,12 @@ function askAdminPassword(){
 }
 async function promptStart(){ if(askAdminPassword()) await startAuction(); }
 function openAdmin(){
-  if(!askAdminPassword()) return;
+  // 운영진 패널 입장 자체는 비밀번호 없이 열립니다.
+  // 실제 버튼을 누를 때마다 비밀번호를 확인합니다.
   modalRoot.innerHTML=`<div class="modalBg"><div class="modal">
     <div class="sectionHead"><h2>운영진 패널</h2><button class="ghost" onclick="closeAdmin()">닫기</button></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="gold" onclick="startAuction()">경매 시작</button>
+      <button class="gold" onclick="promptStart()">경매 시작</button>
       <button class="danger" onclick="resetAll()">모든리셋</button>
       <button class="warn" onclick="pauseAuction()">정지</button>
       <button class="ok" onclick="resumeAuction()">재개</button>
@@ -304,55 +305,80 @@ async function customBid(){
 }
 function groupNameByCaptain(name){return ['A조','B조','C조','D조','E조'][CAPTAINS.findIndex(c=>c.name===name)]||'미정'}
 
+async function getFreshSoldTeams(){
+  const rows=await q(sb.from('auction_teams').select('*').not('captain_name','is',null).gt('price',0).order('sold_order'), '팀 최신 확인');
+  const map=new Map();
+  for(const t of rows||[]){
+    const old=map.get(t.player_name);
+    if(!old || Number(t.sold_order||0)<Number(old.sold_order||0)) map.set(t.player_name,t);
+  }
+  return [...map.values()];
+}
+function nextUnsoldIndexFrom(afterIndex, freshSold){
+  const sold=new Set((freshSold||soldTeams()).map(t=>t.player_name));
+  for(let step=1;step<=PLAYERS.length;step++){
+    const idx=(afterIndex+step+PLAYERS.length)%PLAYERS.length;
+    if(!sold.has(PLAYERS[idx])) return idx;
+  }
+  return -1;
+}
+function captainTeamCountFrom(name, freshSold){
+  return (freshSold||soldTeams()).filter(t=>t.captain_name===name).length;
+}
+function allTeamsFullFrom(freshSold){
+  return CAPTAINS.every(c=>captainTeamCountFrom(c.name,freshSold)>=TEAM_SIZE);
+}
+
 async function finishRound(){
   if(finishing||state.status!=='running'||remainingSeconds()>0) return;
-  const finishKey=`${state.current_index}_${state.round_started_at}`;
+  const localIndex=state.current_index;
+  const localStartedAt=state.round_started_at;
+  const finishKey=`${localIndex}_${localStartedAt}`;
   if(lastFinishedKey===finishKey) return;
   finishing=true; lastFinishedKey=finishKey;
 
   try{
-    await loadAll(true);
-    if(state.status!=='running'){finishing=false;return}
     const lock=await q(
       sb.from('auction_state')
         .update({status:'processing'})
         .eq('id',1)
         .eq('status','running')
-        .eq('current_index',state.current_index)
+        .eq('current_index',localIndex)
+        .eq('round_started_at',localStartedAt)
         .select('*'),
       '라운드 잠금'
     );
-    if(!lock.length){finishing=false;return}
+    if(!lock.length){ finishing=false; return; }
 
-    await loadAll(true);
-    const player=PLAYERS[state.current_index];
+    let freshSold=await getFreshSoldTeams();
+    let player=PLAYERS[localIndex];
 
-    if(!player || soldPlayers().has(player)){
-      const ni=nextUnsoldIndex(state.current_index);
-      if(ni<0 || allTeamsFull()) await endAuction();
+    if(!player || freshSold.some(t=>t.player_name===player)){
+      const ni=nextUnsoldIndexFrom(localIndex, freshSold);
+      if(ni<0 || allTeamsFullFrom(freshSold)) await endAuction();
       else await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
-      finishing=false; await loadAll(); return;
+      await loadAll(); return;
     }
 
-    const already=await q(sb.from('auction_teams').select('*').eq('player_name',player).not('captain_name','is',null).gt('price',0).limit(1),'중복 낙찰 확인');
-    if(already.length){
-      const ni=nextUnsoldIndex(state.current_index);
-      if(ni<0 || allTeamsFull()) await endAuction();
-      else await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
-      finishing=false; await loadAll(); return;
-    }
-
-    const fresh=await q(sb.from('auction_bids').select('*').eq('player_name',player).order('amount',{ascending:false}).order('created_at',{ascending:true}).limit(1),'최고 입찰 확인');
+    const fresh=await q(
+      sb.from('auction_bids')
+        .select('*')
+        .eq('player_name',player)
+        .order('amount',{ascending:false})
+        .order('created_at',{ascending:true})
+        .limit(1),
+      '최고 입찰 확인'
+    );
     const hi=fresh[0];
 
     if(hi){
-      await loadAll(true);
-      const winnerCount=captainTeamCount(hi.captain_name);
-      const cap=captains.find(c=>c.name===hi.captain_name);
       const price=Number(hi.amount);
-      if(!cap || winnerCount>=TEAM_SIZE || Number(cap.coins)<price){
-        await addAuctionLog(`${player} 유찰`);
-      }else{
+      const cap=await q(sb.from('auction_captains').select('*').eq('name',hi.captain_name).single(), '낙찰 주장 확인');
+      freshSold=await getFreshSoldTeams();
+      const alreadySold=freshSold.some(t=>t.player_name===player);
+      const winnerFull=captainTeamCountFrom(hi.captain_name,freshSold)>=TEAM_SIZE;
+      const coinEnough=Number(cap?.coins||0)>=price;
+      if(!alreadySold && !winnerFull && coinEnough){
         const inserted=await q(
           sb.from('auction_teams')
             .insert({captain_name:hi.captain_name,player_name:player,price,group_name:groupNameByCaptain(hi.captain_name),sold_order:Date.now()})
@@ -363,15 +389,17 @@ async function finishRound(){
           await q(sb.from('auction_captains').update({coins:Math.max(0,Number(cap.coins)-price)}).eq('name',hi.captain_name),'코인 차감');
           await addAuctionLog(`${player} 낙찰: ${hi.captain_name}님 ${price} 낙찰`);
         }
+      }else{
+        await addAuctionLog(`${player} 유찰`);
       }
     }else{
       await addAuctionLog(`${player} 유찰`);
     }
 
-    await loadAll(true);
-    if(allTeamsFull()) await endAuction();
+    freshSold=await getFreshSoldTeams();
+    if(allTeamsFullFrom(freshSold)) await endAuction();
     else{
-      const ni=nextUnsoldIndex(state.current_index);
+      const ni=nextUnsoldIndexFrom(localIndex, freshSold);
       if(ni<0) await endAuction();
       else await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
     }
@@ -379,7 +407,8 @@ async function finishRound(){
   }catch(e){
     showErr('라운드 종료 실패',e);
     try{
-      const ni=nextUnsoldIndex(state.current_index);
+      const freshSold=await getFreshSoldTeams();
+      const ni=nextUnsoldIndexFrom(localIndex, freshSold);
       await sb.from('auction_state').update({status:'running',current_index:ni>=0?ni:0,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1);
     }catch(_){}
   }finally{
@@ -487,13 +516,17 @@ async function boot(){
   await ensureData();
   await loadAll();
   sb.channel('auction-live').on('postgres_changes',{event:'*',schema:'public'},()=>loadAll()).subscribe();
-  setInterval(async()=>{
+  setInterval(()=>{
     try{
-      await visitorHeartbeat();
-      if(me) await heartbeat();
-      await loadVisitorCount();
-      if(state.status==='running' && remainingSeconds()<=0) await finishRound();
+      // 타이머 화면은 네트워크 요청을 기다리지 않고 즉시 갱신합니다.
+      if(state.status==='running' && remainingSeconds()<=0) finishRound();
+      else if(state.status==='processing') { /* 처리 중에는 DB 완료를 기다립니다 */ }
       else if(!isEditing()) render();
+
+      // 접속자/로그인 유지 요청은 뒤에서 비동기로 처리하여 타이머 멈춤을 줄입니다.
+      visitorHeartbeat();
+      if(me) heartbeat();
+      loadVisitorCount().then(()=>{ if(!isEditing()) render(); });
     }catch(e){console.error(e)}
   },1000);
 }
