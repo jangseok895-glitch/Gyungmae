@@ -89,7 +89,7 @@ const ADMIN_PASSWORD='0473';
 const START_COINS=1000;
 const BID_STEP=10;
 const ROUND_SECONDS=30;
-const PROCESSING_STUCK_MS=1200;
+const PROCESSING_STUCK_MS=650;
 const TEAM_SIZE=3;
 const SOUND_NEXT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EB%9D%B5%EB%8F%99.mp3';
 const SOUND_COUNT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/5%EC%B9%B4%EC%9A%B4%ED%8A%B8.mp3';
@@ -392,6 +392,74 @@ function nextSoldOrderFrom(freshSold){
   return max+1; // sold_order는 int4라 Date.now() 같은 큰 숫자를 넣으면 오류가 납니다.
 }
 
+async function completeRoundAndMove(localIndex, reason='normal'){
+  let logMessage='';
+  let player=PLAYERS[localIndex];
+  let freshSold=await getFreshSoldTeams();
+
+  if(!player || freshSold.some(t=>t.player_name===player)){
+    const ni=nextUnsoldIndexFrom(localIndex, freshSold);
+    if(ni<0 || allTeamsFullFrom(freshSold)){
+      await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
+    }else{
+      await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
+    }
+    return;
+  }
+
+  const fresh=await q(
+    sb.from('auction_bids')
+      .select('*')
+      .eq('player_name',player)
+      .order('amount',{ascending:false})
+      .order('created_at',{ascending:true})
+      .limit(1),
+    '최고 입찰 확인'
+  );
+  const hi=fresh[0];
+
+  if(hi){
+    const price=Number(hi.amount);
+    let cap=captains.find(c=>c.name===hi.captain_name);
+    if(!cap) cap=await q(sb.from('auction_captains').select('*').eq('name',hi.captain_name).single(), '낙찰 주장 확인');
+
+    freshSold=await getFreshSoldTeams();
+    const alreadySold=freshSold.some(t=>t.player_name===player);
+    const winnerFull=captainTeamCountFrom(hi.captain_name,freshSold)>=TEAM_SIZE;
+    const coinEnough=Number(cap?.coins||0)>=price;
+
+    if(!alreadySold && !winnerFull && coinEnough){
+      const order=nextSoldOrderFrom(freshSold);
+      await q(
+        sb.from('auction_teams')
+          .insert({captain_name:hi.captain_name,player_name:player,price,group_name:groupNameByCaptain(hi.captain_name),sold_order:order})
+          .select('id'),
+        '낙찰 저장'
+      );
+      await q(sb.from('auction_captains').update({coins:Math.max(0,Number(cap.coins)-price)}).eq('name',hi.captain_name),'코인 차감');
+      freshSold=[...freshSold,{captain_name:hi.captain_name,player_name:player,price,group_name:groupNameByCaptain(hi.captain_name),sold_order:order}];
+      logMessage=`${player} 낙찰: ${hi.captain_name}님 ${price} 낙찰`;
+    }else{
+      logMessage=`${player} 유찰`;
+    }
+  }else{
+    logMessage=`${player} 유찰`;
+  }
+
+  // 가장 중요한 부분: 로그보다 상태 전환을 먼저 합니다.
+  if(allTeamsFullFrom(freshSold)){
+    await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
+  }else{
+    const ni=nextUnsoldIndexFrom(localIndex, freshSold);
+    if(ni<0){
+      await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
+    }else{
+      await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
+    }
+  }
+  if(logMessage) addAuctionLog(logMessage);
+}
+
 async function finishRound(){
   if(state.status!=='running'||remainingSeconds()>0) return;
   if(finishing) return;
@@ -405,9 +473,8 @@ async function finishRound(){
   lastFinishedKey=finishKey;
   if(!isEditing()) render();
 
-  let logMessage='';
   try{
-    // 1) 먼저 이 라운드를 한 사람만 처리하도록 아주 짧게 잠급니다.
+    // DB에는 아주 짧은 잠금만 겁니다. 여러 접속자가 동시에 0초를 감지해도 한 명만 통과합니다.
     const lock=await q(
       sb.from('auction_state')
         .update({status:'processing',round_started_at:nowIso(),paused_remaining:0})
@@ -420,73 +487,12 @@ async function finishRound(){
     );
     if(!lock.length){ finishing=false; return; }
 
-    const player=PLAYERS[localIndex];
-    let freshSold=await getFreshSoldTeams();
-
-    if(!player || freshSold.some(t=>t.player_name===player)){
-      const ni=nextUnsoldIndexFrom(localIndex, freshSold);
-      if(ni<0 || allTeamsFullFrom(freshSold)){
-        await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
-      }else{
-        await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
-      }
-      await loadAll();
-      return;
-    }
-
-    // 2) 최고 입찰만 확인합니다. 처리중 화면이 길어지는 원인이던 중복 조회를 줄였습니다.
-    const fresh=await q(
-      sb.from('auction_bids')
-        .select('*')
-        .eq('player_name',player)
-        .order('amount',{ascending:false})
-        .order('created_at',{ascending:true})
-        .limit(1),
-      '최고 입찰 확인'
-    );
-    const hi=fresh[0];
-
-    if(hi){
-      const price=Number(hi.amount);
-      const cap=captains.find(c=>c.name===hi.captain_name) || await q(sb.from('auction_captains').select('*').eq('name',hi.captain_name).single(), '낙찰 주장 확인');
-      const alreadySold=freshSold.some(t=>t.player_name===player);
-      const winnerFull=captainTeamCountFrom(hi.captain_name,freshSold)>=TEAM_SIZE;
-      const coinEnough=Number(cap?.coins||0)>=price;
-
-      if(!alreadySold && !winnerFull && coinEnough){
-        await q(
-          sb.from('auction_teams')
-            .insert({captain_name:hi.captain_name,player_name:player,price,group_name:groupNameByCaptain(hi.captain_name),sold_order:nextSoldOrderFrom(freshSold)})
-            .select('id'),
-          '낙찰 저장'
-        );
-        await q(sb.from('auction_captains').update({coins:Math.max(0,Number(cap.coins)-price)}).eq('name',hi.captain_name),'코인 차감');
-        freshSold=[...freshSold,{captain_name:hi.captain_name,player_name:player,price,group_name:groupNameByCaptain(hi.captain_name),sold_order:nextSoldOrderFrom(freshSold)}];
-        logMessage=`${player} 낙찰: ${hi.captain_name}님 ${price} 낙찰`;
-      }else{
-        logMessage=`${player} 유찰`;
-      }
-    }else{
-      logMessage=`${player} 유찰`;
-    }
-
-    // 3) 화면 전환을 최우선으로 합니다. 로그 저장보다 다음 선수 이동을 먼저 처리합니다.
-    if(allTeamsFullFrom(freshSold)){
-      await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
-    }else{
-      const ni=nextUnsoldIndexFrom(localIndex, freshSold);
-      if(ni<0){
-        await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
-      }else{
-        await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
-      }
-    }
-
-    // 4) 로그는 상태 전환 후 저장해서 '처리중' 화면 체감 시간을 줄입니다.
-    if(logMessage) addAuctionLog(logMessage);
+    await completeRoundAndMove(localIndex, 'finish');
+    processingSeenAt=0;
     await loadAll();
   }catch(e){
-    showErr('라운드 종료 실패',e);
+    console.warn('라운드 종료 복구 처리', e);
+    // 오류가 나도 processing에 방치하지 않고 무조건 다음 상태로 돌립니다.
     try{
       const freshSold=await getFreshSoldTeams();
       const ni=nextUnsoldIndexFrom(localIndex, freshSold);
@@ -495,10 +501,15 @@ async function finishRound(){
       }else{
         await sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1);
       }
+      lastError='';
       await loadAll();
-    }catch(_){ }
+    }catch(e2){
+      showErr('라운드 복구 실패',e2);
+    }
   }finally{
     finishing=false;
+    finishRoundPromise=null;
+    finishStartedAt=0;
   }
 }
 
@@ -597,26 +608,34 @@ function render(){
     </div>
   </div>`;
 }
-async function recoverProcessingIfStuck(){
-  // processing은 낙찰/유찰 저장 중인 짧은 잠금 상태입니다.
-  // 오래 멈추면 같은 선수를 다시 30초로 되돌리지 않고, 안전하게 다음 미낙찰 선수로 넘깁니다.
+async function recoverProcessingIfStuck(force=false){
   if(state.status!=='processing') { processingSeenAt=0; return; }
   if(!processingSeenAt) processingSeenAt=Date.now();
-  if(Date.now()-processingSeenAt < PROCESSING_STUCK_MS) return;
+  if(!force && Date.now()-processingSeenAt < PROCESSING_STUCK_MS) return;
   try{
-    const freshSold=await getFreshSoldTeams();
-    if(allTeamsFullFrom(freshSold)){
-      await sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1);
-    }else{
-      let idx=state.current_index;
-      if(!PLAYERS[idx] || freshSold.some(t=>t.player_name===PLAYERS[idx])) idx=nextUnsoldIndexFrom(idx, freshSold);
-      else idx=nextUnsoldIndexFrom(idx, freshSold);
-      if(idx<0) idx=nextUnsoldIndexFrom(-1, freshSold);
-      await sb.from('auction_state').update({status:'running',current_index:idx>=0?idx:0,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1);
-    }
+    const idx=Number(state.current_index||0);
+    // processing이 남아있으면 같은 라운드를 마저 처리해서 낙찰/유찰 후 다음 선수로 넘깁니다.
+    await completeRoundAndMove(idx, 'recovery');
     processingSeenAt=0;
+    lastError='';
     await loadAll();
-  }catch(e){ console.warn(e); }
+  }catch(e){
+    console.warn('processing 강제 복구', e);
+    try{
+      const freshSold=await getFreshSoldTeams();
+      let idx=Number(state.current_index||0);
+      idx=nextUnsoldIndexFrom(idx, freshSold);
+      if(idx<0) idx=nextUnsoldIndexFrom(-1, freshSold);
+      if(idx>=0 && !allTeamsFullFrom(freshSold)){
+        await sb.from('auction_state').update({status:'running',current_index:idx,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1);
+      }else{
+        await sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1);
+      }
+      processingSeenAt=0;
+      lastError='';
+      await loadAll();
+    }catch(e2){showErr('처리중 복구 실패',e2)}
+  }
 }
 
 
@@ -626,10 +645,11 @@ async function boot(){
     await visitorHeartbeat();
     await ensureData();
     await loadAll();
+    if(state.status==='processing') recoverProcessingIfStuck(true);
     sb.channel('auction-live').on('postgres_changes',{event:'*',schema:'public'},()=>loadAll()).subscribe();
   setInterval(()=>{
     try{
-      if(finishRoundPromise && finishStartedAt && Date.now()-finishStartedAt>6000){
+      if(finishRoundPromise && finishStartedAt && Date.now()-finishStartedAt>1800){
         finishRoundPromise=null; finishStartedAt=0; finishing=false;
         recoverProcessingIfStuck();
       }
