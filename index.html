@@ -2,287 +2,139 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=1280, initial-scale=1.0" />
   <title>아시아리그 팀원 경매</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root{--bg:#07111f;--card:#0f1b2e;--card2:#14243c;--line:#29415f;--text:#eaf4ff;--muted:#9fb4cd;--accent:#38bdf8;--gold:#facc15;--danger:#fb7185;--ok:#34d399;--warn:#f59e0b}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,'Noto Sans KR',sans-serif;background:radial-gradient(circle at top,#16345a 0,#07111f 42%,#040812 100%);color:var(--text);font-size:14px;min-width:1180px}
-    button,input,select{font-family:inherit} button{cursor:pointer;border:0;border-radius:10px;padding:8px 11px;font-weight:900;color:#07111f;background:var(--accent);font-size:13px} button:disabled{opacity:.45;cursor:not-allowed}.ghost{background:#1d314e;color:var(--text);border:1px solid var(--line)}.danger{background:var(--danger);color:#fff}.ok{background:var(--ok);color:#052014}.gold{background:var(--gold);color:#251a00}.warn{background:var(--warn);color:#231300}
-    .wrap{max-width:1280px;margin:0 auto;padding:12px}.top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}.title h1{margin:0;font-size:25px}.title p{margin:4px 0 0;color:var(--muted);font-size:13px}.me{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.badge{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:#10213a;border-radius:999px;padding:6px 9px;color:var(--muted);font-weight:800;font-size:12px}
-    .mainGrid{display:grid;grid-template-columns:1fr 1.05fr;gap:10px;align-items:start}.card{background:rgba(15,27,46,.92);border:1px solid var(--line);border-radius:15px;padding:11px;box-shadow:0 10px 25px rgba(0,0,0,.22);margin-bottom:10px}.card h2{margin:0 0 8px;font-size:17px}.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.sectionHead h2{margin:0}.onlineCount{font-size:12px;color:var(--muted);font-weight:800;background:#081525;border:1px solid var(--line);border-radius:999px;padding:4px 8px;white-space:nowrap}.onlineCount b{color:var(--ok)}.muted{color:var(--muted)}
-    .loginRow{display:grid;grid-template-columns:160px 180px 86px 1fr;gap:8px;align-items:end}.loginRow input,.loginRow select,.modal input,.modal select,.bidBox input{width:100%;background:#081525;border:1px solid var(--line);border-radius:10px;color:var(--text);padding:9px 10px;font-size:14px}.loginRow label{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}
-    .captains{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.captain{background:#0b1728;border:1px solid var(--line);border-radius:12px;padding:8px 6px;text-align:center;min-width:0}.captain.on{border-color:var(--ok);box-shadow:0 0 0 1px rgba(52,211,153,.35)}.coin{font-size:19px;color:var(--gold);font-weight:1000;line-height:1.1}.small{font-size:11px;color:var(--muted)}
-    .auctionNow{display:grid;grid-template-columns:145px 1fr;gap:10px;align-items:center}.playerBox{height:138px;border-radius:17px;background:linear-gradient(135deg,#1d4ed8,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:1000;box-shadow:inset 0 0 28px rgba(255,255,255,.12)}.timer{font-size:44px;font-weight:1000;color:var(--gold);line-height:1}.highest{margin-top:6px;font-size:15px;color:var(--muted)}.highest b{color:var(--ok)}.highest .bidAmount{font-size:21px;font-weight:1000;color:var(--gold);text-shadow:0 0 10px rgba(250,204,21,.45);letter-spacing:.2px}.status{font-size:15px;font-weight:900;margin:0}.pending{color:var(--muted)}.sold{color:var(--ok)}
-    .bidBox{display:grid;grid-template-columns:1fr 122px 104px;gap:7px;margin-top:10px}.teams{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.team{background:#0b1728;border:1px solid var(--line);border-radius:12px;padding:8px;min-height:112px}.team h3{margin:0 0 6px;color:var(--accent);font-size:14px}.member{padding:5px 6px;margin:4px 0;background:#13243d;border-radius:8px;display:flex;justify-content:space-between;gap:6px;font-size:12px}
-    .playerGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.playerItem{border:1px solid var(--line);background:#0b1728;border-radius:10px;padding:8px 5px;text-align:center;font-weight:900;min-height:42px;display:flex;align-items:center;justify-content:center;position:relative}.playerItem.now{border-color:var(--gold);box-shadow:0 0 13px rgba(250,204,21,.45);background:#223116;color:#fff}.playerItem.done{opacity:.5;color:#7890aa;text-decoration:line-through}.playerItem.done:after{content:'✕';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:1000;color:rgba(251,113,133,.9);text-shadow:0 2px 8px rgba(0,0,0,.6);pointer-events:none}.playerItem .num{position:absolute;top:3px;left:5px;font-size:10px;color:var(--muted);font-weight:700}.log{height:180px;overflow:auto;background:#081525;border:1px solid var(--line);border-radius:12px;padding:8px}.log div{padding:5px 0;border-bottom:1px dashed rgba(255,255,255,.09);color:#cfe3fa;font-size:12px}.auctionLog{height:155px}.auctionLog div{color:#ff5b6f!important;font-weight:900;font-size:13px}.accessLog{height:180px}.errorBox{border:1px solid var(--danger);background:rgba(251,113,133,.13);padding:10px;border-radius:12px;margin-bottom:10px;color:#ffd7de;white-space:pre-wrap;font-size:12px}.loading{padding:40px;text-align:center;color:var(--muted)}
-    .modalBg{position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:50;display:none;align-items:center;justify-content:center;padding:16px}.modalBg.show{display:flex}.modal{width:min(720px,100%);max-height:88vh;overflow:auto;background:#0d1a2d;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 24px 80px rgba(0,0,0,.55)}.modalHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.modalHead h2{margin:0;font-size:18px}.modalGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.modalGrid label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}.modalGrid input{margin-bottom:6px}.modalActions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-    @media(max-width:900px){.wrap{padding:10px}.top{flex-direction:row;align-items:center}.timer{font-size:40px}}
+    :root{--bg:#07111f;--card:#0f1b2e;--line:#29415f;--text:#eaf4ff;--muted:#9fb4cd;--accent:#38bdf8;--gold:#facc15;--danger:#fb7185;--ok:#34d399;--warn:#f59e0b;--red:#ff4d6d}
+    *{box-sizing:border-box} html,body{min-width:1180px} body{margin:0;font-family:Arial,'Noto Sans KR',sans-serif;background:#07111f;color:var(--text);font-size:14px}button,input,select{font-family:inherit}button{cursor:pointer;border:0;border-radius:11px;padding:9px 13px;font-weight:900;color:#07111f;background:var(--accent)}button:disabled{opacity:.45;cursor:not-allowed}.ghost{background:#1d314e;color:var(--text);border:1px solid var(--line)}.gold{background:var(--gold);color:#251a00}.danger{background:var(--danger);color:white}.ok{background:var(--ok);color:#052014}.warn{background:var(--warn);color:#231300}
+    .wrap{width:1180px;margin:0 auto;padding:16px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.title h1{margin:0;font-size:28px}.title p{margin:6px 0 0;color:#9cc7f7}.topBtns{display:flex;gap:8px;align-items:center}.badge{display:inline-flex;align-items:center;border:1px solid var(--line);background:#10213a;border-radius:999px;padding:7px 10px;color:#b9d7ff;font-weight:900;white-space:nowrap}.card{background:rgba(15,27,46,.96);border:1px solid var(--line);border-radius:18px;padding:13px;box-shadow:0 10px 25px rgba(0,0,0,.22)}.card h2{margin:0;font-size:18px}.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.tinyBadge{display:inline-flex;align-items:center;border:1px solid var(--line);background:#10213a;border-radius:999px;padding:5px 9px;color:#b9d7ff;font-size:12px;font-weight:900;white-space:nowrap}.muted{color:var(--muted)}
+    .loginRow{display:grid;grid-template-columns:150px 170px 90px 1fr;gap:8px;align-items:end}.loginRow input,.loginRow select,.bidBox input,.modal input,.adminGrid input{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:10px;font-size:14px}.loginRow label{display:block;margin:0 0 5px;color:var(--muted)}
+    .mainGrid{display:grid;grid-template-columns:555px 1fr;gap:12px;margin-top:12px}.captains{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.captain{background:#0b1728;border:1px solid var(--line);border-radius:13px;padding:10px 6px;text-align:center}.captain.on{border-color:#ef4444;box-shadow:0 0 0 1px rgba(239,68,68,.58),0 0 13px rgba(239,68,68,.22)}.coin{font-size:22px;color:var(--gold);font-weight:1000;line-height:1}.small{font-size:12px;color:#b9d7ff}
+    .playersGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.playerItem{position:relative;min-height:39px;border:1px solid var(--line);background:#0b1728;border-radius:10px;padding:6px 8px;display:flex;align-items:center;justify-content:center;font-weight:900}.playerItem .num{position:absolute;left:8px;top:4px;font-size:11px;color:#9fb4cd}.playerItem.now{border-color:#f5e500;background:#243916;box-shadow:0 0 0 1px rgba(250,204,21,.35)}.playerItem.sold{opacity:.55;text-decoration:line-through}.playerItem.sold:after{content:'X';position:absolute;font-size:30px;color:#ff4d6d;font-weight:1000;opacity:.8}.playerItem.unsold{border-style:dashed;color:#b9d7ff}
+    .auctionNow{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:center}.playerBox{height:135px;border-radius:18px;background:linear-gradient(135deg,#3155f4,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:1000}.timer{font-size:48px;font-weight:1000;color:var(--gold);line-height:1}.highest{margin-top:8px;font-size:17px;color:#b9d7ff}.highestName{color:#34d399;font-weight:1000}.highestAmount{color:#facc15;font-size:21px;font-weight:1000;text-shadow:0 0 8px rgba(250,204,21,.35)}.bidBox{display:grid;grid-template-columns:1fr 115px 115px;gap:8px;margin-top:12px}.teams{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.team{background:#0b1728;border:1px solid var(--line);border-radius:13px;padding:10px;min-height:110px}.team h3{margin:0 0 7px;color:#38bdf8}.member{padding:6px 8px;margin:5px 0;background:#13243d;border-radius:9px;display:flex;justify-content:space-between;gap:6px;font-weight:800}
+    .log{height:138px;overflow:auto;background:#081525;border:1px solid var(--line);border-radius:12px;padding:8px}.log div{padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.08);color:#cfe3fa}.auctionLog div{color:#ff4d6d!important;font-weight:900}.logCoin{color:#facc15!important;font-size:1.18em;font-weight:1000;text-shadow:0 0 8px rgba(250,204,21,.35)}.errorBox{border:1px solid var(--danger);background:rgba(251,113,133,.13);padding:10px;border-radius:12px;margin-bottom:10px;color:#ffd7de;white-space:pre-wrap}
+    .modalBg{position:fixed;inset:0;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;z-index:20}.modal{width:620px;background:#0f1b2e;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.5)}.adminGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}.adminGrid label{display:block;margin-bottom:4px;color:#b9d7ff;font-weight:900}.hidden{display:none!important}
   </style>
 </head>
 <body>
-<div id="app"><div class="loading">불러오는 중...</div></div>
-<div id="adminPassModal" class="modalBg">
-  <div class="modal" style="max-width:360px">
-    <div class="modalHead"><h2>운영진 확인</h2><button class="ghost" onclick="closeModal('adminPassModal')">닫기</button></div>
-    <p class="muted">운영진 비밀번호를 입력하세요.</p>
-    <input id="adminPwModal" type="password" placeholder="비밀번호" autocomplete="off" onkeydown="if(event.key==='Enter') adminUnlock()">
-    <div class="modalActions"><button onclick="adminUnlock()">확인</button></div>
-  </div>
-</div>
-<div id="adminControlModal" class="modalBg">
-  <div class="modal">
-    <div class="modalHead"><h2>운영진 패널</h2><button class="ghost" onclick="closeModal('adminControlModal')">닫기</button></div>
-    <div class="modalActions">
-      <button class="gold" onclick="startAuction()">경매 시작</button>
-      <button class="warn" onclick="pauseAuction()">정지</button>
-      <button class="ok" onclick="resumeAuction()">재개</button>
-      <button class="danger" onclick="resetAll()">모든리셋</button>
-    </div>
-    <h3 style="margin:12px 0 8px">주장 coin 수정</h3>
-    <div id="adminCoinGrid" class="modalGrid"></div>
-  </div>
-</div>
+<div id="app"><div class="wrap">불러오는 중...</div></div>
+<div id="modalRoot"></div>
 <script>
-/* 아래 2곳만 본인 Supabase 값으로 교체하세요. */
 const SUPABASE_URL = 'https://xyibdanmecakevhtdajl.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_uvYqwDymxodcSdpT1zAWyg_PeVHh_ZO';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-const CAPTAINS = [
-  { name:'노을', password:'1235' }, { name:'음', password:'5123' }, { name:'상호', password:'2635' },
-  { name:'구리', password:'7463' }, { name:'시크릿', password:'6352' }
-];
-const PLAYERS = ['둘리','로딩','제로','라곤','네오','줄리엣','키라','로버','흠','미신트','짱이','이뚜','헬츠','브칠','미또'];
-const ADMIN_PASSWORD = '0523';
-const START_COINS = 1000;
-const BID_STEP = 10;
-const ROUND_SECONDS = 30;
-let me = JSON.parse(localStorage.getItem('auction_me') || 'null');
-let state = {id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS};
-let captains = CAPTAINS.map((c,i)=>({id:i+1,name:c.name,coins:START_COINS,online:false,session_id:null}));
-let bids = [], logs = [], teams = [], lastError = '';
-let finishing = false;
-let adminOpen = false;
-
-const $ = sel => document.querySelector(sel);
-const app = $('#app');
-const nowIso = () => new Date().toISOString();
-const money = n => Number(n||0).toLocaleString('ko-KR');
-function toast(msg){ alert(msg); }
-function activeTyping(){ const el=document.activeElement; return el && ['INPUT','SELECT','TEXTAREA'].includes(el.tagName); }
-function openModal(id){ const el=document.getElementById(id); if(el) el.classList.add('show'); if(id==='adminPassModal') setTimeout(()=>document.getElementById('adminPwModal')?.focus(),50); if(id==='adminControlModal') renderAdminCoinGrid(); }
-function closeModal(id){ const el=document.getElementById(id); if(el) el.classList.remove('show'); }
-function openAdminPass(){ document.getElementById('adminPwModal').value=''; openModal('adminPassModal'); }
-function adminUnlock(){ const pw=document.getElementById('adminPwModal').value; if(pw!==ADMIN_PASSWORD) return toast('운영진 비밀번호가 맞지 않습니다.'); adminOpen=true; closeModal('adminPassModal'); openModal('adminControlModal'); }
-function renderAdminCoinGrid(){ const box=document.getElementById('adminCoinGrid'); if(!box) return; box.innerHTML = captains.map(c=>`<div><label>${c.name}</label><input id="coin_${c.name}" type="number" value="${c.coins}"><button onclick="editCoin('${c.name}')">수정</button></div>`).join(''); }
-function handleErr(where, err){
-  console.error(where, err);
-  const msg = err?.message || err?.details || String(err || '알 수 없는 오류');
-  lastError = `${where}: ${msg}\n\n※ SQL을 아직 실행하지 않았거나, Supabase URL/Publishable key가 틀리면 작동하지 않을 수 있습니다.`;
-  render(true);
+const CAPTAINS=[{name:'노을',password:'1235'},{name:'음',password:'5123'},{name:'상호',password:'2635'},{name:'구리',password:'7463'},{name:'시크릿',password:'6352'}];
+const PLAYERS=['둘리','로딩','제로','라곤','네오','줄리엣','키라','로버','흠','미신트','짱이','이뚜','헬츠','브칠','미또'];
+const ADMIN_PASSWORD='0523', START_COINS=1000, BID_STEP=10, ROUND_SECONDS=30, TEAM_SIZE=3;
+let me=JSON.parse(localStorage.getItem('auction_me')||'null');
+let visitorId=localStorage.getItem('auction_visitor_id'); if(!visitorId){visitorId=crypto.randomUUID();localStorage.setItem('auction_visitor_id',visitorId)}
+let state={id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS};
+let captains=[],bids=[],logs=[],teams=[],visitorCount=0,lastError='',finishing=false,adminOpen=false;
+const app=document.getElementById('app'), modalRoot=document.getElementById('modalRoot');
+const $=s=>document.querySelector(s); const nowIso=()=>new Date().toISOString(); const money=n=>Number(n||0).toLocaleString('ko-KR');
+const isEditing=()=>['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName);
+function toast(m){alert(m)}
+function escapeHtml(v){return String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
+function q(p,w){return p.then(r=>{if(r.error)throw new Error(`${w}: ${r.error.message}`);return r.data})}
+function showErr(where,e){console.error(where,e);lastError=`${where}: ${e.message||e}`;render()}
+function isAuctionMsg(m){return m.startsWith('[경매]')||/(경매 시작|입찰|낙찰|유찰|리셋|정지|재개|랜덤 배정)/.test(m)}
+function isAccessMsg(m){return m.startsWith('[접속]')||/(로그인|로그아웃)/.test(m)}
+function cleanMsg(m){return String(m||'').replace(/^\[(경매|접속)\]\s*/,'')}
+function formatAuctionLogMessage(message){
+  const safe=escapeHtml(cleanMsg(message));
+  return safe.replace(/(\d{1,3}(?:,\d{3})*|\d+)(?=\s*(?:coin|입찰|낙찰))/g,'<span class="logCoin">$1</span>');
 }
-function checkConf(){ return SUPABASE_URL.includes('YOUR-PROJECT') || SUPABASE_ANON_KEY.includes('YOUR-ANON-KEY'); }
-async function q(promise, where){ const r = await promise; if(r.error) throw r.error; return r.data; }
-
+function uniqueLogs(arr, filterFn){
+  const seen=new Set(), out=[];
+  for(const l of arr){const msg=cleanMsg(l.message); if(!filterFn(l.message)) continue; const key=msg; if(seen.has(key)) continue; seen.add(key); out.push(l)}
+  return out.slice(0,50);
+}
+async function addLog(type,message){
+  const full=`[${type}] ${message}`;
+  try{
+    const since=new Date(Date.now()-3500).toISOString();
+    const recent=await q(sb.from('auction_logs').select('id').eq('message',full).gte('created_at',since).limit(1),'로그 중복 확인');
+    if(recent.length) return;
+    await q(sb.from('auction_logs').insert({message:full}),'로그 저장');
+  }catch(e){console.warn(e)}
+}
+async function visitorHeartbeat(){try{await sb.from('auction_visitors').upsert({id:visitorId,last_seen:nowIso()},{onConflict:'id'})}catch(e){}}
+async function loadVisitorCount(){try{const cutoff=new Date(Date.now()-25000).toISOString();const r=await sb.from('auction_visitors').select('id',{count:'exact',head:true}).gte('last_seen',cutoff);if(!r.error)visitorCount=r.count||0}catch(e){visitorCount=0}}
 async function ensureData(){
-  if(checkConf()){ lastError = 'Supabase Publishable key가 아직 입력되지 않았습니다. GitHub index.html 상단 2줄을 실제 값으로 바꿔주세요.'; render(true); return; }
   try{
-    let st = await q(sb.from('auction_state').select('*').eq('id',1).maybeSingle(), 'auction_state 확인');
-    if(!st) await q(sb.from('auction_state').insert({id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS}), 'auction_state 생성');
-    const cs = await q(sb.from('auction_captains').select('*'), 'auction_captains 확인');
-    if(!cs || cs.length < 5){ for(const c of CAPTAINS) await q(sb.from('auction_captains').upsert({name:c.name,coins:START_COINS,online:false,session_id:null},{onConflict:'name'}), `${c.name} 주장 생성`); }
-    lastError = '';
-  }catch(e){ handleErr('초기 데이터 준비 실패', e); }
+    let st=await q(sb.from('auction_state').select('*').eq('id',1).maybeSingle(),'상태 확인');
+    if(!st) await q(sb.from('auction_state').insert({id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS}),'상태 생성');
+    const cs=await q(sb.from('auction_captains').select('*'),'주장 확인');
+    if(!cs||cs.length<5){for(const c of CAPTAINS) await q(sb.from('auction_captains').upsert({name:c.name,coins:START_COINS,online:false,session_id:null},{onConflict:'name'}),`${c.name} 생성`)}
+  }catch(e){showErr('초기 데이터 준비 실패',e)}
 }
-async function loadAll(force=false){
-  if(checkConf()) return render(force);
+async function loadAll(skipRender=false){
   try{
-    const [st,cs,bd,lg,tm] = await Promise.all([
-      q(sb.from('auction_state').select('*').eq('id',1).single(), '상태 불러오기'),
-      q(sb.from('auction_captains').select('*').order('id'), '주장 불러오기'),
-      q(sb.from('auction_bids').select('*').order('amount',{ascending:false}).order('created_at',{ascending:true}), '입찰 불러오기'),
-      q(sb.from('auction_logs').select('*').order('id',{ascending:false}).limit(80), '로그 불러오기'),
-      q(sb.from('auction_teams').select('*').order('sold_order'), '팀 불러오기')
+    const [st,cs,bd,lg,tm]=await Promise.all([
+      q(sb.from('auction_state').select('*').eq('id',1).single(),'상태 불러오기'),
+      q(sb.from('auction_captains').select('*').order('id'),'주장 불러오기'),
+      q(sb.from('auction_bids').select('*').order('amount',{ascending:false}).order('created_at',{ascending:true}),'입찰 불러오기'),
+      q(sb.from('auction_logs').select('*').order('id',{ascending:false}).limit(120),'로그 불러오기'),
+      q(sb.from('auction_teams').select('*').order('sold_order'),'팀 불러오기')
     ]);
-    state = st || state; captains = cs||captains; bids = bd||[]; logs = lg||[]; teams = tm||[]; lastError = '';
-    render(force); if(adminOpen) renderAdminCoinGrid();
-  }catch(e){ handleErr('데이터 불러오기 실패', e); }
+    state=st||state; captains=cs||[]; bids=bd||[]; logs=lg||[]; teams=tm||[]; await loadVisitorCount(); lastError='';
+    if(!skipRender && !isEditing()) render();
+  }catch(e){showErr('데이터 불러오기 실패',e)}
 }
-function remainingSeconds(){ if(!state) return ROUND_SECONDS; if(state.status === 'paused') return state.paused_remaining ?? ROUND_SECONDS; if(!state.round_started_at) return ROUND_SECONDS; const elapsed = Math.floor((Date.now() - new Date(state.round_started_at).getTime())/1000); return Math.max(0, ROUND_SECONDS - elapsed); }
-function updateLiveTimer(){ const el=document.getElementById('timerValue'); if(el) el.textContent = remainingSeconds() + '초'; }
-function currentPlayer(){ return PLAYERS[state?.current_index || 0]; }
-function highestBid(){ return bids.filter(b=>b.player_name === currentPlayer()).sort((a,b)=>Number(b.amount)-Number(a.amount) || new Date(a.created_at)-new Date(b.created_at))[0] || null; }
-function myCaptain(){ return captains.find(c=>c.name === me?.name); }
-function canBid(){ return me && state?.status === 'running' && state.current_index < PLAYERS.length && myCaptain()?.coins >= BID_STEP; }
-async function addLog(message, type='auction'){
-  const prefix = type === 'access' ? '[접속]' : '[경매]';
-  try{ await q(sb.from('auction_logs').insert({message:`${prefix} ${message}`}), '로그 저장'); }
-  catch(e){ handleErr('로그 저장 실패', e); }
-}
-async function addAccessLog(message){ return addLog(message, 'access'); }
-async function addAuctionLog(message){ return addLog(message, 'auction'); }
-async function login(){
-  const name = $('#loginName').value.trim(); const pw = $('#loginPw').value.trim();
-  const info = CAPTAINS.find(c=>c.name===name && c.password===pw);
-  if(!info) return toast('주장 선택 또는 비밀번호가 맞지 않습니다.');
-  try{ const sessionId = crypto.randomUUID(); await q(sb.from('auction_captains').update({online:true,session_id:sessionId,last_seen:nowIso()}).eq('name',name), '로그인 저장'); me = {name, sessionId}; localStorage.setItem('auction_me', JSON.stringify(me)); await addAccessLog(`${name}님 로그인`); await loadAll(true); }catch(e){ handleErr('로그인 실패', e); }
-}
-async function logout(){ const oldName=me?.name; try{ if(me) await q(sb.from('auction_captains').update({online:false,session_id:null}).eq('name',me.name).eq('session_id',me.sessionId), '로그아웃'); if(oldName) await addAccessLog(`${oldName}님 로그아웃`); }catch(e){} localStorage.removeItem('auction_me'); me=null; await loadAll(true); }
-async function heartbeat(){ if(!me || checkConf()) return; const cap = captains.find(c=>c.name===me.name); if(cap && cap.session_id && cap.session_id !== me.sessionId){ localStorage.removeItem('auction_me'); me=null; toast('다른 곳에서 다시 로그인되어 현재 접속은 종료됩니다.'); loadAll(true); return; } try{ await sb.from('auction_captains').update({online:true,last_seen:nowIso()}).eq('name',me.name).eq('session_id',me.sessionId); }catch(e){} }
-async function startFromTop(){ const pw=prompt('운영진 비밀번호를 입력하세요.'); if(pw===null) return; if(pw!==ADMIN_PASSWORD) return toast('운영진 비밀번호가 맞지 않습니다.'); await startAuction(); }
-async function startAuction(){ try{ await q(sb.from('auction_state').update({status:'running',round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1), '경매 시작'); await addAuctionLog('경매 시작'); await loadAll(true); }catch(e){ handleErr('경매 시작 실패', e); } }
-async function placeBid(){ const cap = myCaptain(); if(!cap) return; const player=currentPlayer(); const hi=highestBid(); const nextAmount=hi?Number(hi.amount)+BID_STEP:BID_STEP; if(cap.coins<nextAmount) return toast('보유 coin 이 부족합니다.'); if(hi?.captain_name===cap.name) return toast('이미 본인이 최고 입찰자입니다.'); try{ await q(sb.from('auction_bids').insert({player_name:player,captain_name:cap.name,amount:nextAmount}), '입찰 저장'); await q(sb.from('auction_state').update({round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1), '시간 초기화'); await addAuctionLog(`${cap.name}님 ${nextAmount} 입찰`); await loadAll(true); }catch(e){ handleErr('입찰 실패', e); } }
-async function customBid(){ const cap=myCaptain(); const raw=Number($('#customBid').value); const val=Math.floor(raw/10)*10; const hi=highestBid(); const min=hi?Number(hi.amount)+BID_STEP:BID_STEP; if(!val||val<min) return toast(`최소 ${min} coin 이상 입찰해야 합니다.`); if(cap.coins<val) return toast('보유 coin 이 부족합니다.'); if(hi?.captain_name===cap.name) return toast('이미 본인이 최고 입찰자입니다.'); try{ await q(sb.from('auction_bids').insert({player_name:currentPlayer(),captain_name:cap.name,amount:val}), '입찰 저장'); await q(sb.from('auction_state').update({round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1), '시간 초기화'); await addAuctionLog(`${cap.name}님 ${val} 입찰`); $('#customBid').value=''; await loadAll(true); }catch(e){ handleErr('입찰 실패', e); } }
-function groupNameBySoldOrder(order){ return ['A조','B조','C조','D조','E조'][Math.min(4, order)] || 'E조'; }
+function soldTeams(){return teams.filter(t=>t.captain_name&&Number(t.price)>0)}
+function soldPlayers(){return new Set(soldTeams().map(t=>t.player_name))}
+function captainTeamCount(name){return soldTeams().filter(t=>t.captain_name===name).length}
+function allTeamsFull(){return CAPTAINS.every(c=>captainTeamCount(c.name)>=TEAM_SIZE)}
+function currentPlayer(){return PLAYERS[state.current_index]||PLAYERS.find(p=>!soldPlayers().has(p))||PLAYERS[0]}
+function remainingSeconds(){if(state.status==='paused')return state.paused_remaining??ROUND_SECONDS;if(!state.round_started_at)return ROUND_SECONDS;return Math.max(0,ROUND_SECONDS-Math.floor((Date.now()-new Date(state.round_started_at).getTime())/1000))}
+function highestBid(){const p=currentPlayer();return bids.filter(b=>b.player_name===p).sort((a,b)=>Number(b.amount)-Number(a.amount)||new Date(a.created_at)-new Date(b.created_at))[0]||null}
+function myCaptain(){return captains.find(c=>c.name===me?.name)}
+function canBid(){const c=myCaptain();return !!(me&&c&&state.status==='running'&&!soldPlayers().has(currentPlayer())&&Number(c.coins)>=BID_STEP&&captainTeamCount(c.name)<TEAM_SIZE)}
+function nextUnsoldIndex(afterIndex){const sold=soldPlayers();for(let step=1;step<=PLAYERS.length;step++){const idx=(afterIndex+step)%PLAYERS.length;if(!sold.has(PLAYERS[idx]))return idx}return -1}
+async function login(){const name=$('#loginName').value,pw=$('#loginPw').value;const ok=CAPTAINS.find(c=>c.name===name&&c.password===pw);if(!ok)return toast('주장 선택 또는 비밀번호가 맞지 않습니다.');try{const sessionId=crypto.randomUUID();await q(sb.from('auction_captains').update({online:true,session_id:sessionId,last_seen:nowIso()}).eq('name',name),'로그인');me={name,sessionId};localStorage.setItem('auction_me',JSON.stringify(me));await addLog('접속',`${name}님 로그인`);await loadAll()}catch(e){showErr('로그인 실패',e)}}
+async function logout(){try{if(me){await q(sb.from('auction_captains').update({online:false,session_id:null}).eq('name',me.name).eq('session_id',me.sessionId),'로그아웃');await addLog('접속',`${me.name}님 로그아웃`)}}catch(e){}localStorage.removeItem('auction_me');me=null;await loadAll()}
+async function heartbeat(){if(!me)return;const cap=captains.find(c=>c.name===me.name);if(cap&&cap.session_id&&cap.session_id!==me.sessionId){localStorage.removeItem('auction_me');me=null;toast('다른 곳에서 다시 로그인되어 현재 접속은 종료됩니다.');loadAll();return}try{await sb.from('auction_captains').update({online:true,last_seen:nowIso()}).eq('name',me.name).eq('session_id',me.sessionId)}catch(e){}}
+async function promptStart(){const pw=prompt('운영진 비밀번호를 입력하세요.');if(pw===ADMIN_PASSWORD)await startAuction();else if(pw)toast('비밀번호가 맞지 않습니다.')}
+async function startAuction(){try{let idx=state.current_index||0;if(soldPlayers().has(PLAYERS[idx])) idx=nextUnsoldIndex(idx-1);if(idx<0)return await endAuction();await q(sb.from('auction_state').update({status:'running',current_index:idx,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'경매 시작');await addLog('경매','경매 시작');await loadAll()}catch(e){showErr('경매 시작 실패',e)}}
+async function placeBid(){const cap=myCaptain();if(!cap)return;const hi=highestBid();const next=hi?Number(hi.amount)+BID_STEP:BID_STEP;if(!canBid())return toast('입찰할 수 없습니다.');if(Number(cap.coins)<next)return toast('보유 coin 이 부족합니다.');if(hi?.captain_name===cap.name)return toast('이미 본인이 최고 입찰자입니다.');try{await q(sb.from('auction_bids').insert({player_name:currentPlayer(),captain_name:cap.name,amount:next}),'입찰 저장');await q(sb.from('auction_state').update({round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'시간 초기화');await addLog('경매',`${cap.name}님 ${next} 입찰`);await loadAll()}catch(e){showErr('입찰 실패',e)}}
+async function customBid(){const cap=myCaptain();const raw=Number($('#customBid').value);const val=Math.floor(raw/10)*10;const hi=highestBid();const min=hi?Number(hi.amount)+BID_STEP:BID_STEP;if(!val||val<min)return toast(`최소 ${min} coin 이상 입찰해야 합니다.`);if(!canBid())return toast('입찰할 수 없습니다.');if(Number(cap.coins)<val)return toast('보유 coin 이 부족합니다.');if(hi?.captain_name===cap.name)return toast('이미 본인이 최고 입찰자입니다.');try{await q(sb.from('auction_bids').insert({player_name:currentPlayer(),captain_name:cap.name,amount:val}),'입찰 저장');await q(sb.from('auction_state').update({round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'시간 초기화');await addLog('경매',`${cap.name}님 ${val} 입찰`);$('#customBid').value='';await loadAll()}catch(e){showErr('입찰 실패',e)}}
+function groupNameByCaptain(name){return ['A조','B조','C조','D조','E조'][CAPTAINS.findIndex(c=>c.name===name)]||'미정'}
 async function finishRound(){
-  if(finishing || state.status !== 'running') return;
-  finishing = true;
-  const lockedIndex = Number(state.current_index || 0);
-  const lockedPlayer = PLAYERS[lockedIndex];
+  if(finishing||state.status!=='running'||remainingSeconds()>0)return; finishing=true;
   try{
-    // 여러 관람자 화면에서 동시에 0초가 되어도, 한 사람만 라운드 종료 처리를 하도록 잠금 처리합니다.
-    const lockRows = await q(
-      sb.from('auction_state')
-        .update({status:'settling', paused_remaining:0, round_started_at:null})
-        .eq('id',1)
-        .eq('status','running')
-        .eq('current_index',lockedIndex)
-        .select('id,current_index,status'),
-      '라운드 종료 잠금'
-    );
-    if(!lockRows || lockRows.length === 0){ finishing=false; await loadAll(true); return; }
-
-    const freshBids = await q(
-      sb.from('auction_bids').select('*')
-        .eq('player_name', lockedPlayer)
-        .order('amount',{ascending:false})
-        .order('created_at',{ascending:true}),
-      '최고입찰 확인'
-    );
-    const hi = freshBids[0] || null;
-    const freshTeams = await q(sb.from('auction_teams').select('*').order('sold_order'), '팀 재확인');
-    const soldOrder = freshTeams.length;
-
+    const lock=await q(sb.from('auction_state').update({status:'processing'}).eq('id',1).eq('status','running').eq('current_index',state.current_index).select('*'),'라운드 잠금');
+    if(!lock.length){finishing=false;return}
+    await loadAll(true);
+    const player=currentPlayer(); if(soldPlayers().has(player)){const ni=nextUnsoldIndex(state.current_index); if(ni<0) await endAuction(); else await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음'); finishing=false; await loadAll(); return;}
+    const fresh=await q(sb.from('auction_bids').select('*').eq('player_name',player).order('amount',{ascending:false}).order('created_at',{ascending:true}).limit(1),'최고 입찰 확인');
+    const hi=fresh[0];
     if(hi){
-      const groupName = groupNameBySoldOrder(soldOrder);
-      const already = freshTeams.find(t=>t.player_name === lockedPlayer);
-      if(!already){
-        await q(sb.from('auction_teams').insert({captain_name:hi.captain_name,player_name:lockedPlayer,price:hi.amount,group_name:groupName,sold_order:soldOrder}), '낙찰 저장');
-        const freshCaps = await q(sb.from('auction_captains').select('*'), '주장 재확인');
-        const cap = freshCaps.find(c=>c.name===hi.captain_name);
-        await q(sb.from('auction_captains').update({coins:Number(cap.coins)-Number(hi.amount)}).eq('name',hi.captain_name), '코인 차감');
-        await addAuctionLog(`${hi.captain_name}님 ${hi.amount} 낙찰 (${lockedPlayer})`);
+      if(captainTeamCount(hi.captain_name)>=TEAM_SIZE){await addLog('경매',`${player} 유찰`)}
+      else{
+        const cap=captains.find(c=>c.name===hi.captain_name); const price=Number(hi.amount);
+        await q(sb.from('auction_teams').insert({captain_name:hi.captain_name,player_name:player,price,group_name:groupNameByCaptain(hi.captain_name),sold_order:Date.now()}).select(),'낙찰 저장');
+        await q(sb.from('auction_captains').update({coins:Math.max(0,Number(cap.coins)-price)}).eq('name',hi.captain_name),'코인 차감');
+        await addLog('경매',`${player} 낙찰: ${hi.captain_name}님 ${price} 낙찰`);
       }
-    }else{
-      const already = freshTeams.find(t=>t.player_name === lockedPlayer);
-      if(!already){
-        await q(sb.from('auction_teams').insert({captain_name:null,player_name:lockedPlayer,price:0,group_name:'미배정',sold_order:soldOrder}), '유찰 저장');
-        await addAuctionLog(`${lockedPlayer} 유찰`);
-      }
-    }
-
-    const next = lockedIndex + 1;
-    if(next >= PLAYERS.length) await endAuction();
-    else await q(sb.from('auction_state').update({current_index:next,status:'running',round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1), '다음 선수 진행');
+    }else await addLog('경매',`${player} 유찰`);
     await loadAll(true);
-  }catch(e){ handleErr('라운드 종료 실패', e); }
-  finally{ finishing=false; }
+    if(allTeamsFull()) await endAuction(); else {const ni=nextUnsoldIndex(state.current_index); if(ni<0) await endAuction(); else await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수')}
+    await loadAll();
+  }catch(e){showErr('라운드 종료 실패',e); try{await sb.from('auction_state').update({status:'running',round_started_at:nowIso()}).eq('id',1)}catch(_){}}
+  finishing=false;
 }
-async function endAuction(){ try{ const remaining=PLAYERS.filter(p=>!teams.some(t=>t.player_name===p)); const available=captains.filter(c=>Number(c.coins)>0).map(c=>c.name); if(remaining.length && available.length===0){ for(const p of remaining){ const c=CAPTAINS[Math.floor(Math.random()*CAPTAINS.length)].name; await q(sb.from('auction_teams').insert({captain_name:c,player_name:p,price:0,group_name:'랜덤배정',sold_order:999}), '랜덤 배정'); await addAuctionLog(`랜덤 배정: ${p} → ${c}`); } } await q(sb.from('auction_state').update({status:'ended',round_started_at:null}).eq('id',1), '경매 종료'); await addAuctionLog('모든 경매 종료'); }catch(e){ handleErr('경매 종료 실패', e); } }
-async function resetAll(){
-  if(!confirm('정말 모든 경매를 초기화할까요?')) return;
-  try{
-    // 먼저 진행 상태를 대기로 바꿔서 0초 처리와 리셋이 동시에 겹치지 않게 합니다.
-    await q(sb.from('auction_state').update({current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS}).eq('id',1), '상태 초기화');
-    await Promise.all([
-      q(sb.from('auction_bids').delete().neq('id',0),'입찰 삭제'),
-      q(sb.from('auction_logs').delete().neq('id',0),'로그 삭제'),
-      q(sb.from('auction_teams').delete().neq('id',0),'팀 삭제')
-    ]);
-    for(const c of CAPTAINS){
-      await q(sb.from('auction_captains').upsert({name:c.name,coins:START_COINS,online:false,session_id:null},{onConflict:'name'}), '주장 초기화');
-    }
-    state = {id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS};
-    teams = []; bids = [];
-    await addAuctionLog('운영진 전체 리셋');
-    await loadAll(true);
-  }catch(e){ handleErr('전체 리셋 실패', e); }
-}
-async function pauseAuction(){ try{ await q(sb.from('auction_state').update({status:'paused',paused_remaining:remainingSeconds(),round_started_at:null}).eq('id',1), '정지'); await addAuctionLog('운영진 경매 정지'); await loadAll(true); }catch(e){ handleErr('정지 실패', e); } }
-async function resumeAuction(){ try{ await q(sb.from('auction_state').update({status:'running',round_started_at:new Date(Date.now()-((ROUND_SECONDS-(state.paused_remaining||ROUND_SECONDS))*1000)).toISOString()}).eq('id',1), '재개'); await addAuctionLog('운영진 경매 재개'); await loadAll(true); }catch(e){ handleErr('재개 실패', e); } }
-async function editCoin(name){ const val = Number(document.getElementById('coin_'+name).value); if(Number.isNaN(val)||val<0) return; try{ await q(sb.from('auction_captains').update({coins:val}).eq('name',name), '코인 수정'); await addAuctionLog(`운영진 수정: ${name} coin ${val}`); await loadAll(true); }catch(e){ handleErr('코인 수정 실패', e); } }
-
-function cleanTeams(){
-  const map = new Map();
-  [...teams].sort((a,b)=>Number(a.sold_order||0)-Number(b.sold_order||0) || Number(a.id||0)-Number(b.id||0)).forEach(t=>{
-    if(!map.has(t.player_name)) map.set(t.player_name, t);
-  });
-  return [...map.values()];
-}
-function logType(message){
-  const m = message || '';
-  if(m.startsWith('[접속]')) return 'access';
-  if(m.startsWith('[경매]')) return 'auction';
-  // 예전 기록 호환: 로그인/로그아웃만 일반 로그로 분리
-  if(/로그인|로그아웃/.test(m)) return 'access';
-  return 'auction';
-}
-function cleanLogMessage(message){ return String(message||'').replace(/^\[(접속|경매)\]\s*/, ''); }
-function isAccessLog(message){ return logType(message) === 'access'; }
-function isAuctionLog(message){ return logType(message) === 'auction'; }
-function logHtml(items, emptyText){
-  return items.length ? items.map(l=>`<div>${new Date(l.created_at).toLocaleTimeString('ko-KR')} · ${cleanLogMessage(l.message)}</div>`).join('') : `<div>${emptyText}</div>`;
-}
-function renderAuthBox(){ const cap=myCaptain(); if(me&&cap){ return `<div class="card"><h2>주장 로그인</h2><div class="me"><span class="badge">접속: ${me.name}</span><span class="badge">내 coin: ${money(cap.coins)} coin</span><button class="ghost" onclick="logout()">로그아웃</button></div></div>`; } return `<div class="card"><h2>주장 로그인</h2><div class="loginRow"><div><label>주장 선택</label><select id="loginName">${CAPTAINS.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select></div><div><label>패스워드</label><input id="loginPw" type="password" placeholder="패스워드"></div><button onclick="login()">로그인</button><p class="muted" style="margin:0;font-size:12px">미로그인도 관람 가능 / 입찰은 로그인 필요</p></div></div>`; }
-function render(force=false){
-  if(activeTyping() && !force) return;
-  const player=currentPlayer(); const hi=highestBid(); const rem=remainingSeconds();
-  const viewTeams = cleanTeams();
-  const auctionLogs = logs.filter(l=>isAuctionLog(l.message));
-  const accessLogs = logs.filter(l=>isAccessLog(l.message));
-  const onlineN = captains.filter(c=>c.online).length;
-  app.innerHTML = `<div class="wrap">
-    <div class="top">
-      <div class="title"><h1>🏁 아시아리그 팀원 경매</h1><p>로그인 없이 관람 가능 · 주장 로그인 후 입찰 가능 · 최소 입찰 ${BID_STEP} coin · 제한시간 ${ROUND_SECONDS}초</p></div>
-      <div class="me"><button class="gold" onclick="startFromTop()">경매 시작</button><button class="ghost" onclick="openAdminPass()">운영진 패널</button><span class="badge">${me?`로그인: ${me.name}`:'미로그인'}</span></div>
-    </div>
-    ${lastError?`<div class="errorBox">${lastError}</div>`:''}
-    ${renderAuthBox()}
-    <div class="mainGrid">
-      <div>
-        <div class="card">
-          <div class="sectionHead"><h2>주장 접속 현황</h2><span class="onlineCount">현재 접속중인 주장 수 : <b>${onlineN}</b></span></div>
-          <div class="captains">${captains.map(c=>`<div class="captain ${c.online?'on':''}"><b>${c.name}</b><div class="coin">${money(c.coins)}</div><div class="small">${c.online?'🟢 접속중':'⚪ 오프라인'}</div></div>`).join('')}</div>
-        </div>
-        <div class="card">
-          <h2>현재 경매</h2>
-          ${state.status==='waiting'?`<p class="status pending">대기중입니다. 위쪽 경매 시작 버튼으로 시작할 수 있습니다.</p>`:state.status==='ended'?`<p class="status sold">경매가 종료되었습니다.</p>`:`<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${state.current_index+1} / ${PLAYERS.length} 번째 선수</div><div class="timer" id="timerValue">${rem}초</div><div class="highest">현재 최고 입찰: ${hi?`<b>${hi.captain_name}</b> / <span class="bidAmount">${money(hi.amount)} coin</span>`:'아직 없음'}</div>${me?`<div class="bidBox"><input id="customBid" type="number" step="10" placeholder="직접 입찰 금액"><button class="gold" onclick="customBid()" ${!canBid()?'disabled':''}>입찰하기</button><button onclick="placeBid()" ${!canBid()?'disabled':''}>+10 자동입찰</button></div>`:`<p class="muted" style="margin-top:10px">관람 중입니다. 입찰하려면 상단에서 주장 로그인하세요.</p>`}</div></div>`}
-        </div>
-        <div class="card">
-          <div class="sectionHead"><h2>경매 로그</h2><span class="onlineCount">입찰/낙찰/유찰 전용</span></div>
-          <div class="log auctionLog">${logHtml(auctionLogs, '아직 경매 로그가 없습니다.')}</div>
-        </div>
-      </div>
-      <div>
-        <div class="card">
-          <h2>경매 출품 선수 목록</h2>
-          <div class="playerGrid">${PLAYERS.map((p,i)=>{const t=viewTeams.find(x=>x.player_name===p); const isSold=!!(t && t.captain_name && Number(t.price)>0); const cls=isSold?'done':(i===state.current_index?'now':''); return `<div class="playerItem ${cls}"><span class="num">${i+1}</span>${p}</div>`}).join('')}</div>
-        </div>
-        <div class="card">
-          <h2>팀 배정 결과</h2>
-          <div class="teams">${captains.map(c=>`<div class="team"><h3>${c.name}</h3>${viewTeams.filter(t=>t.captain_name===c.name && Number(t.price)>0).map(t=>`<div class="member"><span>${t.player_name}</span><b>${money(t.price)}</b></div>`).join('')||'<p class="muted" style="font-size:12px">아직 없음</p>'}</div>`).join('')}</div>
-        </div>
-        <div class="card">
-          <div class="sectionHead"><h2>로그</h2><span class="onlineCount">로그인/로그아웃 전용</span></div>
-          <div class="log accessLog">${logHtml(accessLogs, '아직 접속 로그가 없습니다.')}</div>
-        </div>
-      </div>
-    </div>
-  </div>`;
-}
-async function boot(){ render(true); await ensureData(); await loadAll(true); if(!checkConf()) sb.channel('auction-live').on('postgres_changes',{event:'*',schema:'public'},()=>loadAll()).subscribe(); setInterval(async()=>{ try{ if(me) await heartbeat(); if(state?.status==='running' && remainingSeconds()<=0) await finishRound(); else { updateLiveTimer(); render(); } }catch(e){ console.error(e); } },1000); }
+async function endAuction(){await q(sb.from('auction_state').update({status:'ended',round_started_at:null}).eq('id',1),'종료');await addLog('경매','모든 팀 구성이 완료되어 경매 종료')}
+function openAdmin(){modalRoot.innerHTML=`<div class="modalBg"><div class="modal"><div class="sectionHead"><h2>운영진 패널</h2><button class="ghost" onclick="closeAdmin()">닫기</button></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="gold" onclick="promptStart()">경매 시작</button><button class="danger" onclick="resetAll()">모든리셋</button><button class="warn" onclick="pauseAuction()">정지</button><button class="ok" onclick="resumeAuction()">재개</button></div><div class="adminGrid">${captains.map(c=>`<div><label>${c.name}</label><input id="coin_${c.name}" type="number" value="${c.coins}"><button onclick="editCoin('${c.name}')">수정</button></div>`).join('')}</div></div></div>`}
+function closeAdmin(){modalRoot.innerHTML=''}
+async function resetAll(){if(!confirm('정말 모든 경매를 초기화할까요?'))return;try{await Promise.all([q(sb.from('auction_bids').delete().neq('id',0),'입찰 삭제'),q(sb.from('auction_logs').delete().neq('id',0),'로그 삭제'),q(sb.from('auction_teams').delete().neq('id',0),'팀 삭제')]);for(const c of CAPTAINS)await q(sb.from('auction_captains').upsert({name:c.name,coins:START_COINS,online:false,session_id:null},{onConflict:'name'}),'주장 초기화');await q(sb.from('auction_state').update({current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS}).eq('id',1),'상태 초기화');localStorage.removeItem('auction_me');me=null;await addLog('경매','운영진 전체 리셋');closeAdmin();await loadAll()}catch(e){showErr('리셋 실패',e)}}
+async function pauseAuction(){await q(sb.from('auction_state').update({status:'paused',paused_remaining:remainingSeconds(),round_started_at:null}).eq('id',1),'정지');await addLog('경매','경매 정지');await loadAll()}
+async function resumeAuction(){const passed=ROUND_SECONDS-(state.paused_remaining||ROUND_SECONDS);await q(sb.from('auction_state').update({status:'running',round_started_at:new Date(Date.now()-passed*1000).toISOString()}).eq('id',1),'재개');await addLog('경매','경매 재개');await loadAll()}
+async function editCoin(name){const v=Number(document.getElementById('coin_'+name).value);if(Number.isNaN(v)||v<0)return;await q(sb.from('auction_captains').update({coins:v}).eq('name',name),'코인 수정');await loadAll()}
+function renderAuthBox(){const cap=myCaptain();return `<div class="card"><div class="sectionHead"><h2>주장 로그인</h2><span class="tinyBadge">현재 접속자수 : ${visitorCount}</span></div>${me&&cap?`<div class="topBtns"><span class="badge">접속: ${me.name}</span><span class="badge">내 coin: ${money(cap.coins)} coin</span><button class="ghost" onclick="logout()">로그아웃</button></div>`:`<div class="loginRow"><div><label>주장 선택</label><select id="loginName">${CAPTAINS.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select></div><div><label>패스워드</label><input id="loginPw" type="password" placeholder="패스워드"></div><button onclick="login()">로그인</button><span class="muted">미로그인도 관람 가능 / 입찰은 로그인 필요</span></div>`}</div>`}
+function renderLogs(){const auction=uniqueLogs(logs,isAuctionMsg);const access=uniqueLogs(logs,isAccessMsg);return {auction,access}}
+function render(){const hi=highestBid(), player=currentPlayer(), rem=remainingSeconds(), sold=soldPlayers(), online=captains.filter(c=>c.online).length, {auction,access}=renderLogs();app.innerHTML=`<div class="wrap">${lastError?`<div class="errorBox">${escapeHtml(lastError)}</div>`:''}<div class="top"><div class="title"><h1>🏁 아시아리그 팀원 경매</h1><p>로그인 없이 관람 가능 · 주장 로그인 후 입찰 가능 · 최소 입찰 10 coin · 제한시간 30초</p></div><div class="topBtns"><button class="gold" onclick="promptStart()">경매 시작</button><button class="ghost" onclick="openAdmin()">운영진 패널</button>${me?`<span class="badge">로그인: ${me.name}</span>`:`<span class="badge">미로그인</span>`}</div></div>${renderAuthBox()}<div class="mainGrid"><div><div class="card"><div class="sectionHead"><h2>주장 접속 현황</h2><span class="tinyBadge">현재 접속중인 주장 수 : ${online}</span></div><div class="captains">${captains.map(c=>`<div class="captain ${c.online?'on':''}"><b>${c.name}</b><div class="coin">${money(c.coins)}</div><div class="small">${c.online?'🟢 접속중':'⚪ 오프라인'}</div></div>`).join('')}</div></div><div class="card" style="margin-top:10px"><h2 style="margin-bottom:10px">현재 경매</h2>${state.status==='waiting'?`<p class="muted" style="font-weight:900">대기중입니다. 위쪽 경매 시작 버튼 → 운영진 비밀번호 입력 시 시작됩니다.</p>`:state.status==='ended'?`<p class="muted" style="font-weight:900;color:#34d399">경매가 종료되었습니다.</p>`:`<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">${rem}초</div><div class="highest">현재 최고 입찰: ${hi?`<span class="highestName">${hi.captain_name}</span> / <span class="highestAmount">${money(hi.amount)}</span> coin`:'아직 없음'}</div>${me?`<div class="bidBox"><input id="customBid" type="number" step="10" placeholder="직접 입찰 금액"><button class="gold" onclick="customBid()" ${!canBid()?'disabled':''}>입찰하기</button><button onclick="placeBid()" ${!canBid()?'disabled':''}>+10 자동입찰</button></div>`:`<p class="muted">관람 중입니다. 입찰하려면 상단에서 주장 로그인하세요.</p>`}</div></div>`}</div><div class="card" style="margin-top:10px"><div class="sectionHead"><h2>경매 로그</h2><span class="tinyBadge">입찰/낙찰/유찰 전용</span></div><div class="log auctionLog">${auction.length?auction.map(l=>`<div>${new Date(l.created_at).toLocaleTimeString('ko-KR')} · ${formatAuctionLogMessage(l.message)}</div>`).join(''):'<div>아직 경매 로그가 없습니다.</div>'}</div></div></div><div><div class="card"><h2 style="margin-bottom:10px">경매 출품 선수 목록</h2><div class="playersGrid">${PLAYERS.map((p,i)=>{const isSold=sold.has(p), isNow=p===player&&state.status==='running';return `<div class="playerItem ${isSold?'sold':isNow?'now':''}"><span class="num">${i+1}</span>${p}</div>`}).join('')}</div></div><div class="card" style="margin-top:10px"><h2 style="margin-bottom:10px">팀 배정 결과</h2><div class="teams">${CAPTAINS.map(c=>`<div class="team"><h3>${c.name}</h3>${soldTeams().filter(t=>t.captain_name===c.name).map(t=>`<div class="member"><span>${t.player_name}</span><b>${money(t.price)}</b></div>`).join('')||'<p class="muted">아직 없음</p>'}</div>`).join('')}</div></div><div class="card" style="margin-top:10px"><div class="sectionHead"><h2>로그</h2><span class="tinyBadge">로그인/로그아웃 전용</span></div><div class="log">${access.length?access.map(l=>`<div>${new Date(l.created_at).toLocaleTimeString('ko-KR')} · ${escapeHtml(cleanMsg(l.message))}</div>`).join(''):'<div>아직 접속 로그가 없습니다.</div>'}</div></div></div></div></div>`}
+async function boot(){render();await visitorHeartbeat();await ensureData();await loadAll();sb.channel('auction-live').on('postgres_changes',{event:'*',schema:'public'},()=>loadAll()).subscribe();setInterval(async()=>{try{await visitorHeartbeat();if(me)await heartbeat();await loadVisitorCount();if(state.status==='running'&&remainingSeconds()<=0)await finishRound();else if(!isEditing())render()}catch(e){console.error(e)}},1000)}
 boot();
 </script>
 </body>
