@@ -88,6 +88,8 @@ const START_COINS=1000;
 const BID_STEP=10;
 const ROUND_SECONDS=30;
 const TEAM_SIZE=3;
+const SOUND_NEXT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EB%9D%B5%EB%8F%99.mp3';
+const SOUND_COUNT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/5%EC%B9%B4%EC%9A%B4%ED%8A%B8.mp3';
 
 let me=JSON.parse(localStorage.getItem('auction_me')||'null');
 let visitorId=localStorage.getItem('auction_visitor_id');
@@ -95,6 +97,11 @@ if(!visitorId){visitorId=crypto.randomUUID();localStorage.setItem('auction_visit
 
 let state={id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS};
 let captains=[],bids=[],logs=[],teams=[],visitorCount=0,lastError='',finishing=false,lastFinishedKey='',processingSeenAt=0;
+let lastRoundKeyForNextSound='', lastRoundKeyForCountSound='', finishRoundPromise=null;
+let audioUnlocked=false;
+const audioNext=new Audio(SOUND_NEXT);
+const audioCount=new Audio(SOUND_COUNT);
+audioNext.preload='auto'; audioCount.preload='auto';
 const app=document.getElementById('app'), modalRoot=document.getElementById('modalRoot');
 const $=s=>document.querySelector(s);
 const nowIso=()=>new Date().toISOString();
@@ -102,6 +109,21 @@ const money=n=>Number(n||0).toLocaleString('ko-KR');
 const isEditing=()=>['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName);
 
 function toast(m){alert(m)}
+function unlockAudio(){
+  if(audioUnlocked) return;
+  audioUnlocked=true;
+  [audioNext,audioCount].forEach(a=>{try{a.volume=0.85; const p=a.play(); if(p&&p.then)p.then(()=>{a.pause();a.currentTime=0}).catch(()=>{});}catch(e){}});
+}
+function playSound(kind){
+  if(!audioUnlocked) return;
+  try{
+    const a=kind==='count'?audioCount:audioNext;
+    a.pause(); a.currentTime=0;
+    const p=a.play(); if(p&&p.catch)p.catch(()=>{});
+  }catch(e){}
+}
+document.addEventListener('click', unlockAudio, {once:true});
+document.addEventListener('keydown', unlockAudio, {once:true});
 function escapeHtml(v){return String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
 function q(p,w){return p.then(r=>{if(r.error)throw new Error(`${w}: ${r.error.message}`);return r.data})}
 function showErr(where,e){console.error(where,e);lastError=`${where}: ${e.message||e}`;render()}
@@ -162,7 +184,14 @@ async function loadAll(skipRender=false){
       q(sb.from('auction_logs').select('*').order('id',{ascending:false}).limit(150),'경매 로그 불러오기'),
       q(sb.from('auction_teams').select('*').order('sold_order'),'팀 불러오기')
     ]);
+    const prevRoundKey = state ? `${state.status}_${state.current_index}_${state.round_started_at||''}` : '';
     state=st||state; captains=cs||[]; bids=bd||[]; logs=lg||[]; teams=tm||[];
+    const newRoundKey = `${state.status}_${state.current_index}_${state.round_started_at||''}`;
+    if(state.status==='running' && state.round_started_at && newRoundKey!==prevRoundKey && newRoundKey!==lastRoundKeyForNextSound){
+      lastRoundKeyForNextSound=newRoundKey;
+      lastRoundKeyForCountSound='';
+      playSound('next');
+    }
     await loadVisitorCount(); lastError='';
     if(!skipRender && !isEditing()) render();
   }catch(e){showErr('데이터 불러오기 실패',e)}
@@ -335,7 +364,8 @@ function nextSoldOrderFrom(freshSold){
 }
 
 async function finishRound(){
-  if(finishing||state.status!=='running'||remainingSeconds()>0) return;
+  if(state.status!=='running'||remainingSeconds()>0) return;
+  if(finishing && !finishRoundPromise) return;
   const localIndex=state.current_index;
   const localStartedAt=state.round_started_at;
   const finishKey=`${localIndex}_${localStartedAt}`;
@@ -499,7 +529,7 @@ function render(){
           <h2 style="margin-bottom:10px">현재 경매</h2>
           ${state.status==='waiting'?`<p class="muted" style="font-weight:900">대기중입니다. 위쪽 경매 시작 버튼 → 운영진 비밀번호 입력 시 시작됩니다.</p>`:
           state.status==='ended'?`<p class="muted" style="font-weight:900;color:#34d399">경매가 종료되었습니다.</p>`:
-          (state.status==='processing'||finishing)?`<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">처리중</div><div class="highest">낙찰/유찰 처리 후 다음 선수로 이동 중입니다.</div></div></div>`:
+          (state.status==='processing'||finishing||rem<=0)?`<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">처리중</div><div class="highest">낙찰/유찰 처리 후 다음 선수로 이동 중입니다.</div></div></div>`:
           `<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">${rem}초</div><div class="highest">현재 최고 입찰: ${hi?`<span class="highestName">${hi.captain_name}</span> / <span class="highestAmount">${money(hi.amount)}</span> coin`:'아직 없음'}</div>${me?`<div class="bidBox"><input id="customBid" type="number" step="10" placeholder="직접 입찰 금액"><button class="gold" onclick="customBid()" ${!canBid()?'disabled':''}>입찰하기</button><button onclick="placeBid()" ${!canBid()?'disabled':''}>+10 자동입찰</button></div>`:`<p class="muted">관람 중입니다. 입찰하려면 상단에서 주장 로그인하세요.</p>`}</div></div>`}
         </div>
 
@@ -528,7 +558,7 @@ async function recoverProcessingIfStuck(){
   // 단, 네트워크 오류 등으로 processing이 오래 지속되면 같은 선수를 30초부터 다시 진행하여 0초 멈춤을 해제합니다.
   if(state.status!=='processing') { processingSeenAt=0; return; }
   if(!processingSeenAt) processingSeenAt=Date.now();
-  if(Date.now()-processingSeenAt < 7000) return;
+  if(Date.now()-processingSeenAt < 2500) return;
   try{
     const freshSold=await getFreshSoldTeams();
     if(allTeamsFullFrom(freshSold)){
@@ -558,17 +588,37 @@ async function boot(){
   sb.channel('auction-live').on('postgres_changes',{event:'*',schema:'public'},()=>loadAll()).subscribe();
   setInterval(()=>{
     try{
-      // 타이머 화면은 네트워크 요청을 기다리지 않고 즉시 갱신합니다.
-      if(state.status==='running' && remainingSeconds()<=0) finishRound();
-      else if(state.status==='processing') { recoverProcessingIfStuck(); if(!isEditing()) render(); }
-      else { processingSeenAt=0; if(!isEditing()) render(); }
-
-      // 접속자/로그인 유지 요청은 뒤에서 비동기로 처리하여 타이머 멈춤을 줄입니다.
-      visitorHeartbeat();
-      if(me) heartbeat();
-      loadVisitorCount().then(()=>{ if(!isEditing() && !finishing) render(); });
+      const rem=remainingSeconds();
+      if(state.status==='running'){
+        const roundKey=`${state.current_index}_${state.round_started_at||''}`;
+        if(rem===6 && lastRoundKeyForCountSound!==roundKey){
+          lastRoundKeyForCountSound=roundKey;
+          playSound('count');
+        }
+        if(rem<=0){
+          if(!finishRoundPromise){
+            finishing=true;
+            if(!isEditing()) render();
+            finishRoundPromise=finishRound().finally(()=>{finishRoundPromise=null;});
+          }else if(!isEditing()) render();
+        }else{
+          processingSeenAt=0;
+          if(!isEditing()) render();
+        }
+      }else if(state.status==='processing'){
+        recoverProcessingIfStuck();
+        if(!isEditing()) render();
+      }else{
+        processingSeenAt=0;
+        if(!isEditing()) render();
+      }
     }catch(e){console.error(e)}
-  },1000);
+  },250);
+  setInterval(()=>{
+    visitorHeartbeat();
+    if(me) heartbeat();
+    loadVisitorCount().then(()=>{ if(!isEditing() && !finishing) render(); });
+  },4000);
 }
 boot();
 </script>
