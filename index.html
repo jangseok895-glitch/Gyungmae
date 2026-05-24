@@ -89,7 +89,7 @@ const ADMIN_PASSWORD='0473';
 const START_COINS=1000;
 const BID_STEP=10;
 const ROUND_SECONDS=30;
-const PROCESSING_STUCK_MS=650;
+const PROCESSING_STUCK_MS=8000;
 const TEAM_SIZE=3;
 const SOUND_NEXT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EB%9D%B5%EB%8F%99.mp3';
 const SOUND_COUNT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/5%EC%B9%B4%EC%9A%B4%ED%8A%B8.mp3';
@@ -223,9 +223,10 @@ function nextUnsoldIndex(afterIndex){
   return -1;
 }
 function currentPlayer(){
-  if(PLAYERS[state.current_index] && !soldPlayers().has(PLAYERS[state.current_index])) return PLAYERS[state.current_index];
-  const idx=nextUnsoldIndex((state.current_index||0)-1);
-  return idx>=0?PLAYERS[idx]:PLAYERS[0];
+  // 중요: 현재 출품품목은 반드시 auction_state.current_index만 기준으로 표시합니다.
+  // 각 접속자의 teams 로딩 시점이 다르면 soldPlayers() 기준으로 건너뛰면서 사람마다 다른 품목이 보일 수 있습니다.
+  const idx=Number(state.current_index||0);
+  return PLAYERS[idx] || PLAYERS[0];
 }
 function clampRemaining(v){
   const n=Number(v);
@@ -397,7 +398,13 @@ async function completeRoundAndMove(localIndex, reason='normal'){
   let player=PLAYERS[localIndex];
   let freshSold=await getFreshSoldTeams();
 
-  if(!player || freshSold.some(t=>t.player_name===player)){
+  if(!player){
+    await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
+    return;
+  }
+
+  // 이미 낙찰 처리된 선수라면 중복 처리하지 않고 다음 미낙찰 선수로만 이동합니다.
+  if(freshSold.some(t=>t.player_name===player)){
     const ni=nextUnsoldIndexFrom(localIndex, freshSold);
     if(ni<0 || allTeamsFullFrom(freshSold)){
       await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
@@ -420,8 +427,7 @@ async function completeRoundAndMove(localIndex, reason='normal'){
 
   if(hi){
     const price=Number(hi.amount);
-    let cap=captains.find(c=>c.name===hi.captain_name);
-    if(!cap) cap=await q(sb.from('auction_captains').select('*').eq('name',hi.captain_name).single(), '낙찰 주장 확인');
+    const cap=await q(sb.from('auction_captains').select('*').eq('name',hi.captain_name).single(), '낙찰 주장 확인');
 
     freshSold=await getFreshSoldTeams();
     const alreadySold=freshSold.some(t=>t.player_name===player);
@@ -446,7 +452,7 @@ async function completeRoundAndMove(localIndex, reason='normal'){
     logMessage=`${player} 유찰`;
   }
 
-  // 가장 중요한 부분: 로그보다 상태 전환을 먼저 합니다.
+  // 상태 전환을 먼저 해서 모든 접속자가 같은 current_index를 보게 합니다.
   if(allTeamsFullFrom(freshSold)){
     await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
   }else{
@@ -464,7 +470,7 @@ async function finishRound(){
   if(state.status!=='running'||remainingSeconds()>0) return;
   if(finishing) return;
 
-  const localIndex=state.current_index;
+  const localIndex=Number(state.current_index||0);
   const localStartedAt=state.round_started_at;
   const finishKey=`${localIndex}_${localStartedAt}`;
   if(lastFinishedKey===finishKey) return;
@@ -474,10 +480,11 @@ async function finishRound(){
   if(!isEditing()) render();
 
   try{
-    // DB에는 아주 짧은 잠금만 겁니다. 여러 접속자가 동시에 0초를 감지해도 한 명만 통과합니다.
+    // 0초를 여러 접속자가 동시에 감지해도 이 조건을 통과한 1명만 라운드를 종료합니다.
+    const lockStartedAt=nowIso();
     const lock=await q(
       sb.from('auction_state')
-        .update({status:'processing',round_started_at:nowIso(),paused_remaining:0})
+        .update({status:'processing',round_started_at:lockStartedAt,paused_remaining:0})
         .eq('id',1)
         .eq('status','running')
         .eq('current_index',localIndex)
@@ -485,22 +492,20 @@ async function finishRound(){
         .select('id'),
       '라운드 잠금'
     );
-    if(!lock.length){ finishing=false; return; }
+    if(!lock.length){ return; }
 
     await completeRoundAndMove(localIndex, 'finish');
     processingSeenAt=0;
+    lastError='';
     await loadAll();
   }catch(e){
-    console.warn('라운드 종료 복구 처리', e);
-    // 오류가 나도 processing에 방치하지 않고 무조건 다음 상태로 돌립니다.
+    console.warn('라운드 종료 실패 - 같은 선수로 재시도 상태 복구', e);
+    // 실패했을 때 다음 선수로 강제로 넘기면 사람마다 화면이 갈라질 수 있습니다.
+    // 따라서 같은 출품품목을 5초 남은 running 상태로 되돌려 모두 같은 화면으로 맞춥니다.
     try{
-      const freshSold=await getFreshSoldTeams();
-      const ni=nextUnsoldIndexFrom(localIndex, freshSold);
-      if(ni>=0 && !allTeamsFullFrom(freshSold)){
-        await sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1);
-      }else{
-        await sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1);
-      }
+      await sb.from('auction_state')
+        .update({status:'running',current_index:localIndex,round_started_at:new Date(Date.now()-(ROUND_SECONDS-5)*1000).toISOString(),paused_remaining:5})
+        .eq('id',1);
       lastError='';
       await loadAll();
     }catch(e2){
@@ -597,7 +602,7 @@ function render(){
       <div>
         <div class="card">
           <h2 style="margin-bottom:10px">경매 출품 선수 목록</h2>
-          <div class="playersGrid">${PLAYERS.map((p,i)=>{const isSold=sold.has(p), isNow=p===player&&state.status==='running';return `<div class="playerItem ${isSold?'sold':isNow?'now':''}"><span class="num">${i+1}</span>${p}</div>`}).join('')}</div>
+          <div class="playersGrid">${PLAYERS.map((p,i)=>{const isSold=sold.has(p), isNow=p===player&&(state.status==='running'||state.status==='processing');return `<div class="playerItem ${isSold?'sold':isNow?'now':''}"><span class="num">${i+1}</span>${p}</div>`}).join('')}</div>
         </div>
 
         <div class="card" style="margin-top:10px">
@@ -611,30 +616,29 @@ function render(){
 async function recoverProcessingIfStuck(force=false){
   if(state.status!=='processing') { processingSeenAt=0; return; }
   if(!processingSeenAt) processingSeenAt=Date.now();
-  if(!force && Date.now()-processingSeenAt < PROCESSING_STUCK_MS) return;
+
+  const started=new Date(state.round_started_at||0).getTime();
+  const oldEnoughByDb=Number.isFinite(started) && Date.now()-started>PROCESSING_STUCK_MS;
+  if(!force && !oldEnoughByDb && Date.now()-processingSeenAt < PROCESSING_STUCK_MS) return;
+
   try{
+    // 중요: processing 복구에서 낙찰/유찰 처리를 하지 않습니다.
+    // 여러 접속자가 동시에 completeRoundAndMove를 실행하면 선수 건너뜀/화면 불일치가 생깁니다.
+    // processing이 오래 걸리면 같은 선수 5초 남은 상태로 되돌려 한 명만 다시 정상 종료하게 합니다.
     const idx=Number(state.current_index||0);
-    // processing이 남아있으면 같은 라운드를 마저 처리해서 낙찰/유찰 후 다음 선수로 넘깁니다.
-    await completeRoundAndMove(idx, 'recovery');
+    const restore=await q(
+      sb.from('auction_state')
+        .update({status:'running',current_index:idx,round_started_at:new Date(Date.now()-(ROUND_SECONDS-5)*1000).toISOString(),paused_remaining:5})
+        .eq('id',1)
+        .eq('status','processing')
+        .select('id'),
+      '처리중 복구'
+    );
     processingSeenAt=0;
     lastError='';
     await loadAll();
   }catch(e){
-    console.warn('processing 강제 복구', e);
-    try{
-      const freshSold=await getFreshSoldTeams();
-      let idx=Number(state.current_index||0);
-      idx=nextUnsoldIndexFrom(idx, freshSold);
-      if(idx<0) idx=nextUnsoldIndexFrom(-1, freshSold);
-      if(idx>=0 && !allTeamsFullFrom(freshSold)){
-        await sb.from('auction_state').update({status:'running',current_index:idx,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1);
-      }else{
-        await sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1);
-      }
-      processingSeenAt=0;
-      lastError='';
-      await loadAll();
-    }catch(e2){showErr('처리중 복구 실패',e2)}
+    console.warn('processing 복구 실패', e);
   }
 }
 
@@ -649,7 +653,7 @@ async function boot(){
     sb.channel('auction-live').on('postgres_changes',{event:'*',schema:'public'},()=>loadAll()).subscribe();
   setInterval(()=>{
     try{
-      if(finishRoundPromise && finishStartedAt && Date.now()-finishStartedAt>1800){
+      if(finishRoundPromise && finishStartedAt && Date.now()-finishStartedAt>9000){
         finishRoundPromise=null; finishStartedAt=0; finishing=false;
         recoverProcessingIfStuck();
       }
