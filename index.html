@@ -101,7 +101,7 @@ if(!visitorId){visitorId=crypto.randomUUID();localStorage.setItem('auction_visit
 let state={id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS};
 let captains=[],bids=[],logs=[],teams=[],visitorCount=0,lastError='',finishing=false,lastFinishedKey='',processingSeenAt=0,lastSeenRoundKey='';
 let lastRoundKeyForNextSound='', lastRoundKeyForCountSound='', finishRoundPromise=null, finishStartedAt=0;
-let adminAuthorized=localStorage.getItem('auction_admin_authorized')==='true';
+let adminAuthorized=false; // 새로고침/다른 브라우저에 권한이 남지 않도록 저장하지 않습니다.
 let audioUnlocked=false;
 const audioNext=new Audio(SOUND_NEXT);
 const audioCount=new Audio(SOUND_COUNT);
@@ -345,7 +345,7 @@ function closeAdminPassword(ok){
   if(!ok) return resolve(false);
   if(pw!==ADMIN_PASSWORD){toast('운영진 비밀번호가 맞지 않습니다.');return resolve(false)}
   adminAuthorized=true;
-  localStorage.setItem('auction_admin_authorized','true');
+  // 진행처리 권한은 현재 열린 브라우저 세션에만 유지합니다.
   return resolve(true);
 }
 async function promptStart(){ if(await askAdminPassword()) await startAuction(); }
@@ -609,7 +609,7 @@ async function factoryResetAll(){
     await q(sb.from('auction_state').update({current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS}).eq('id',1),'상태 초기화');
     localStorage.removeItem('auction_me'); me=null;
     lastFinishedKey=''; processingSeenAt=0; finishRoundPromise=null; finishStartedAt=0; finishing=false;
-    adminAuthorized=false; localStorage.removeItem('auction_admin_authorized');
+    adminAuthorized=false;
     await addAuctionLog('운영진 공장초기화');
     closeAdmin(); await loadAll();
   }catch(e){showErr('공장초기화 실패',e)}
@@ -729,7 +729,7 @@ async function boot(){
     await loadAll();
     if(adminAuthorized && state.status==='processing') recoverProcessingIfStuck(true);
     sb.channel('auction-live').on('postgres_changes',{event:'*',schema:'public'},()=>loadAll()).subscribe();
-    setInterval(()=>loadAll().catch(()=>{}),1500);
+    setInterval(()=>loadAll().catch(()=>{}),3000);
   setInterval(()=>{
     try{
       if(finishRoundPromise && finishStartedAt && Date.now()-finishStartedAt>9000){
