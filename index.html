@@ -94,7 +94,7 @@ let visitorId=localStorage.getItem('auction_visitor_id');
 if(!visitorId){visitorId=crypto.randomUUID();localStorage.setItem('auction_visitor_id',visitorId)}
 
 let state={id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS};
-let captains=[],bids=[],logs=[],teams=[],visitorCount=0,lastError='',finishing=false,lastFinishedKey='';
+let captains=[],bids=[],logs=[],teams=[],visitorCount=0,lastError='',finishing=false,lastFinishedKey='',processingSeenAt=0;
 const app=document.getElementById('app'), modalRoot=document.getElementById('modalRoot');
 const $=s=>document.querySelector(s);
 const nowIso=()=>new Date().toISOString();
@@ -341,11 +341,14 @@ async function finishRound(){
   const finishKey=`${localIndex}_${localStartedAt}`;
   if(lastFinishedKey===finishKey) return;
   finishing=true; lastFinishedKey=finishKey;
+  // 0초에서 멈춰 보이지 않도록 즉시 처리중 화면으로 바꿉니다.
+  render();
 
   try{
+    const processingStartedAt=nowIso();
     const lock=await q(
       sb.from('auction_state')
-        .update({status:'processing'})
+        .update({status:'processing',round_started_at:processingStartedAt,paused_remaining:0})
         .eq('id',1)
         .eq('status','running')
         .eq('current_index',localIndex)
@@ -496,7 +499,7 @@ function render(){
           <h2 style="margin-bottom:10px">현재 경매</h2>
           ${state.status==='waiting'?`<p class="muted" style="font-weight:900">대기중입니다. 위쪽 경매 시작 버튼 → 운영진 비밀번호 입력 시 시작됩니다.</p>`:
           state.status==='ended'?`<p class="muted" style="font-weight:900;color:#34d399">경매가 종료되었습니다.</p>`:
-          state.status==='processing'?`<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">처리중</div><div class="highest">다음 경매로 이동 중입니다.</div></div></div>`:
+          (state.status==='processing'||finishing)?`<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">처리중</div><div class="highest">낙찰/유찰 처리 후 다음 선수로 이동 중입니다.</div></div></div>`:
           `<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">${rem}초</div><div class="highest">현재 최고 입찰: ${hi?`<span class="highestName">${hi.captain_name}</span> / <span class="highestAmount">${money(hi.amount)}</span> coin`:'아직 없음'}</div>${me?`<div class="bidBox"><input id="customBid" type="number" step="10" placeholder="직접 입찰 금액"><button class="gold" onclick="customBid()" ${!canBid()?'disabled':''}>입찰하기</button><button onclick="placeBid()" ${!canBid()?'disabled':''}>+10 자동입찰</button></div>`:`<p class="muted">관람 중입니다. 입찰하려면 상단에서 주장 로그인하세요.</p>`}</div></div>`}
         </div>
 
@@ -521,19 +524,31 @@ function render(){
   </div>`;
 }
 async function recoverProcessingIfStuck(){
-  // 오류나 새로고침으로 processing 상태에서 멈춘 경우 자동으로 다음 유찰/미낙찰 선수로 복구합니다.
-  if(state.status!=='processing') return;
+  // 다른 접속자가 라운드 종료를 처리하는 잠깐의 processing 상태는 기다립니다.
+  // 단, 네트워크 오류 등으로 processing이 오래 지속되면 같은 선수를 30초부터 다시 진행하여 0초 멈춤을 해제합니다.
+  if(state.status!=='processing') { processingSeenAt=0; return; }
+  if(!processingSeenAt) processingSeenAt=Date.now();
+  if(Date.now()-processingSeenAt < 7000) return;
   try{
     const freshSold=await getFreshSoldTeams();
-    const ni=nextUnsoldIndexFrom(state.current_index, freshSold);
-    if(ni>=0 && !allTeamsFullFrom(freshSold)){
-      await sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1);
-    }else{
+    if(allTeamsFullFrom(freshSold)){
       await sb.from('auction_state').update({status:'ended',round_started_at:null}).eq('id',1);
+    }else{
+      let idx=state.current_index;
+      if(!PLAYERS[idx] || freshSold.some(t=>t.player_name===PLAYERS[idx])) idx=nextUnsoldIndexFrom(idx, freshSold);
+      if(idx<0) idx=nextUnsoldIndexFrom(-1, freshSold);
+      await sb.from('auction_state').update({
+        status:'running',
+        current_index:idx>=0?idx:0,
+        round_started_at:nowIso(),
+        paused_remaining:ROUND_SECONDS
+      }).eq('id',1);
     }
+    processingSeenAt=0;
     await loadAll();
   }catch(e){ console.warn(e); }
 }
+
 
 async function boot(){
   render();
@@ -545,13 +560,13 @@ async function boot(){
     try{
       // 타이머 화면은 네트워크 요청을 기다리지 않고 즉시 갱신합니다.
       if(state.status==='running' && remainingSeconds()<=0) finishRound();
-      else if(state.status==='processing') { recoverProcessingIfStuck(); }
-      else if(!isEditing()) render();
+      else if(state.status==='processing') { recoverProcessingIfStuck(); if(!isEditing()) render(); }
+      else { processingSeenAt=0; if(!isEditing()) render(); }
 
       // 접속자/로그인 유지 요청은 뒤에서 비동기로 처리하여 타이머 멈춤을 줄입니다.
       visitorHeartbeat();
       if(me) heartbeat();
-      loadVisitorCount().then(()=>{ if(!isEditing()) render(); });
+      loadVisitorCount().then(()=>{ if(!isEditing() && !finishing) render(); });
     }catch(e){console.error(e)}
   },1000);
 }
