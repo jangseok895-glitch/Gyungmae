@@ -96,8 +96,8 @@ let visitorId=localStorage.getItem('auction_visitor_id');
 if(!visitorId){visitorId=crypto.randomUUID();localStorage.setItem('auction_visitor_id',visitorId)}
 
 let state={id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS};
-let captains=[],bids=[],logs=[],teams=[],visitorCount=0,lastError='',finishing=false,lastFinishedKey='',processingSeenAt=0;
-let lastRoundKeyForNextSound='', lastRoundKeyForCountSound='', finishRoundPromise=null;
+let captains=[],bids=[],logs=[],teams=[],visitorCount=0,lastError='',finishing=false,lastFinishedKey='',processingSeenAt=0,lastSeenRoundKey='';
+let lastRoundKeyForNextSound='', lastRoundKeyForCountSound='', finishRoundPromise=null, finishStartedAt=0;
 let audioUnlocked=false;
 const audioNext=new Audio(SOUND_NEXT);
 const audioCount=new Audio(SOUND_COUNT);
@@ -365,7 +365,7 @@ function nextSoldOrderFrom(freshSold){
 
 async function finishRound(){
   if(state.status!=='running'||remainingSeconds()>0) return;
-  if(finishing && !finishRoundPromise) return;
+  if(finishing) return;
   const localIndex=state.current_index;
   const localStartedAt=state.round_started_at;
   const finishKey=`${localIndex}_${localStartedAt}`;
@@ -558,7 +558,7 @@ async function recoverProcessingIfStuck(){
   // 단, 네트워크 오류 등으로 processing이 오래 지속되면 같은 선수를 30초부터 다시 진행하여 0초 멈춤을 해제합니다.
   if(state.status!=='processing') { processingSeenAt=0; return; }
   if(!processingSeenAt) processingSeenAt=Date.now();
-  if(Date.now()-processingSeenAt < 2500) return;
+  if(Date.now()-processingSeenAt < 1200) return;
   try{
     const freshSold=await getFreshSoldTeams();
     if(allTeamsFullFrom(freshSold)){
@@ -588,6 +588,10 @@ async function boot(){
   sb.channel('auction-live').on('postgres_changes',{event:'*',schema:'public'},()=>loadAll()).subscribe();
   setInterval(()=>{
     try{
+      if(finishRoundPromise && finishStartedAt && Date.now()-finishStartedAt>6000){
+        finishRoundPromise=null; finishStartedAt=0; finishing=false;
+        recoverProcessingIfStuck();
+      }
       const rem=remainingSeconds();
       if(state.status==='running'){
         const roundKey=`${state.current_index}_${state.round_started_at||''}`;
@@ -597,9 +601,9 @@ async function boot(){
         }
         if(rem<=0){
           if(!finishRoundPromise){
-            finishing=true;
             if(!isEditing()) render();
-            finishRoundPromise=finishRound().finally(()=>{finishRoundPromise=null;});
+            finishStartedAt=Date.now();
+            finishRoundPromise=finishRound().finally(()=>{finishRoundPromise=null; finishStartedAt=0;});
           }else if(!isEditing()) render();
         }else{
           processingSeenAt=0;
