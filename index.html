@@ -328,6 +328,11 @@ function captainTeamCountFrom(name, freshSold){
 function allTeamsFullFrom(freshSold){
   return CAPTAINS.every(c=>captainTeamCountFrom(c.name,freshSold)>=TEAM_SIZE);
 }
+function nextSoldOrderFrom(freshSold){
+  const nums=(freshSold||[]).map(t=>Number(t.sold_order||0)).filter(n=>Number.isFinite(n));
+  const max=nums.length?Math.max(...nums):0;
+  return max+1; // sold_order는 int4라 Date.now() 같은 큰 숫자를 넣으면 오류가 납니다.
+}
 
 async function finishRound(){
   if(finishing||state.status!=='running'||remainingSeconds()>0) return;
@@ -381,7 +386,7 @@ async function finishRound(){
       if(!alreadySold && !winnerFull && coinEnough){
         const inserted=await q(
           sb.from('auction_teams')
-            .insert({captain_name:hi.captain_name,player_name:player,price,group_name:groupNameByCaptain(hi.captain_name),sold_order:Date.now()})
+            .insert({captain_name:hi.captain_name,player_name:player,price,group_name:groupNameByCaptain(hi.captain_name),sold_order:nextSoldOrderFrom(freshSold)})
             .select(),
           '낙찰 저장'
         );
@@ -409,7 +414,12 @@ async function finishRound(){
     try{
       const freshSold=await getFreshSoldTeams();
       const ni=nextUnsoldIndexFrom(localIndex, freshSold);
-      await sb.from('auction_state').update({status:'running',current_index:ni>=0?ni:0,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1);
+      if(ni>=0 && !allTeamsFullFrom(freshSold)){
+        await sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1);
+      }else{
+        await sb.from('auction_state').update({status:'ended',round_started_at:null}).eq('id',1);
+      }
+      await loadAll();
     }catch(_){}
   }finally{
     finishing=false;
@@ -510,6 +520,21 @@ function render(){
     </div>
   </div>`;
 }
+async function recoverProcessingIfStuck(){
+  // 오류나 새로고침으로 processing 상태에서 멈춘 경우 자동으로 다음 유찰/미낙찰 선수로 복구합니다.
+  if(state.status!=='processing') return;
+  try{
+    const freshSold=await getFreshSoldTeams();
+    const ni=nextUnsoldIndexFrom(state.current_index, freshSold);
+    if(ni>=0 && !allTeamsFullFrom(freshSold)){
+      await sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1);
+    }else{
+      await sb.from('auction_state').update({status:'ended',round_started_at:null}).eq('id',1);
+    }
+    await loadAll();
+  }catch(e){ console.warn(e); }
+}
+
 async function boot(){
   render();
   await visitorHeartbeat();
@@ -520,7 +545,7 @@ async function boot(){
     try{
       // 타이머 화면은 네트워크 요청을 기다리지 않고 즉시 갱신합니다.
       if(state.status==='running' && remainingSeconds()<=0) finishRound();
-      else if(state.status==='processing') { /* 처리 중에는 DB 완료를 기다립니다 */ }
+      else if(state.status==='processing') { recoverProcessingIfStuck(); }
       else if(!isEditing()) render();
 
       // 접속자/로그인 유지 요청은 뒤에서 비동기로 처리하여 타이머 멈춤을 줄입니다.
