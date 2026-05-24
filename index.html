@@ -65,6 +65,23 @@
     .adminGrid label{display:block;margin-bottom:4px;color:#b9d7ff;font-weight:900}
     .adminPwBox{display:grid;grid-template-columns:1fr 90px 90px;gap:8px;margin-top:12px}
     .adminPwBox input{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:10px;font-size:14px}
+
+
+    /* ===== 맵 돌림판 팝업 ===== */
+    .mapWheelModal{width:760px;max-width:92vw;background:#0f1b2e;border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:0 20px 70px rgba(0,0,0,.58)}
+    .mapWheelLayout{display:grid;grid-template-columns:390px 1fr;gap:14px;align-items:center;margin-top:12px}
+    .wheelWrap{position:relative;width:380px;height:380px;margin:0 auto;display:flex;align-items:center;justify-content:center}
+    .wheelPointer{position:absolute;top:-1px;left:50%;transform:translateX(-50%);z-index:5;width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-top:36px solid #facc15;filter:drop-shadow(0 5px 6px rgba(0,0,0,.4))}
+    .wheelPointer:after{content:'';position:absolute;left:-8px;top:-34px;width:16px;height:16px;background:#fff;border-radius:50%;box-shadow:0 0 8px rgba(255,255,255,.5)}
+    .wheelCanvas{width:360px;height:360px;border-radius:50%;background:#081525;border:8px solid #213a5c;box-shadow:inset 0 0 18px rgba(0,0,0,.55),0 0 24px rgba(56,189,248,.14);transition:transform 5.2s cubic-bezier(.08,.78,.12,1)}
+    .wheelHub{position:absolute;width:82px;height:82px;border-radius:50%;background:linear-gradient(135deg,#facc15,#f97316);border:6px solid #fff;color:#251a00;display:flex;align-items:center;justify-content:center;font-weight:1000;box-shadow:0 0 18px rgba(0,0,0,.45);z-index:4;text-align:center;line-height:1.05}
+    .mapWheelResult{min-height:94px;background:#081525;border:1px solid var(--line);border-radius:16px;padding:12px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .mapWheelResult .label{font-size:12px;color:#9fb4cd;font-weight:900;margin-bottom:6px}
+    .mapWheelResult .name{font-size:30px;color:#facc15;font-weight:1000;line-height:1.1;text-shadow:0 0 10px rgba(250,204,21,.25)}
+    .mapWheelButtons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .mapWheelList{height:180px;overflow:auto;margin-top:10px;background:#081525;border:1px solid var(--line);border-radius:12px;padding:8px;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
+    .mapChip{font-size:11px;font-weight:900;color:#b9d7ff;border:1px solid rgba(56,189,248,.22);background:#10213a;border-radius:999px;padding:4px 7px;white-space:nowrap}
+    .mapWheelHint{font-size:12px;color:#9fb4cd;margin-top:8px;line-height:1.45}
   </style>
 </head>
 <body>
@@ -84,6 +101,10 @@ const CAPTAINS=[
   {name:'시크릿',password:'6352'}
 ];
 const PLAYERS=['둘리','로딩','제로','라곤','네오','줄리엣','키라','로버','흠','미신트','짱이','이뚜','헬츠','브칠','미또'];
+
+const MAP_LIST=['고가','남산','해변','싱가폴서킷','용의 운하','차이나 라사','쥐공무','차관문','코리아서킷','두바이','도야수','부산','서울','월드리오다운힐','쥐공결','문힐시티질주','메카닉','도검용의길','브로디','노전비','익스트림','에펠탑','뉴욕','서호','신화신들의세계','역로비','동마성','시청광장','궤도전차','공룡유적지','용광로','거인','상해서킷','스카이웨이','팬드래건캐슬','오딘','제우스시티','이탈리아','순찰로','소용돌이','정유공장','병마용','만리장성','해로비','님프','직잭','브라질','사빙공','대은지','황산','해숨보','붐힐터널','갈빙','비밀장치위협','네모산타','좌표','차골대','감시탑','협곡','팩두공','상어섬','포오공','대관령','쥐공대','랠리','헬기점프','바닷길','송수관','해골성','신전','스카이라인','동이문','노익','팩미5','공마초','설산','역직잭','문숨지','제련소','부빙'];
+let wheelMaps=[...MAP_LIST], wheelRotation=0, wheelSpinning=false, wheelLastResult='';
+
 
 const ADMIN_PASSWORD='0473';
 const START_COINS=1000;
@@ -636,6 +657,127 @@ async function editCoin(name){
   await loadAll();
 }
 
+
+function shuffleArray(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function drawMapWheel(){
+  const canvas=document.getElementById('mapWheelCanvas');
+  if(!canvas) return;
+  const dpr=window.devicePixelRatio||1;
+  const size=360;
+  canvas.width=size*dpr; canvas.height=size*dpr;
+  canvas.style.width=size+'px'; canvas.style.height=size+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,size,size);
+  const cx=size/2, cy=size/2, r=size/2-8;
+  const n=wheelMaps.length;
+  const seg=(Math.PI*2)/n;
+  const colors=['#2563eb','#7c3aed','#0891b2','#16a34a','#ea580c','#dc2626','#0f766e','#9333ea'];
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(-Math.PI/2);
+  for(let i=0;i<n;i++){
+    const start=i*seg, end=start+seg;
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,r,start,end);
+    ctx.closePath();
+    ctx.fillStyle=colors[i%colors.length];
+    ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.18)';
+    ctx.lineWidth=1;
+    ctx.stroke();
+    ctx.save();
+    ctx.rotate(start+seg/2);
+    ctx.textAlign='right';
+    ctx.textBaseline='middle';
+    ctx.fillStyle='white';
+    ctx.font='900 10px Arial, sans-serif';
+    const name=wheelMaps[i];
+    const short=name.length>7?name.slice(0,7)+'…':name;
+    ctx.fillText(short,r-14,0);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+function openMapWheel(){
+  modalRoot.innerHTML=`<div class="modalBg"><div class="mapWheelModal">
+    <div class="sectionHead"><h2>🗺️ 맵 돌림판</h2><button class="ghost" onclick="closeMapWheel()">닫기</button></div>
+    <div class="mapWheelLayout">
+      <div class="wheelWrap">
+        <div class="wheelPointer"></div>
+        <canvas id="mapWheelCanvas" class="wheelCanvas"></canvas>
+        <div class="wheelHub">MAP<br>SPIN</div>
+      </div>
+      <div>
+        <div class="mapWheelResult"><div class="label">선택된 맵</div><div id="mapWheelResultName" class="name">돌림판 대기중</div></div>
+        <div class="mapWheelButtons">
+          <button class="gold" onclick="spinMapWheel()" id="spinMapBtn">돌리기</button>
+          <button class="ghost" onclick="shuffleMapWheel()" id="shuffleMapBtn">랜덤섞기</button>
+        </div>
+        <div class="mapWheelHint">맨 위 노란 화살표에 걸린 칸이 최종 맵으로 결정됩니다. 돌림판은 계속 다시 돌릴 수 있습니다.</div>
+        <div class="mapWheelList" id="mapWheelList"></div>
+      </div>
+    </div>
+  </div></div>`;
+  setTimeout(()=>{drawMapWheel(); renderMapWheelList(); applyWheelRotation(false);},0);
+}
+function closeMapWheel(){ if(wheelSpinning) return; modalRoot.innerHTML=''; }
+function renderMapWheelList(){
+  const box=document.getElementById('mapWheelList');
+  if(!box) return;
+  box.innerHTML=wheelMaps.map(m=>`<span class="mapChip">${escapeHtml(m)}</span>`).join('');
+}
+function applyWheelRotation(animated=true){
+  const canvas=document.getElementById('mapWheelCanvas');
+  if(!canvas) return;
+  canvas.style.transition=animated?'transform 5.2s cubic-bezier(.08,.78,.12,1)':'none';
+  canvas.style.transform=`rotate(${wheelRotation}deg)`;
+}
+function setMapWheelButtons(disabled){
+  const spin=document.getElementById('spinMapBtn'), shuf=document.getElementById('shuffleMapBtn');
+  if(spin) spin.disabled=disabled;
+  if(shuf) shuf.disabled=disabled;
+}
+function spinMapWheel(){
+  if(wheelSpinning || !wheelMaps.length) return;
+  wheelSpinning=true; setMapWheelButtons(true);
+  const n=wheelMaps.length;
+  const seg=360/n;
+  const picked=Math.floor(Math.random()*n);
+  const centerDeg=picked*seg + seg/2;
+  const current=((wheelRotation%360)+360)%360;
+  const targetMod=(360-centerDeg+360)%360;
+  let delta=(targetMod-current+360)%360;
+  delta += 360*(7+Math.floor(Math.random()*3));
+  wheelRotation += delta;
+  const resultEl=document.getElementById('mapWheelResultName');
+  if(resultEl) resultEl.textContent='돌리는 중...';
+  applyWheelRotation(true);
+  setTimeout(()=>{
+    wheelLastResult=wheelMaps[picked];
+    const el=document.getElementById('mapWheelResultName');
+    if(el) el.textContent=wheelLastResult;
+    wheelSpinning=false; setMapWheelButtons(false);
+  },5300);
+}
+function shuffleMapWheel(){
+  if(wheelSpinning) return;
+  wheelMaps=shuffleArray(wheelMaps);
+  wheelRotation=0;
+  wheelLastResult='';
+  drawMapWheel(); renderMapWheelList(); applyWheelRotation(false);
+  const el=document.getElementById('mapWheelResultName');
+  if(el) el.textContent='랜덤섞기 완료';
+}
+
 function renderAuthBox(){
   const cap=myCaptain();
   return `<div class="card">
@@ -650,7 +792,7 @@ function render(){
     ${lastError?`<div class="errorBox">${escapeHtml(lastError)}</div>`:''}
     <div class="top">
       <div class="title"><h1>🏁 아시아리그 팀원 경매</h1><p>로그인 없이 관람 가능 · 주장 로그인 후 입찰 가능 · 최소 입찰 10 coin · 제한시간 30초</p></div>
-      <div class="topBtns"><button class="gold" onclick="promptStart()">경매 시작</button>
+      <div class="topBtns"><button class="gold" onclick="promptStart()">경매 시작</button><button class="ghost" onclick="openMapWheel()">맵돌리기</button>
       <button class="ok" onclick="authorizeAdminOnly()">이 브라우저로 진행처리</button><button class="ghost" onclick="openAdmin()">운영진 패널</button>${adminAuthorized?`<span class="badge">운영진 진행처리 ON</span>`:''}${me?`<span class="badge">로그인: ${me.name}</span>`:`<span class="badge">미로그인</span>`}</div>
     </div>
     ${renderAuthBox()}
