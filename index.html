@@ -82,13 +82,299 @@
     .mapWheelList{height:180px;overflow:auto;margin-top:10px;background:#081525;border:1px solid var(--line);border-radius:12px;padding:8px;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
     .mapChip{font-size:11px;font-weight:900;color:#b9d7ff;border:1px solid rgba(56,189,248,.22);background:#10213a;border-radius:999px;padding:4px 7px;white-space:nowrap}
     .mapWheelHint{font-size:12px;color:#9fb4cd;margin-top:8px;line-height:1.45}
+
+    /* ===== 첫 화면 / 아시아리그 조추첨 ===== */
+    .landingPage{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 15%,rgba(250,204,21,.20),transparent 30%),linear-gradient(135deg,#05070b,#0b1728 45%,#05070b);padding:40px}
+    .landingCard{width:960px;border:1px solid rgba(250,204,21,.45);border-radius:28px;background:rgba(7,17,31,.88);box-shadow:0 30px 100px rgba(0,0,0,.55);padding:48px;text-align:center}
+    .landingCard h1{font-size:64px;line-height:1;margin:0 0 14px;color:#facc15;text-shadow:0 0 18px rgba(250,204,21,.35)}
+    .landingCard p{margin:0 0 34px;color:#b9d7ff;font-size:20px;font-weight:900}
+    .landingBtns{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+    .landingBtn{height:150px;border-radius:24px;font-size:38px;font-weight:1000;letter-spacing:-1px;border:1px solid rgba(255,255,255,.13);box-shadow:0 15px 35px rgba(0,0,0,.35)}
+    .landingBtn.league{background:linear-gradient(135deg,#facc15,#f97316);color:#201000}
+    .landingBtn.auction{background:linear-gradient(135deg,#38bdf8,#2563eb);color:#02111f}
+    .leaguePage{min-height:100vh;background:#05070b;color:#fff;padding:18px 0 34px}
+    .leagueWrap{width:1280px;margin:0 auto}
+    .leagueTop{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+    .leagueTop h1{margin:0;color:#facc15;font-size:32px}
+    .leaguePosterBox{position:relative;border:1px solid rgba(250,204,21,.5);border-radius:18px;overflow:hidden;background:#0b1728;box-shadow:0 20px 55px rgba(0,0,0,.45)}
+    .leaguePosterImg{width:100%;display:block}
+    .leagueGroupOverlay{position:absolute;left:24px;right:24px;top:330px;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+    .leagueGroupCard{height:116px;border-radius:12px;padding:9px 10px;text-align:center;display:flex;flex-direction:column;justify-content:flex-start;gap:5px;background:rgba(0,0,0,.18)}
+    .leagueGroupCard.a{border:1px solid #ef4444}.leagueGroupCard.b{border:1px solid #f59e0b}.leagueGroupCard.c{border:1px solid #22c55e}.leagueGroupCard.d{border:1px solid #38bdf8}.leagueGroupCard.e{border:1px solid #a855f7}
+    .leagueGroupTitle{font-size:26px;font-weight:1000;line-height:1}
+    .leagueMembers{background:#fff;color:#111;border-radius:3px;min-height:34px;padding:5px 6px;font-size:13px;font-weight:900;line-height:1.25;display:flex;align-items:center;justify-content:center;word-break:keep-all}
+    .leagueTeamName{font-size:13px;color:#e5e7eb;font-weight:900}
+    .leaguePanel{margin-top:16px;border:1px solid rgba(250,204,21,.35);border-radius:16px;background:rgba(15,27,46,.94);padding:14px}
+    .leaguePanel h2{margin:0 0 10px;color:#facc15}
+    .leagueTimeGrid{display:grid;grid-template-columns:180px 1fr;gap:8px;font-size:18px;font-weight:900}
+    .leagueTimeGrid div{border:1px solid rgba(255,255,255,.12);background:#081525;border-radius:10px;padding:10px}
+    .leagueModal{width:980px;max-width:94vw;background:#0f1b2e;border:1px solid rgba(250,204,21,.45);border-radius:22px;padding:16px;box-shadow:0 20px 70px rgba(0,0,0,.62)}
+    .leagueModalLayout{display:grid;grid-template-columns:360px 1fr;gap:16px;margin-top:12px}
+    .leagueWheelWrap{position:relative;width:340px;height:340px;margin:auto;display:flex;align-items:center;justify-content:center}
+    .leagueWheelPointer{position:absolute;top:-2px;left:50%;transform:translateX(-50%);z-index:5;width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:34px solid #facc15}
+    .leagueWheelCanvas{width:320px;height:320px;border-radius:50%;background:#081525;border:8px solid #243b5a;transition:transform 4.5s cubic-bezier(.08,.78,.12,1)}
+    .leagueWheelHub{position:absolute;width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,#facc15,#f97316);border:5px solid #fff;color:#211300;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:1000;z-index:4}
+    .leagueInputGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+    .leagueInputTeam{border:1px solid var(--line);border-radius:14px;background:#081525;padding:8px}
+    .leagueInputTeam h3{margin:0 0 8px;color:#facc15}
+    .leagueInputTeam input{width:100%;margin-bottom:6px;background:#0b1728;border:1px solid var(--line);border-radius:9px;color:white;padding:8px;font-size:13px}
+    .assignBtns{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}
+    .assignBtns button.assigned{background:#1f2937;color:#9ca3af}
+    .leagueResultBox{border:1px solid var(--line);background:#081525;border-radius:12px;padding:10px;min-height:70px;text-align:center;font-size:20px;font-weight:1000;color:#facc15}
+    .leagueAssignedList{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
+    .leagueAssignedItem{border:1px solid rgba(255,255,255,.15);border-radius:10px;background:#0b1728;padding:8px;text-align:center;font-weight:900;font-size:13px}
+
   </style>
 </head>
 <body>
-<div id="app"><div class="wrap">불러오는 중...</div></div>
+<div id="landingPage" class="landingPage">
+  <div class="landingCard">
+    <h1>AE ASIA LEAGUE</h1>
+    <p>아시아리그 시즌39 운영 페이지</p>
+    <div class="landingBtns">
+      <button class="landingBtn league" onclick="showLeaguePage()">아시아리그</button>
+      <button class="landingBtn auction" onclick="showAuctionPage()">경매관련</button>
+    </div>
+  </div>
+</div>
+
+<div id="leaguePage" class="leaguePage" style="display:none">
+  <div class="leagueWrap">
+    <div class="leagueTop">
+      <h1>아시아리그 [시즌39]</h1>
+      <div class="topBtns">
+        <button class="gold" onclick="openLeagueDraw()">조추첨하기</button>
+        <button class="ghost" onclick="showLandingPage()">처음으로</button>
+        <button class="ghost" onclick="showAuctionPage()">경매관련</button>
+      </div>
+    </div>
+
+    <div class="leaguePosterBox">
+      <img class="leaguePosterImg" src="https://i.ibb.co/m5FQ8SgN/4472c0c0-72ab-4d13-8615-b70ca66748cf.jpg" alt="아시아리그 시즌39 대진표">
+      <div class="leagueGroupOverlay">
+        <div class="leagueGroupCard a"><div class="leagueGroupTitle" style="color:#ef4444">A조</div><div id="leagueMembers_A" class="leagueMembers">미정</div><div id="leagueTeam_A" class="leagueTeamName">( 팀 )</div></div>
+        <div class="leagueGroupCard b"><div class="leagueGroupTitle" style="color:#f59e0b">B조</div><div id="leagueMembers_B" class="leagueMembers">미정</div><div id="leagueTeam_B" class="leagueTeamName">( 팀 )</div></div>
+        <div class="leagueGroupCard c"><div class="leagueGroupTitle" style="color:#22c55e">C조</div><div id="leagueMembers_C" class="leagueMembers">미정</div><div id="leagueTeam_C" class="leagueTeamName">( 팀 )</div></div>
+        <div class="leagueGroupCard d"><div class="leagueGroupTitle" style="color:#38bdf8">D조</div><div id="leagueMembers_D" class="leagueMembers">미정</div><div id="leagueTeam_D" class="leagueTeamName">( 팀 )</div></div>
+        <div class="leagueGroupCard e"><div class="leagueGroupTitle" style="color:#a855f7">E조</div><div id="leagueMembers_E" class="leagueMembers">미정</div><div id="leagueTeam_E" class="leagueTeamName">( 팀 )</div></div>
+      </div>
+    </div>
+
+    <div class="leaguePanel">
+      <h2>진행 시간</h2>
+      <div class="leagueTimeGrid">
+        <div>18:30</div><div>조추첨</div>
+        <div>19:00</div><div>A vs B / C vs D</div>
+        <div>19:25</div><div>E vs A / B vs C</div>
+        <div>19:50</div><div>D vs E</div>
+        <div>20:15</div><div>PLAY IN : 예선 4위 vs 예선 5위</div>
+        <div>20:45</div><div>준결승 1 : 예선 1위 vs PLAY IN 승자 / 준결승 2 : 예선 2위 vs 예선 3위</div>
+        <div>21:15</div><div>결승전 / 3,4위전 동시 진행</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app" style="display:none"><div class="wrap">불러오는 중...</div></div>
 <div id="modalRoot"></div>
 
 <script>
+
+/* ===== 첫 화면 / 아시아리그 조추첨 기능 ===== */
+const LEAGUE_ADMIN_PASSWORD='0473';
+const LEAGUE_GROUPS=['A','B','C','D','E'];
+let leagueState=JSON.parse(localStorage.getItem('asia_league_draw_state')||'{"teams":[],"assigned":{},"rotation":0}');
+let leagueCurrentTarget=null;
+let leagueSpinning=false;
+
+function saveLeagueState(){localStorage.setItem('asia_league_draw_state',JSON.stringify(leagueState));}
+function showLandingPage(){
+  document.getElementById('landingPage').style.display='flex';
+  document.getElementById('leaguePage').style.display='none';
+  document.getElementById('app').style.display='none';
+}
+function showLeaguePage(){
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('leaguePage').style.display='block';
+  document.getElementById('app').style.display='none';
+  renderLeagueGroups();
+}
+function showAuctionPage(){
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('leaguePage').style.display='none';
+  document.getElementById('app').style.display='block';
+}
+function leagueEscape(v){return String(v??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function renderLeagueGroups(){
+  LEAGUE_GROUPS.forEach(g=>{
+    const t=leagueState.assigned?.[g];
+    const mem=document.getElementById('leagueMembers_'+g);
+    const name=document.getElementById('leagueTeam_'+g);
+    if(!mem||!name) return;
+    if(t){
+      mem.textContent=[t.captain,t.member1,t.member2,t.member3].filter(Boolean).join(' ');
+      name.textContent=`${t.captain||'XX'}팀`;
+    }else{
+      mem.textContent='미정';
+      name.textContent='( 팀 )';
+    }
+  });
+}
+function leagueAskPw(title='운영진 비밀번호'){
+  const pw=prompt(title+'\n비밀번호를 입력하세요.');
+  return pw===LEAGUE_ADMIN_PASSWORD;
+}
+function openLeagueDraw(){
+  modalRoot.innerHTML=`<div class="modalBg"><div class="leagueModal">
+    <div class="sectionHead">
+      <h2>아시아리그 조추첨</h2>
+      <div class="topBtns">
+        <button class="danger" onclick="resetLeagueDraw()">리셋</button>
+        <button class="ghost" onclick="closeLeagueDraw()">닫기</button>
+      </div>
+    </div>
+    <div class="leagueModalLayout">
+      <div>
+        <div class="leagueWheelWrap">
+          <div class="leagueWheelPointer"></div>
+          <canvas id="leagueWheelCanvas" class="leagueWheelCanvas"></canvas>
+          <div class="leagueWheelHub">TEAM<br>DRAW</div>
+        </div>
+        <div id="leagueDrawResult" class="leagueResultBox">조를 선택하고 돌려주세요</div>
+        <div class="assignBtns">
+          ${LEAGUE_GROUPS.map(g=>`<button id="drawBtn_${g}" onclick="spinLeagueGroup('${g}')">${g}조 돌리기</button>`).join('')}
+        </div>
+        <div class="leagueAssignedList" id="leagueAssignedList"></div>
+      </div>
+      <div>
+        <div class="sectionHead">
+          <h2>운영진 패널</h2>
+          <button class="gold" onclick="saveLeagueTeams()">완료</button>
+        </div>
+        <p class="muted" style="margin-top:0">주장과 팀원 3명을 입력하면 XX팀 목록이 만들어집니다. 완료 후 A~E조를 순서대로 돌리면 됩니다.</p>
+        <div class="leagueInputGrid">
+          ${[0,1,2,3,4].map(i=>{
+            const t=leagueState.teams?.[i]||{};
+            return `<div class="leagueInputTeam">
+              <h3>${i+1}번 팀</h3>
+              <input id="lg_cap_${i}" placeholder="주장" value="${leagueEscape(t.captain||'')}">
+              <input id="lg_m1_${i}" placeholder="팀원" value="${leagueEscape(t.member1||'')}">
+              <input id="lg_m2_${i}" placeholder="팀원" value="${leagueEscape(t.member2||'')}">
+              <input id="lg_m3_${i}" placeholder="팀원" value="${leagueEscape(t.member3||'')}">
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="ok" onclick="completeLeagueDraw()">조추첨 완료 후 닫기</button>
+          <button class="ghost" onclick="drawLeagueWheel()">돌림판 새로고침</button>
+        </div>
+      </div>
+    </div>
+  </div></div>`;
+  setTimeout(()=>{drawLeagueWheel(); renderLeagueDrawStatus();},0);
+}
+function closeLeagueDraw(){if(leagueSpinning) return; modalRoot.innerHTML=''; renderLeagueGroups();}
+function saveLeagueTeams(){
+  if(!leagueAskPw('운영진 패널')) return;
+  leagueState.teams=[0,1,2,3,4].map(i=>({
+    captain:document.getElementById('lg_cap_'+i)?.value.trim()||`XX${i+1}`,
+    member1:document.getElementById('lg_m1_'+i)?.value.trim()||'',
+    member2:document.getElementById('lg_m2_'+i)?.value.trim()||'',
+    member3:document.getElementById('lg_m3_'+i)?.value.trim()||''
+  }));
+  leagueState.assigned=leagueState.assigned||{};
+  saveLeagueState();
+  drawLeagueWheel();
+  renderLeagueDrawStatus();
+  alert('팀 입력이 저장되었습니다.');
+}
+function remainingLeagueTeams(){
+  const used=new Set(Object.values(leagueState.assigned||{}).map(t=>t?.captain));
+  return (leagueState.teams||[]).filter(t=>t && t.captain && !used.has(t.captain));
+}
+function drawLeagueWheel(){
+  const canvas=document.getElementById('leagueWheelCanvas'); if(!canvas) return;
+  const teams=remainingLeagueTeams();
+  const dpr=window.devicePixelRatio||1, size=320;
+  canvas.width=size*dpr; canvas.height=size*dpr; canvas.style.width=size+'px'; canvas.style.height=size+'px';
+  const ctx=canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,size,size);
+  const cx=size/2, cy=size/2, r=size/2-8;
+  const list=teams.length?teams:[{captain:'대기중'}];
+  const seg=Math.PI*2/list.length;
+  const colors=['#ef4444','#f59e0b','#22c55e','#38bdf8','#a855f7'];
+  ctx.save(); ctx.translate(cx,cy); ctx.rotate(-Math.PI/2);
+  list.forEach((t,i)=>{
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,r,i*seg,(i+1)*seg); ctx.closePath();
+    ctx.fillStyle=colors[i%colors.length]; ctx.fill(); ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.stroke();
+    ctx.save(); ctx.rotate(i*seg+seg/2); ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillStyle='white'; ctx.font='900 18px Arial';
+    ctx.fillText(`${t.captain}팀`,r-16,0); ctx.restore();
+  });
+  ctx.restore();
+  canvas.style.transform=`rotate(${leagueState.rotation||0}deg)`;
+}
+function renderLeagueDrawStatus(){
+  LEAGUE_GROUPS.forEach(g=>{
+    const btn=document.getElementById('drawBtn_'+g);
+    if(btn){
+      const done=!!leagueState.assigned?.[g];
+      btn.classList.toggle('assigned',done);
+      btn.textContent=done?`${g}조 완료`:`${g}조 돌리기`;
+      btn.disabled=done || leagueSpinning;
+    }
+  });
+  const box=document.getElementById('leagueAssignedList');
+  if(box) box.innerHTML=LEAGUE_GROUPS.map(g=>{
+    const t=leagueState.assigned?.[g];
+    return `<div class="leagueAssignedItem">${g}조<br>${t?leagueEscape(t.captain+'팀'):'미정'}</div>`;
+  }).join('');
+}
+function spinLeagueGroup(g){
+  if(leagueSpinning) return;
+  const teams=remainingLeagueTeams();
+  if(!teams.length) return alert('남은 팀이 없습니다.');
+  if(leagueState.assigned?.[g]) return alert(g+'조는 이미 배정되었습니다.');
+  leagueCurrentTarget=g;
+  leagueSpinning=true;
+  renderLeagueDrawStatus();
+  const picked=Math.floor(Math.random()*teams.length);
+  const seg=360/teams.length;
+  const center=picked*seg+seg/2;
+  const current=((leagueState.rotation||0)%360+360)%360;
+  const target=(360-center+360)%360;
+  let delta=(target-current+360)%360;
+  delta+=360*(6+Math.floor(Math.random()*3));
+  leagueState.rotation=(leagueState.rotation||0)+delta;
+  const canvas=document.getElementById('leagueWheelCanvas');
+  const result=document.getElementById('leagueDrawResult');
+  if(result) result.textContent=`${g}조 추첨 중...`;
+  if(canvas) canvas.style.transform=`rotate(${leagueState.rotation}deg)`;
+  setTimeout(()=>{
+    const team=teams[picked];
+    leagueState.assigned=leagueState.assigned||{};
+    leagueState.assigned[g]=team;
+    saveLeagueState();
+    if(result) result.textContent=`${g}조 : ${team.captain}팀`;
+    leagueSpinning=false;
+    drawLeagueWheel();
+    renderLeagueDrawStatus();
+  },4700);
+}
+function resetLeagueDraw(){
+  if(!leagueAskPw('리셋')) return;
+  if(!confirm('조추첨 입력/배정 내용을 모두 리셋할까요?')) return;
+  leagueState={teams:[],assigned:{},rotation:0};
+  saveLeagueState();
+  renderLeagueGroups();
+  openLeagueDraw();
+}
+function completeLeagueDraw(){
+  renderLeagueGroups();
+  saveLeagueState();
+  modalRoot.innerHTML='';
+  alert('조추첨 결과가 메인 대진표에 반영되었습니다.');
+}
+document.addEventListener('DOMContentLoaded',()=>renderLeagueGroups());
+
 const SUPABASE_URL = 'https://xyibdanmecakevhtdajl.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_uvYqwDymxodcSdpT1zAWyg_PeVHh_ZO';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
