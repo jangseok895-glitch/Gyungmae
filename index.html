@@ -96,13 +96,13 @@
     .leagueWrap{width:1280px;margin:0 auto}
     .leagueTop{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
     .leagueTop h1{margin:0;color:#facc15;font-size:32px}
-    .leaguePosterBox{position:relative;border:1px solid rgba(250,204,21,.5);border-radius:18px;overflow:hidden;background:#0b1728;box-shadow:0 20px 55px rgba(0,0,0,.45)}
+    .leaguePosterBox{position:relative;width:75%;margin:0 auto;border:1px solid rgba(250,204,21,.5);border-radius:14px;overflow:hidden;background:#0b1728;box-shadow:0 16px 42px rgba(0,0,0,.45)}
     .leaguePosterImg{width:100%;display:block}
-    .leagueGroupOverlay{position:absolute;left:24px;right:24px;top:330px;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-    .leagueGroupCard{height:116px;border-radius:12px;padding:9px 10px;text-align:center;display:flex;flex-direction:column;justify-content:flex-start;gap:5px;background:rgba(0,0,0,.18)}
+    .leagueGroupOverlay{position:absolute;left:18px;right:18px;top:248px;display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+    .leagueGroupCard{height:87px;border-radius:9px;padding:7px 8px;text-align:center;display:flex;flex-direction:column;justify-content:flex-start;gap:4px;background:rgba(0,0,0,.18)}
     .leagueGroupCard.a{border:1px solid #ef4444}.leagueGroupCard.b{border:1px solid #f59e0b}.leagueGroupCard.c{border:1px solid #22c55e}.leagueGroupCard.d{border:1px solid #38bdf8}.leagueGroupCard.e{border:1px solid #a855f7}
-    .leagueGroupTitle{font-size:26px;font-weight:1000;line-height:1}
-    .leagueMembers{background:#fff;color:#111;border-radius:3px;min-height:34px;padding:5px 6px;font-size:13px;font-weight:900;line-height:1.25;display:flex;align-items:center;justify-content:center;word-break:keep-all}
+    .leagueGroupTitle{font-size:20px;font-weight:1000;line-height:1}
+    .leagueMembers{background:#fff;color:#111;border-radius:3px;min-height:26px;padding:4px 5px;font-size:13px;font-weight:900;line-height:1.2;display:flex;align-items:center;justify-content:center;word-break:keep-all}
     .leagueTeamName{font-size:13px;color:#e5e7eb;font-weight:900}
     .leaguePanel{margin-top:16px;border:1px solid rgba(250,204,21,.35);border-radius:16px;background:rgba(15,27,46,.94);padding:14px}
     .leaguePanel h2{margin:0 0 10px;color:#facc15}
@@ -183,7 +183,20 @@
 /* ===== 첫 화면 / 아시아리그 조추첨 기능 ===== */
 const LEAGUE_ADMIN_PASSWORD='0473';
 const LEAGUE_GROUPS=['A','B','C','D','E'];
+const DEFAULT_LEAGUE_TEAMS=[
+  {captain:'노을',member1:'제로',member2:'브칠',member3:'미또'},
+  {captain:'상호',member1:'미신트',member2:'로딩',member3:'줄리엣'},
+  {captain:'구리',member1:'키라',member2:'라곤',member3:'네오'},
+  {captain:'시크릿',member1:'헬츠',member2:'로버',member3:'짱이'},
+  {captain:'음',member1:'흠',member2:'이뚜',member3:'둘리'}
+];
 let leagueState=JSON.parse(localStorage.getItem('asia_league_draw_state')||'{"teams":[],"assigned":{},"rotation":0}');
+if(!Array.isArray(leagueState.teams) || leagueState.teams.length<5){
+  leagueState.teams=DEFAULT_LEAGUE_TEAMS.map(t=>({...t}));
+  leagueState.assigned=leagueState.assigned||{};
+  leagueState.rotation=leagueState.rotation||0;
+  localStorage.setItem('asia_league_draw_state',JSON.stringify(leagueState));
+}
 let leagueCurrentTarget=null;
 let leagueSpinning=false;
 
@@ -249,9 +262,9 @@ function openLeagueDraw(){
       <div>
         <div class="sectionHead">
           <h2>운영진 패널</h2>
-          <button class="gold" onclick="saveLeagueTeams()">완료</button>
+          <button class="gold" onclick="saveLeagueTeams()">저장</button>
         </div>
-        <p class="muted" style="margin-top:0">주장과 팀원 3명을 입력하면 XX팀 목록이 만들어집니다. 완료 후 A~E조를 순서대로 돌리면 됩니다.</p>
+        <p class="muted" style="margin-top:0">주장과 팀원 3명을 입력한 뒤 [저장]을 누르면 XX팀 목록이 저장됩니다. 조추첨은 나중에 돌려도 됩니다.</p>
         <div class="leagueInputGrid">
           ${[0,1,2,3,4].map(i=>{
             const t=leagueState.teams?.[i]||{};
@@ -265,7 +278,7 @@ function openLeagueDraw(){
           }).join('')}
         </div>
         <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="ok" onclick="completeLeagueDraw()">조추첨 완료 후 닫기</button>
+          <button class="ok" onclick="completeLeagueDraw()">완료 후 닫기</button>
           <button class="ghost" onclick="drawLeagueWheel()">돌림판 새로고침</button>
         </div>
       </div>
@@ -362,7 +375,7 @@ function spinLeagueGroup(g){
 function resetLeagueDraw(){
   if(!leagueAskPw('리셋')) return;
   if(!confirm('조추첨 입력/배정 내용을 모두 리셋할까요?')) return;
-  leagueState={teams:[],assigned:{},rotation:0};
+  leagueState={teams:DEFAULT_LEAGUE_TEAMS.map(t=>({...t})),assigned:{},rotation:0};
   saveLeagueState();
   renderLeagueGroups();
   openLeagueDraw();
