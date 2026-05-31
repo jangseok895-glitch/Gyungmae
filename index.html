@@ -2,13 +2,14 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-<meta name="viewport" content="width=1280, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>아시아리그 팀원 경매</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root{--bg:#07111f;--card:#0f1b2e;--line:#29415f;--text:#eaf4ff;--muted:#9fb4cd;--accent:#38bdf8;--gold:#facc15;--danger:#fb7185;--ok:#34d399;--warn:#f59e0b;--red:#ff4d6d}
     *{box-sizing:border-box}
-html,body{min-width:1180px}
+html,body{min-width:0;width:100%}
+    body.pcMode{min-width:1180px}
     body{margin:0;font-family:Arial,'Noto Sans KR',sans-serif;background:#07111f;color:var(--text);font-size:14px}
     button,input,select{font-family:inherit}
     button{cursor:pointer;border:0;border-radius:11px;padding:9px 13px;font-weight:900;color:#07111f;background:var(--accent)}
@@ -269,13 +270,29 @@ let leagueCurrentTarget=null;
 let leagueSpinning=false;
 
 function saveLeagueState(){localStorage.setItem('asia_league_draw_state',JSON.stringify(leagueState));}
+function setPageViewport(mode){
+  const vp=document.querySelector('meta[name="viewport"]');
+  if(!vp) return;
+  if(mode==='pc'){
+    vp.setAttribute('content','width=1280, initial-scale=1.0');
+    document.body.classList.remove('landingMode');
+    document.body.classList.add('pcMode');
+  }else{
+    vp.setAttribute('content','width=device-width, initial-scale=1.0, viewport-fit=cover');
+    document.body.classList.remove('pcMode');
+    document.body.classList.add('landingMode');
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>setPageViewport('landing'));
 function showLandingPage(){
+  setPageViewport('landing');
   document.getElementById('landingPage').style.display='flex';
   document.getElementById('leaguePage').style.display='none';
   document.getElementById('app').style.display='none';
   document.getElementById('eventPage').style.display='none';
 }
 function showLeaguePage(){
+  setPageViewport('pc');
   document.getElementById('landingPage').style.display='none';
   document.getElementById('leaguePage').style.display='block';
   document.getElementById('app').style.display='none';
@@ -283,12 +300,14 @@ function showLeaguePage(){
   renderLeagueGroups();
 }
 function showAuctionPage(){
+  setPageViewport('pc');
   document.getElementById('landingPage').style.display='none';
   document.getElementById('leaguePage').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('eventPage').style.display='none';
 }
 function showEventPage(){
+  setPageViewport('pc');
   document.getElementById('landingPage').style.display='none';
   document.getElementById('leaguePage').style.display='none';
   document.getElementById('app').style.display='none';
