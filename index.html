@@ -1357,7 +1357,7 @@ function render(){
     ${lastError?`<div class="errorBox">${escapeHtml(lastError)}</div>`:''}
     <div class="top">
       <div class="title"><h1>🏁 아시아리그 팀원 경매</h1><p>로그인 없이 관람 가능 · 주장 로그인 후 입찰 가능 · 최소 입찰 10 coin · 제한시간 30초</p></div>
-      <div class="topBtns"><button class="gold" onclick="promptStart()">경매 시작</button><button class="ghost" onclick="openMapWheel()">맵돌리기</button>
+      <div class="topBtns"><button class="ghost" onclick="showLandingPage()">처음으로</button><button class="gold" onclick="promptStart()">경매 시작</button><button class="ghost" onclick="openMapWheel()">맵돌리기</button>
       <button class="ok" onclick="authorizeAdminOnly()">이 브라우저로 진행처리</button><button class="ghost" onclick="openAdmin()">운영진 패널</button>${adminAuthorized?`<span class="badge">운영진 진행처리 ON</span>`:''}${me?`<span class="badge">로그인: ${me.name}</span>`:`<span class="badge">미로그인</span>`}</div>
     </div>
     ${renderAuthBox()}
