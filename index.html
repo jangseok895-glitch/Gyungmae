@@ -475,6 +475,7 @@ document.addEventListener('DOMContentLoaded',()=>renderLeagueGroups());
 const EVENT_ADMIN_PASSWORD='0523';
 const EVENT_MEMBERS=[{"name": "경문", "pw": "6646"}, {"name": "기사", "pw": "1234"}, {"name": "네오", "pw": "3434"}, {"name": "노을(구노을)", "pw": "7126"}, {"name": "대원", "pw": "1237"}, {"name": "도레미", "pw": "1238"}, {"name": "동이", "pw": "2345"}, {"name": "둘리", "pw": "3125"}, {"name": "라곤", "pw": "9911"}, {"name": "라오", "pw": "3129"}, {"name": "레니", "pw": "2347"}, {"name": "로딩해", "pw": "7127"}, {"name": "리아", "pw": "3123"}, {"name": "미또", "pw": "7128"}, {"name": "미신트", "pw": "8465"}, {"name": "바밥", "pw": "1239"}, {"name": "백뭉이", "pw": "8745"}, {"name": "뽀등어", "pw": "6514"}, {"name": "브칠", "pw": "8811"}, {"name": "블랙", "pw": "4747"}, {"name": "상호(구로키)", "pw": "2349"}, {"name": "선셋(신노을)", "pw": "3526"}, {"name": "섯군", "pw": "3127"}, {"name": "소율", "pw": "6445"}, {"name": "소현", "pw": "2351"}, {"name": "수민", "pw": "9849"}, {"name": "승환", "pw": "5123"}, {"name": "승호", "pw": "4380"}, {"name": "시아", "pw": "6123"}, {"name": "애플", "pw": "5535"}, {"name": "용산", "pw": "2184"}, {"name": "유녕", "pw": "5124"}, {"name": "유진", "pw": "4443"}, {"name": "윤주모", "pw": "7123"}, {"name": "음", "pw": "5555"}, {"name": "이뚜", "pw": "6125"}, {"name": "이펙트", "pw": "6549"}, {"name": "자욱", "pw": "3126"}, {"name": "장어", "pw": "6126"}, {"name": "제로", "pw": "4441"}, {"name": "준클", "pw": "8846"}, {"name": "지건빵", "pw": "9871"}, {"name": "지헌", "pw": "2636"}, {"name": "짱아 (구짱아)", "pw": "5125"}, {"name": "짱이", "pw": "2587"}, {"name": "천유", "pw": "6644"}, {"name": "쿠타", "pw": "6129"}, {"name": "쿨쿨린이", "pw": "4575"}, {"name": "파라곤(토르)", "pw": "9875"}, {"name": "파솔라", "pw": "9874"}, {"name": "평정", "pw": "9885"}, {"name": "플로버", "pw": "5425"}, {"name": "피뚭(피셜)", "pw": "9873"}, {"name": "황새", "pw": "5443"}, {"name": "헬츠", "pw": "5129"}, {"name": "휘헌", "pw": "4126"}, {"name": "흠(하영)", "pw": "4466"}, {"name": "히스", "pw": "5487"}, {"name": "구리", "pw": "3737"}];
 const EVENT_TABLE='asia_event_card_game';
+let eventMembers=[...EVENT_MEMBERS];
 const EVENT_CARD_TYPES=[
   {emoji:'🐯',name:'호랑이'},{emoji:'🦁',name:'사자'},{emoji:'🐵',name:'개코'},{emoji:'🐼',name:'판다'},{emoji:'🦊',name:'여우'},
   {emoji:'🐸',name:'개구리'},{emoji:'🐲',name:'용'},{emoji:'🦅',name:'독수리'},{emoji:'🐳',name:'고래'},{emoji:'🦄',name:'유니콘'},
@@ -488,7 +489,21 @@ let eventLoaded=false;
 function eventShuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function makeEventDeck(){return eventShuffle(EVENT_CARD_TYPES.flatMap((t,i)=>[0,1].map(n=>({id:`${i}_${n}_${Math.random().toString(36).slice(2)}`,type:i,matched:false,matchedBy:null}))));}
 function defaultEventState(){return {deck:makeEventDeck(),chances:{},scores:{},logs:[],updatedAt:new Date().toISOString()};}
-function eventMemberOptions(){return EVENT_MEMBERS.map(m=>`<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)}</option>`).join('');}
+async function eventLoadMembers(){
+  // Supabase 전용 회원 테이블을 기준으로 맴버 목록을 불러옵니다.
+  // 실패하면 기존 코드에 박혀있는 EVENT_MEMBERS 목록을 예비용으로 사용합니다.
+  try{
+    const r=await sb.from('asia_event_members').select('nickname,password').order('nickname');
+    if(r.error) throw new Error(r.error.message);
+    if(Array.isArray(r.data) && r.data.length){
+      eventMembers=r.data.map(m=>({name:String(m.nickname||'').trim(),pw:String(m.password||'').trim()})).filter(m=>m.name);
+    }
+  }catch(e){
+    console.warn('asia_event_members 불러오기 실패, 기본 목록 사용',e);
+    eventMembers=[...EVENT_MEMBERS];
+  }
+}
+function eventMemberOptions(){return eventMembers.map(m=>`<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)}</option>`).join('');}
 function eventLog(msg){eventState.logs=[`[${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}] ${msg}`,...(eventState.logs||[])].slice(0,80);}
 async function eventSave(){
   eventState.updatedAt=new Date().toISOString();
@@ -503,7 +518,7 @@ async function eventLoad(){
 }
 async function eventBoot(){
   try{
-    if(!eventLoaded){await eventLoad(); eventLoaded=true;}
+    if(!eventLoaded){await eventLoadMembers(); await eventLoad(); eventLoaded=true;}
     renderEvent();
   }catch(e){
     document.getElementById('eventUserBox').innerHTML=`<div class="errorBox">카드게임 데이터를 불러오지 못했습니다.
@@ -528,12 +543,13 @@ function renderEvent(){
     return `<div class="memoryCard ${show?'flipped':''} ${card.matched?'matched locked':''}" onclick="eventFlip(${idx})"><div class="memoryInner"><div class="memoryFace memoryBack">ASIA</div><div class="memoryFace memoryFront"><div>${t.emoji}</div><span>${escapeHtml(t.name)}</span>${card.matchedBy?`<span>${escapeHtml(card.matchedBy)} +1</span>`:''}</div></div></div>`;
   }).join('');
   const ranks=Object.entries(eventState.scores||{}).sort((a,b)=>Number(b[1])-Number(a[1])||a[0].localeCompare(b[0],'ko'));
-  side.innerHTML=`<table class="scoreTable"><thead><tr><th>순위</th><th>맴버</th><th>점수</th><th>기회</th></tr></thead><tbody>${(ranks.length?ranks:EVENT_MEMBERS.slice(0,10).map(m=>[m.name,0])).map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r[0])}</td><td>${Number(r[1]||0)}</td><td>${Number(eventState.chances?.[r[0]]||0)}</td></tr>`).join('')}</tbody></table><h2 style="margin:14px 0 0">로그</h2><div class="eventLog">${(eventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 로그가 없습니다.</div>'}</div>`;
+  side.innerHTML=`<table class="scoreTable"><thead><tr><th>순위</th><th>맴버</th><th>점수</th><th>기회</th></tr></thead><tbody>${(ranks.length?ranks:eventMembers.slice(0,10).map(m=>[m.name,0])).map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r[0])}</td><td>${Number(r[1]||0)}</td><td>${Number(eventState.chances?.[r[0]]||0)}</td></tr>`).join('')}</tbody></table><h2 style="margin:14px 0 0">로그</h2><div class="eventLog">${(eventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 로그가 없습니다.</div>'}</div>`;
 }
 async function eventLogin(){
+  await eventLoadMembers();
   const name=document.getElementById('eventLoginName')?.value;
   const pw=document.getElementById('eventLoginPw')?.value;
-  const ok=EVENT_MEMBERS.find(m=>m.name===name && m.pw===pw);
+  const ok=eventMembers.find(m=>m.name===name && m.pw===pw);
   if(!ok) return alert('맴버 또는 비밀번호가 맞지 않습니다.');
   eventMe={name}; localStorage.setItem('asia_event_me',JSON.stringify(eventMe));
   renderEvent();
@@ -565,10 +581,37 @@ async function eventFlip(idx){
 async function openEventAdmin(){
   const pw=prompt('운영진 비밀번호를 입력하세요.');
   if(pw!==EVENT_ADMIN_PASSWORD) return alert('운영진 비밀번호가 맞지 않습니다.');
+  await eventLoadMembers();
   await eventLoad();
-  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:620px"><div class="sectionHead"><h2>아시아EVENT 운영진 패널</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><div class="eventAdmin"><select id="eventAdminMember">${eventMemberOptions()}</select><button class="gold" onclick="eventGiveChance(5)">승리 +5기회</button><button class="ok" onclick="eventGiveChance(3)">패배 +3기회</button><button class="danger" onclick="eventResetDeck()">리셋/다시섞기</button><div class="eventAdminWide"><button class="ghost" onclick="eventRefreshAdmin()">새로고침</button><button class="danger" onclick="eventFullReset()">점수/기회까지 전체초기화</button><button class="ghost" onclick="modalRoot.innerHTML=''">완료</button></div></div><p class="eventHint">리셋/다시섞기는 카드판만 새로 섞고 점수와 남은 기회는 유지합니다.</p></div></div>`;
+  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:720px"><div class="sectionHead"><h2>아시아EVENT 운영진 패널</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><div class="eventAdmin"><select id="eventAdminMember">${eventMemberOptions()}</select><button class="gold" onclick="eventGiveChance(5)">승리 +5기회</button><button class="ok" onclick="eventGiveChance(3)">패배 +3기회</button><button class="danger" onclick="eventResetDeck()">리셋/다시섞기</button><button class="ghost" onclick="openEventAddMemberBox()">맴버추가하기</button><div class="eventAdminWide"><button class="ghost" onclick="eventRefreshAdmin()">새로고침</button><button class="danger" onclick="eventFullReset()">점수/기회까지 전체초기화</button><button class="ghost" onclick="modalRoot.innerHTML=''">완료</button></div></div><div id="eventAddMemberBox" style="display:none;margin-top:12px;border:1px solid var(--line);background:#081525;border-radius:14px;padding:12px"><h3 style="margin:0 0 8px;color:#facc15">맴버 추가하기</h3><div class="eventAdminWide"><input id="eventNewMemberName" placeholder="맴버명"><input id="eventNewMemberPw" placeholder="비번 4자리" maxlength="4" inputmode="numeric"><button class="gold" onclick="eventAddMember()">추가하기</button></div><p class="eventHint">추가된 맴버는 asia_event_members 테이블에 저장되며, 바로 로그인 목록에 반영됩니다.</p></div><p class="eventHint">리셋/다시섞기는 카드판만 새로 섞고 점수와 남은 기회는 유지합니다.</p></div></div>`;
 }
-async function eventRefreshAdmin(){await eventLoad(); renderEvent(); alert('새로고침 완료');}
+async function eventRefreshAdmin(){await eventLoadMembers(); await eventLoad(); renderEvent(); alert('새로고침 완료');}
+function openEventAddMemberBox(){
+  const box=document.getElementById('eventAddMemberBox');
+  if(box) box.style.display=box.style.display==='none'?'block':'none';
+  setTimeout(()=>document.getElementById('eventNewMemberName')?.focus(),0);
+}
+async function eventAddMember(){
+  const name=(document.getElementById('eventNewMemberName')?.value||'').trim();
+  const pw=(document.getElementById('eventNewMemberPw')?.value||'').trim();
+  if(!name) return alert('맴버명을 입력해주세요.');
+  if(!/^\d{4}$/.test(pw)) return alert('비밀번호는 숫자 4자리로 입력해주세요.');
+  await eventLoadMembers();
+  if(eventMembers.some(m=>m.name===name)) return alert('이미 존재하는 맴버명입니다.');
+  const r=await sb.from('asia_event_members').insert({nickname:name,password:pw,score:0,chances:0}).select('id');
+  if(r.error) return alert('맴버 추가 실패: '+r.error.message);
+  eventMembers.push({name,pw});
+  eventMembers.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  if(!eventState.scores) eventState.scores={};
+  if(!eventState.chances) eventState.chances={};
+  eventState.scores[name]=Number(eventState.scores?.[name]||0);
+  eventState.chances[name]=Number(eventState.chances?.[name]||0);
+  eventLog(`운영진이 새 맴버 ${name}님을 추가했습니다.`);
+  await eventSave();
+  alert(`${name}님이 추가되었습니다.`);
+  openEventAdmin();
+  renderEvent();
+}
 async function eventGiveChance(n){
   await eventLoad();
   const name=document.getElementById('eventAdminMember')?.value;
