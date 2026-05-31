@@ -166,9 +166,9 @@ html,body{min-width:0;width:100%}
     <h1>AE ASIA LEAGUE</h1>
     <p>아시아리그 시즌39 운영 페이지</p>
     <div class="landingBtns event3">
-      <button class="landingBtn league" onclick="showLeaguePage()">아시아리그</button>
-      <button class="landingBtn auction" onclick="showAuctionPage()">경매관련</button>
-      <button class="landingBtn event" onclick="showEventPage()">+ 아시아EVENT</button>
+      <button class="landingBtn league" onclick="showLeaguePage()">아시아리그 대진표</button>
+      <button class="landingBtn auction" onclick="showAuctionPage()">아시아리그 경매</button>
+      <button class="landingBtn event" onclick="showEventPage()">아시아 EVENT</button>
     </div>
   </div>
 </div>
@@ -180,7 +180,7 @@ html,body{min-width:0;width:100%}
       <div class="topBtns">
         <button class="gold" onclick="openLeagueDraw()">조추첨하기</button>
         <button class="ghost" onclick="showLandingPage()">처음으로</button>
-        <button class="ghost" onclick="showAuctionPage()">경매관련</button>
+        <button class="ghost" onclick="showAuctionPage()">아시아리그 경매</button>
       </div>
     </div>
 
@@ -217,8 +217,8 @@ html,body{min-width:0;width:100%}
       <h1>[아시아EVENT] 아시아 카드게임</h1>
       <div class="topBtns">
         <button class="ghost" onclick="showLandingPage()">처음으로</button>
-        <button class="ghost" onclick="showLeaguePage()">아시아리그</button>
-        <button class="ghost" onclick="showAuctionPage()">경매관련</button>
+        <button class="ghost" onclick="showLeaguePage()">아시아리그 대진표</button>
+        <button class="ghost" onclick="showAuctionPage()">아시아리그 경매</button>
       </div>
     </div>
     <div class="eventGrid">
@@ -269,6 +269,16 @@ if(!Array.isArray(leagueState.teams) || leagueState.teams.length<5){
 let leagueCurrentTarget=null;
 let leagueSpinning=false;
 
+function setMobileLandingMode(){
+  const vp=document.getElementById('viewportMeta');
+  if(vp) vp.setAttribute('content','width=device-width, initial-scale=1.0');
+  document.body.classList.remove('pcMode');
+}
+function setPcPageMode(){
+  const vp=document.getElementById('viewportMeta');
+  if(vp) vp.setAttribute('content','width=1280, initial-scale=1.0');
+  document.body.classList.add('pcMode');
+}
 function saveLeagueState(){localStorage.setItem('asia_league_draw_state',JSON.stringify(leagueState));}
 function setPageViewport(mode){
   const vp=document.querySelector('meta[name="viewport"]');
@@ -486,7 +496,7 @@ function completeLeagueDraw(){
   modalRoot.innerHTML='';
   alert('조추첨 결과가 메인 대진표에 반영되었습니다.');
 }
-document.addEventListener('DOMContentLoaded',()=>renderLeagueGroups());
+document.addEventListener('DOMContentLoaded',()=>{setMobileLandingMode();renderLeagueGroups();});
 
 
 /* ===== 아시아 EVENT 카드게임 ===== */
