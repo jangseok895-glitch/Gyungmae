@@ -84,8 +84,8 @@ html,body{min-width:1180px}
     .mapWheelHint{font-size:12px;color:#9fb4cd;margin-top:8px;line-height:1.45}
 
     /* ===== 첫 화면 / 아시아리그 조추첨 ===== */
-    .landingPage{min-height:100vh;display:flex;align-items:center;justify-content:flex-start;background:radial-gradient(circle at 30% 15%,rgba(250,204,21,.20),transparent 30%),linear-gradient(135deg,#05070b,#0b1728 45%,#05070b);padding:40px}
-    .landingCard{width:960px;margin-left:0;border:1px solid rgba(250,204,21,.45);border-radius:28px;background:rgba(7,17,31,.88);box-shadow:0 30px 100px rgba(0,0,0,.55);padding:48px;text-align:center}
+    .landingPage{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 15%,rgba(250,204,21,.20),transparent 30%),linear-gradient(135deg,#05070b,#0b1728 45%,#05070b);padding:40px}
+    .landingCard{width:960px;border:1px solid rgba(250,204,21,.45);border-radius:28px;background:rgba(7,17,31,.88);box-shadow:0 30px 100px rgba(0,0,0,.55);padding:48px;text-align:center}
     .landingCard h1{font-size:64px;line-height:1;margin:0 0 14px;color:#facc15;text-shadow:0 0 18px rgba(250,204,21,.35)}
     .landingCard p{margin:0 0 34px;color:#b9d7ff;font-size:20px;font-weight:900}
     .landingBtns{display:grid;grid-template-columns:1fr 1fr;gap:24px}
@@ -139,7 +139,7 @@ html,body{min-width:1180px}
     .eventStatus{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
     .eventStat{background:#081525;border:1px solid var(--line);border-radius:13px;padding:10px;text-align:center}
     .eventStat b{display:block;font-size:24px;color:#facc15;margin-top:3px}
-    .cardBoard{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:12px}
+    .cardBoard{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:12px}
     .memoryCard{height:122px;perspective:900px;position:relative;border-radius:16px}
     .memoryInner{position:absolute;inset:0;transition:transform .55s cubic-bezier(.2,.75,.2,1.05);transform-style:preserve-3d;border-radius:16px}
     .memoryCard.flipped .memoryInner{transform:rotateY(180deg)}
@@ -157,9 +157,7 @@ html,body{min-width:1180px}
     .eventLog{height:260px;overflow:auto;background:#081525;border:1px solid var(--line);border-radius:12px;padding:8px;margin-top:8px}
     .eventLog div{padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.08);font-weight:900;color:#ffd6df}
     .eventHint{font-size:12px;color:#9fb4cd;line-height:1.5;margin-top:8px}
-
-
-  </style>
+</style>
 </head>
 <body>
 <div id="landingPage" class="landingPage">
@@ -225,8 +223,8 @@ html,body{min-width:1180px}
     <div class="eventGrid">
       <div class="eventPanel">
         <div class="sectionHead">
-          <h2>카드판 6 × 5</h2>
-          <span class="tinyBadge">30장 / 15쌍</span>
+          <h2>카드판 7 × 6</h2>
+          <span class="tinyBadge">42장 / 21쌍</span>
         </div>
         <div id="eventUserBox"></div>
         <div id="cardBoard" class="cardBoard"></div>
@@ -480,7 +478,8 @@ let eventMembers=[...EVENT_MEMBERS];
 const EVENT_CARD_TYPES=[
   {emoji:'🐯',name:'호랑이'},{emoji:'🦁',name:'사자'},{emoji:'🐵',name:'개코'},{emoji:'🐼',name:'판다'},{emoji:'🦊',name:'여우'},
   {emoji:'🐸',name:'개구리'},{emoji:'🐲',name:'용'},{emoji:'🦅',name:'독수리'},{emoji:'🐳',name:'고래'},{emoji:'🦄',name:'유니콘'},
-  {emoji:'🚗',name:'카트'},{emoji:'🏆',name:'트로피'},{emoji:'⭐',name:'스타'},{emoji:'💎',name:'보석'},{emoji:'🔥',name:'불꽃'}
+  {emoji:'🚗',name:'카트'},{emoji:'🏆',name:'트로피'},{emoji:'⭐',name:'스타'},{emoji:'💎',name:'보석'},{emoji:'🔥',name:'불꽃'},
+  {emoji:'🍔',name:'햄버거'},{emoji:'☕',name:'커피'},{emoji:'🎲',name:'주사위'},{emoji:'🎮',name:'게임'},{emoji:'🚀',name:'로켓'},{emoji:'👑',name:'왕관'}
 ];
 let eventMe=JSON.parse(localStorage.getItem('asia_event_me')||'null');
 let eventState=null;
