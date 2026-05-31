@@ -158,6 +158,85 @@ html,body{min-width:0;width:100%}
     .eventLog{height:260px;overflow:auto;background:#081525;border:1px solid var(--line);border-radius:12px;padding:8px;margin-top:8px}
     .eventLog div{padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.08);font-weight:900;color:#ffd6df}
     .eventHint{font-size:12px;color:#9fb4cd;line-height:1.5;margin-top:8px}
+
+
+/* ===== 모바일 첫 화면 전용 최종 수정 =====
+   - 첫 메뉴 화면에서만 모바일 크기로 표시
+   - 아시아리그/경매/아시아EVENT 내부 페이지는 JS에서 pcMode로 전환되어 PC 화면 유지
+*/
+@media (max-width: 768px){
+  body:not(.pcMode){
+    min-width:0 !important;
+    width:100% !important;
+    overflow-x:hidden !important;
+  }
+
+  body:not(.pcMode) .landingPage{
+    min-width:0 !important;
+    width:100vw !important;
+    min-height:100dvh !important;
+    height:100dvh !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    padding:10px !important;
+    overflow:hidden !important;
+  }
+
+  body:not(.pcMode) .landingCard{
+    width:calc(100vw - 24px) !important;
+    max-width:360px !important;
+    border-radius:18px !important;
+    padding:18px 14px !important;
+    margin:0 auto !important;
+    text-align:center !important;
+    box-shadow:0 14px 38px rgba(0,0,0,.45) !important;
+  }
+
+  body:not(.pcMode) .landingCard h1{
+    font-size:30px !important;
+    line-height:1.05 !important;
+    margin:0 0 8px !important;
+    letter-spacing:-1px !important;
+    white-space:normal !important;
+  }
+
+  body:not(.pcMode) .landingCard p{
+    font-size:14px !important;
+    line-height:1.25 !important;
+    margin:0 0 14px !important;
+  }
+
+  body:not(.pcMode) .landingBtns,
+  body:not(.pcMode) .landingBtns.event3{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:9px !important;
+    width:100% !important;
+  }
+
+  body:not(.pcMode) .landingBtn{
+    width:100% !important;
+    height:56px !important;
+    min-height:56px !important;
+    border-radius:14px !important;
+    font-size:18px !important;
+    line-height:1.1 !important;
+    padding:0 10px !important;
+    letter-spacing:-.5px !important;
+    white-space:nowrap !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+  }
+}
+
+@media (max-width: 360px){
+  body:not(.pcMode) .landingCard h1{font-size:26px !important;}
+  body:not(.pcMode) .landingCard p{font-size:13px !important;}
+  body:not(.pcMode) .landingBtn{height:52px !important;min-height:52px !important;font-size:16px !important;}
+}
+
 </style>
 </head>
 <body>
