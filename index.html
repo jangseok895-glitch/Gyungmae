@@ -197,6 +197,42 @@ html,body{
     border-radius:18px;
   }
 }
+
+    /* 첫 화면 메뉴 3개만 모바일에서 보이게 조정 */
+@media (max-width: 768px){
+  .landingPage{
+    min-width:1180px;
+    justify-content:flex-start;
+    align-items:flex-start;
+    padding:30px 16px;
+  }
+
+  .landingCard{
+    width:360px;
+    padding:24px 16px;
+    margin-left:0;
+  }
+
+  .landingCard h1{
+    font-size:34px;
+  }
+
+  .landingCard p{
+    font-size:15px;
+    margin-bottom:20px;
+  }
+
+  .landingBtns.event3{
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+
+  .landingBtn{
+    height:76px;
+    font-size:24px;
+    border-radius:18px;
+  }
+}
   </style>
 </head>
 <body>
