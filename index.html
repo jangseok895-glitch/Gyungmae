@@ -857,16 +857,35 @@ async function spinTestWheel(){
   const btn = document.getElementById('testSpinBtn');
   if(btn) btn.disabled = true;
 
-  // 먼저 목표 맵을 뽑고, 화살표가 실제로 그 맵 방향에 멈추도록 회전값을 맞춥니다.
-  const picked = Math.floor(Math.random() * ASIA_TEST_MAPS.length);
-  const targetAngle = ASIA_TEST_MAPS[picked].angle;
-  const current = normalizeDeg(testWheelRotation);
-  let delta = (targetAngle - current + 360) % 360;
-  delta += 360 * (6 + Math.floor(Math.random() * 3));
-  testWheelRotation += delta;
+// 최근 30분 안에 해당 아이디가 이미 뽑은 맵은 제외합니다.
+const usedMapNames = new Set(recentLogs.map(l => l.map_name));
 
-  const needle = document.getElementById('testNeedle');
-  const result = document.getElementById('testResultName');
+const availableMaps = ASIA_TEST_MAPS.filter(m => !usedMapNames.has(m.name));
+
+if(availableMaps.length <= 0){
+  alert('선택 가능한 맵이 없습니다.');
+  testWheelSpinning = false;
+  if(btn) btn.disabled = false;
+  return;
+}
+
+// 중복 제외된 맵 중에서 목표 맵을 먼저 뽑습니다.
+const map = availableMaps[Math.floor(Math.random() * availableMaps.length)];
+
+// 실제 ASIA_TEST_MAPS 배열에서 몇 번째 맵인지 찾습니다.
+const picked = ASIA_TEST_MAPS.findIndex(m => m.name === map.name);
+
+// 화살표가 실제로 그 맵 방향에 멈추도록 회전값을 맞춥니다.
+const targetAngle = ASIA_TEST_MAPS[picked].angle;
+const current = normalizeDeg(testWheelRotation);
+
+let delta = (targetAngle - current + 360) % 360;
+delta += 360 * (6 + Math.floor(Math.random() * 3));
+
+testWheelRotation += delta;
+
+const needle = document.getElementById('testNeedle');
+const result = document.getElementById('testResultName');
 
   if(result) result.textContent = '돌리는 중...';
   if(needle) needle.style.transform = `translate(-50%,-100%) rotate(${testWheelRotation}deg)`;
