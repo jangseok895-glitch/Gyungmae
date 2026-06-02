@@ -459,7 +459,46 @@ function setPageViewport(mode){
   }
 }
 document.addEventListener('DOMContentLoaded',()=>setPageViewport('landing'));
+
+
+/* ===== 모바일/브라우저 뒤로가기: 내부 페이지 전환 기록 ===== */
+let asiaCurrentPage = 'landing';
+let asiaHistoryReady = false;
+let asiaHandlingPopState = false;
+
+function asiaEnsureHistory(){
+  if(asiaHistoryReady) return;
+  try{
+    history.replaceState({asiaPage: asiaCurrentPage}, '', location.href);
+    asiaHistoryReady = true;
+  }catch(e){}
+}
+
+function asiaPushPage(page){
+  asiaEnsureHistory();
+  if(asiaHandlingPopState) return;
+  if(asiaCurrentPage === page) return;
+  try{ history.pushState({asiaPage: page}, '', location.href); }catch(e){}
+}
+
+function asiaOpenPageFromHistory(page){
+  asiaHandlingPopState = true;
+  if(page === 'league') showLeaguePage();
+  else if(page === 'auction') showAuctionPage();
+  else if(page === 'event') showEventPage();
+  else if(page === 'test') showTestPage();
+  else showLandingPage();
+  asiaHandlingPopState = false;
+}
+
+window.addEventListener('popstate', function(e){
+  const page = e.state && e.state.asiaPage ? e.state.asiaPage : 'landing';
+  modalRoot.innerHTML = '';
+  asiaOpenPageFromHistory(page);
+});
 function showLandingPage(){
+  asiaPushPage('landing');
+  asiaCurrentPage='landing';
   setPageViewport('landing');
   document.getElementById('landingPage').style.display='flex';
   document.getElementById('leaguePage').style.display='none';
@@ -468,6 +507,8 @@ function showLandingPage(){
   document.getElementById('testPage').style.display='none';
 }
 function showLeaguePage(){
+  asiaPushPage('league');
+  asiaCurrentPage='league';
   setPageViewport('pc');
   document.getElementById('landingPage').style.display='none';
   document.getElementById('leaguePage').style.display='block';
@@ -477,6 +518,8 @@ function showLeaguePage(){
   renderLeagueGroups();
 }
 function showAuctionPage(){
+  asiaPushPage('auction');
+  asiaCurrentPage='auction';
   setPageViewport('pc');
   document.getElementById('landingPage').style.display='none';
   document.getElementById('leaguePage').style.display='none';
@@ -485,6 +528,8 @@ function showAuctionPage(){
   document.getElementById('testPage').style.display='none';
 }
 function showEventPage(){
+  asiaPushPage('event');
+  asiaCurrentPage='event';
   setPageViewport('pc');
   document.getElementById('landingPage').style.display='none';
   document.getElementById('leaguePage').style.display='none';
@@ -494,6 +539,8 @@ function showEventPage(){
   eventBoot();
 }
 function showTestPage(){
+  asiaPushPage('test');
+  asiaCurrentPage='test';
   setPageViewport('pc');
   document.getElementById('landingPage').style.display='none';
   document.getElementById('leaguePage').style.display='none';
