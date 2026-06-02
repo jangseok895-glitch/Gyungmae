@@ -399,6 +399,7 @@ html,body{min-width:0;width:100%}
           <b>안내</b><br>
           본인 아이디를 입력해야 돌릴 수 있습니다.<br>
           한 아이디당 총 3번까지 돌릴 수 있으며, 돌린 결과는 LOG에 저장됩니다.<br>
+          입력한 아이디 기록은 30분 뒤 자동으로 리셋됩니다.<br>
           돌리면 바로 기록되므로 다시 돌리시면 안 됩니다.
         </div>
 
@@ -739,12 +740,45 @@ const ASIA_TEST_MAPS = [
 ];
 let testWheelRotation = 0;
 let testWheelSpinning = false;
+const TEST_ID_RESET_MS = 30 * 60 * 1000; // 아이디 기록 30분 후 자동 삭제
+function cleanupTestData(data){
+  const now = Date.now();
+  let changed = false;
+  Object.keys(data || {}).forEach(key=>{
+    if(key === '__allLogs') return;
+    const item = data[key];
+    if(!item || typeof item !== 'object'){
+      delete data[key];
+      changed = true;
+      return;
+    }
+    // 예전 버전에서 저장된 3회 완료 아이디는 시간 정보가 없으므로 바로 초기화합니다.
+    if(!item.createdAt){
+      if(Number(item.count || 0) >= 3){
+        delete data[key];
+      }else{
+        item.createdAt = now;
+      }
+      changed = true;
+      return;
+    }
+    if(now - Number(item.createdAt) >= TEST_ID_RESET_MS){
+      delete data[key];
+      changed = true;
+    }
+  });
+  if(changed) localStorage.setItem('asia_test_wheel_data', JSON.stringify(data));
+  return data;
+}
 function getTestData(){
-  try{return JSON.parse(localStorage.getItem('asia_test_wheel_data') || '{}') || {};}
+  try{
+    const data = JSON.parse(localStorage.getItem('asia_test_wheel_data') || '{}') || {};
+    return cleanupTestData(data);
+  }
   catch(e){return {};}
 }
 function saveTestData(data){
-  localStorage.setItem('asia_test_wheel_data', JSON.stringify(data));
+  localStorage.setItem('asia_test_wheel_data', JSON.stringify(cleanupTestData(data)));
 }
 function getTestOrderText(n){
   if(n === 1) return '1번';
@@ -786,7 +820,8 @@ function spinTestWheel(){
     return;
   }
   const data = getTestData();
-  if(!data[userId]) data[userId] = {count:0, logs:[], picks:[]};
+  if(!data[userId]) data[userId] = {count:0, logs:[], picks:[], createdAt:Date.now()};
+  if(!data[userId].createdAt) data[userId].createdAt = Date.now();
   if(!Array.isArray(data[userId].picks)) data[userId].picks = [];
   if(data[userId].count >= 3){
     alert('한 아이디당 최대 3번까지만 돌릴 수 있습니다.');
