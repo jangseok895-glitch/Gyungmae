@@ -782,9 +782,22 @@ function spinTestWheel(){
     if(btn) btn.disabled = false;
     renderTestLog();
     if(data[userId].count === 3){
-      alert('스크린샷을 하여 문의방에 올려주세요');
+      // 3번째 맵이 화면에 먼저 반영된 뒤 팝업이 뜨도록 아주 짧게 지연합니다.
+      setTimeout(()=>showTestScreenshotPopup(), 80);
     }
   }, 4700);
+}
+function showTestScreenshotPopup(){
+  modalRoot.innerHTML = `<div class="modalBg"><div class="modal" style="width:420px;text-align:center">
+    <h2 style="margin:0 0 12px;color:#facc15">테스트 완료</h2>
+    <div style="background:#081525;border:1px solid var(--line);border-radius:14px;padding:16px;color:#dbeafe;font-weight:900;line-height:1.55">
+      스크린샷을 하여 문의방에 올려주세요.
+    </div>
+    <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px">
+      <button class="gold" onclick="window.open('https://open.kakao.com/o/g9ZHQy2e','_blank')">스크린샷 하여 문의방에 올리기</button>
+      <button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button>
+    </div>
+  </div></div>`;
 }
 function renderTestLog(){
   const box = document.getElementById('testLog');
