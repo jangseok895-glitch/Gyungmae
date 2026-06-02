@@ -208,7 +208,8 @@ html,body{min-width:0;width:100%}
   }
 
   body:not(.pcMode) .landingBtns,
-  body:not(.pcMode) .landingBtns.event3{
+  body:not(.pcMode) .landingBtns.event3,
+  body:not(.pcMode) .landingBtns.event4{
     display:grid !important;
     grid-template-columns:1fr !important;
     gap:9px !important;
@@ -237,6 +238,32 @@ html,body{min-width:0;width:100%}
   body:not(.pcMode) .landingBtn{height:52px !important;min-height:52px !important;font-size:16px !important;}
 }
 
+
+/* ===== ASIA TEST TABLE / 일반Æ 테스트 돌림판 ===== */
+.landingBtns.event4{grid-template-columns:repeat(4,1fr)}
+.landingBtn.test{background:linear-gradient(135deg,#facc15,#f97316);color:#201000}
+.testPage{min-height:100vh;background:#05070b;color:white;padding:18px 0 34px}
+.testWrap{width:1280px;margin:0 auto}
+.testTop{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.testTop h1{margin:0;color:#facc15;font-size:34px;text-shadow:0 0 16px rgba(250,204,21,.35)}
+.testBoard{display:grid;grid-template-columns:900px 1fr;gap:16px;align-items:start}
+.testPosterBox{position:relative;width:900px;border:1px solid rgba(250,204,21,.45);border-radius:18px;overflow:hidden;background:#111;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.testPosterImg{width:100%;display:block}
+.testNeedleArea{position:absolute;left:50%;top:49%;width:260px;height:260px;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none}
+.testNeedle{position:absolute;left:50%;top:50%;width:14px;height:116px;background:linear-gradient(to top,#facc15,#ff3131);border-radius:999px;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(0deg);box-shadow:0 0 18px rgba(255,49,49,.75);transition:transform 4.7s cubic-bezier(.08,.78,.12,1)}
+.testNeedle:before{content:'';position:absolute;left:50%;top:-18px;transform:translateX(-50%);width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-bottom:32px solid #ff3131;filter:drop-shadow(0 0 8px rgba(255,49,49,.65))}
+.testNeedleHub{position:absolute;left:50%;top:50%;width:48px;height:48px;transform:translate(-50%,-50%);border-radius:50%;background:linear-gradient(135deg,#facc15,#f97316);border:5px solid white;box-shadow:0 0 18px rgba(0,0,0,.6)}
+.testPanel{border:1px solid rgba(250,204,21,.35);background:rgba(15,27,46,.96);border-radius:18px;padding:14px;box-shadow:0 18px 45px rgba(0,0,0,.32)}
+.testPanel h2{margin:0 0 10px;color:#facc15}
+.testPanel input{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:white;padding:12px;font-size:16px;font-weight:900}
+.testResult{margin-top:12px;background:#081525;border:1px solid var(--line);border-radius:14px;padding:14px;min-height:84px;text-align:center;color:#b9d7ff;font-weight:900}
+.testResult b{display:block;color:#facc15;font-size:23px;margin-top:7px;line-height:1.25;text-shadow:0 0 10px rgba(250,204,21,.25)}
+.testInfo{margin-top:12px;background:#081525;border:1px solid var(--line);border-radius:14px;padding:12px;color:#dbeafe;font-size:13px;line-height:1.55;font-weight:800}
+.testInfo b{color:#facc15}
+.testLog{margin-top:12px;height:280px;overflow:auto;background:#081525;border:1px solid var(--line);border-radius:14px;padding:10px}
+.testLog div{padding:8px 0;border-bottom:1px dashed rgba(255,255,255,.1);color:#ffd6df;font-weight:900;line-height:1.35}
+@media (max-width:768px){body:not(.pcMode) .landingBtns.event4{grid-template-columns:1fr !important}}
+
 </style>
 </head>
 <body>
@@ -244,10 +271,11 @@ html,body{min-width:0;width:100%}
   <div class="landingCard">
     <h1>AE ASIA LEAGUE</h1>
     <p>아시아리그 시즌39 운영 페이지</p>
-    <div class="landingBtns event3">
-      <button class="landingBtn league" onclick="showLeaguePage()">아시아리그 대진표</button>
-      <button class="landingBtn auction" onclick="showAuctionPage()">아시아리그 경매</button>
+    <div class="landingBtns event4">
+      <button class="landingBtn test" onclick="showTestPage()">테스트</button>
       <button class="landingBtn event" onclick="showEventPage()">아시아 EVENT</button>
+      <button class="landingBtn auction" onclick="showAuctionPage()">아시아리그 경매</button>
+      <button class="landingBtn league" onclick="showLeaguePage()">아시아리그 대진표</button>
     </div>
   </div>
 </div>
@@ -323,6 +351,55 @@ html,body{min-width:0;width:100%}
   </div>
 </div>
 
+
+<div id="testPage" class="testPage" style="display:none">
+  <div class="testWrap">
+    <div class="testTop">
+      <h1>ASIA TEST TABLE</h1>
+      <div class="topBtns">
+        <button class="ghost" onclick="showLandingPage()">처음으로</button>
+        <button class="ghost" onclick="showEventPage()">아시아 EVENT</button>
+        <button class="ghost" onclick="showAuctionPage()">아시아리그 경매</button>
+        <button class="ghost" onclick="showLeaguePage()">아시아리그 대진표</button>
+      </div>
+    </div>
+
+    <div class="testBoard">
+      <div class="testPosterBox">
+        <img class="testPosterImg" src="https://i.ibb.co/pHd1Lcg/1.jpg" alt="ASIA TEST TABLE">
+        <div class="testNeedleArea">
+          <div id="testNeedle" class="testNeedle"></div>
+          <div class="testNeedleHub"></div>
+        </div>
+      </div>
+
+      <div class="testPanel">
+        <h2>본인 아이디 입력</h2>
+        <input id="testUserId" placeholder="본인 아이디를 입력하세요" autocomplete="off">
+
+        <button id="testSpinBtn" class="gold" style="width:100%;margin-top:10px;font-size:22px" onclick="spinTestWheel()">
+          돌리기
+        </button>
+
+        <div class="testResult">
+          선택된 맵
+          <b id="testResultName">대기중</b>
+        </div>
+
+        <div class="testInfo">
+          <b>안내</b><br>
+          본인 아이디를 입력해야 돌릴 수 있습니다.<br>
+          한 아이디당 총 3번까지 돌릴 수 있으며, 돌린 결과는 LOG에 저장됩니다.<br>
+          돌리면 바로 기록되므로 다시 돌리시면 안 됩니다.
+        </div>
+
+        <h2 style="margin-top:14px">LOG</h2>
+        <div id="testLog" class="testLog"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="app" style="display:none"><div class="wrap">불러오는 중...</div></div>
 <div id="modalRoot"></div>
 
@@ -379,6 +456,7 @@ function showLandingPage(){
   document.getElementById('leaguePage').style.display='none';
   document.getElementById('app').style.display='none';
   document.getElementById('eventPage').style.display='none';
+  document.getElementById('testPage').style.display='none';
 }
 function showLeaguePage(){
   setPageViewport('pc');
@@ -386,6 +464,7 @@ function showLeaguePage(){
   document.getElementById('leaguePage').style.display='block';
   document.getElementById('app').style.display='none';
   document.getElementById('eventPage').style.display='none';
+  document.getElementById('testPage').style.display='none';
   renderLeagueGroups();
 }
 function showAuctionPage(){
@@ -394,6 +473,7 @@ function showAuctionPage(){
   document.getElementById('leaguePage').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('eventPage').style.display='none';
+  document.getElementById('testPage').style.display='none';
 }
 function showEventPage(){
   setPageViewport('pc');
@@ -401,7 +481,17 @@ function showEventPage(){
   document.getElementById('leaguePage').style.display='none';
   document.getElementById('app').style.display='none';
   document.getElementById('eventPage').style.display='block';
+  document.getElementById('testPage').style.display='none';
   eventBoot();
+}
+function showTestPage(){
+  setPageViewport('pc');
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('leaguePage').style.display='none';
+  document.getElementById('app').style.display='none';
+  document.getElementById('eventPage').style.display='none';
+  document.getElementById('testPage').style.display='block';
+  renderTestLog();
 }
 function leagueEscape(v){return String(v??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
 function renderLeagueGroups(){
@@ -576,6 +666,93 @@ function completeLeagueDraw(){
   alert('조추첨 결과가 메인 대진표에 반영되었습니다.');
 }
 document.addEventListener('DOMContentLoaded',()=>{setMobileLandingMode();renderLeagueGroups();});
+
+
+/* ===== 일반Æ 테스트표 돌림판 기능 ===== */
+const ASIA_TEST_MAPS = [
+  {name:'차이나 골목길 대질주', time:'2:02:99'},
+  {name:'포레스트 오싹한 공중다리', time:'2:03:49'},
+  {name:'사막 놀라운 공룡 유적지', time:'1:37:79'},
+  {name:'차이나 청명한 하늘의 서호', time:'1:46:49'},
+  {name:'빌리지 운명의 다리', time:'1:57:99'},
+  {name:'노르테유 전투 비행장', time:'1:46:29'},
+  {name:'올림포스 하늘의 신전', time:'2:05:79'},
+  {name:'노르테유 스카이웨이', time:'1:53:99'},
+  {name:'네모 산타의 비밀공간', time:'1:33:99'},
+  {name:'황금문명 오르테트 황금 좌표', time:'1:34:49'}
+];
+let testWheelRotation = 0;
+let testWheelSpinning = false;
+function getTestData(){
+  return JSON.parse(localStorage.getItem('asia_test_wheel_data') || '{}');
+}
+function saveTestData(data){
+  localStorage.setItem('asia_test_wheel_data', JSON.stringify(data));
+}
+function getTestOrderText(n){
+  if(n === 1) return '1번';
+  if(n === 2) return '두번';
+  if(n === 3) return '3번';
+  return n + '번';
+}
+function spinTestWheel(){
+  if(testWheelSpinning) return;
+  const idInput = document.getElementById('testUserId');
+  const userId = (idInput?.value || '').trim();
+  if(!userId){
+    alert('본인 아이디를 먼저 입력해야 돌림판을 돌릴 수 있습니다.');
+    idInput?.focus();
+    return;
+  }
+  const data = getTestData();
+  if(!data[userId]) data[userId] = {count:0, logs:[]};
+  if(data[userId].count >= 3){
+    alert('한 아이디당 최대 3번까지만 돌릴 수 있습니다.');
+    return;
+  }
+  testWheelSpinning = true;
+  const btn = document.getElementById('testSpinBtn');
+  if(btn) btn.disabled = true;
+  const picked = Math.floor(Math.random() * ASIA_TEST_MAPS.length);
+  const seg = 360 / ASIA_TEST_MAPS.length;
+  const targetDeg = picked * seg + seg / 2;
+  const current = ((testWheelRotation % 360) + 360) % 360;
+  const finalDeg = 360 - targetDeg;
+  let delta = (finalDeg - current + 360) % 360;
+  delta += 360 * (6 + Math.floor(Math.random() * 3));
+  testWheelRotation += delta;
+  const needle = document.getElementById('testNeedle');
+  const result = document.getElementById('testResultName');
+  if(result) result.textContent = '돌리는 중...';
+  if(needle) needle.style.transform = `translate(-50%,-100%) rotate(${testWheelRotation}deg)`;
+  try{ playWheelSpinSound(); }catch(e){}
+  setTimeout(()=>{
+    try{ stopWheelSpinSound(); playWheelResultSound(); }catch(e){}
+    const map = ASIA_TEST_MAPS[picked];
+    data[userId].count += 1;
+    const orderText = getTestOrderText(data[userId].count);
+    const logText = `${userId}님이 돌림판을 ${orderText} 돌렸습니다. (${map.name})`;
+    data[userId].logs.push(logText);
+    if(!data.__allLogs) data.__allLogs = [];
+    data.__allLogs.unshift(`[${new Date().toLocaleString('ko-KR')}] ${logText}`);
+    data.__allLogs = data.__allLogs.slice(0,100);
+    saveTestData(data);
+    if(result) result.textContent = `${map.name} / ${map.time}`;
+    testWheelSpinning = false;
+    if(btn) btn.disabled = false;
+    renderTestLog();
+  }, 4700);
+}
+function renderTestLog(){
+  const box = document.getElementById('testLog');
+  if(!box) return;
+  const data = getTestData();
+  const logs = data.__allLogs || [];
+  box.innerHTML = logs.length
+    ? logs.map(l => `<div>${escapeHtml(l)}</div>`).join('')
+    : '<div>아직 LOG가 없습니다.</div>';
+}
+
 
 
 /* ===== 아시아 EVENT 카드게임 ===== */
