@@ -200,6 +200,43 @@ html,body{min-width:0;width:100%}
     .rpsSpinHint b{color:#facc15}
 
 
+
+
+/* ===== 아시아 EVENT / 4인 가위바위보 ===== */
+.rpsRoom{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
+.rpsSeatGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.rpsSeat{min-height:190px;background:#081525;border:1px solid var(--line);border-radius:18px;padding:12px;text-align:center;position:relative;box-shadow:0 10px 22px rgba(0,0,0,.22)}
+.rpsSeat.me{border-color:#facc15;box-shadow:0 0 0 2px rgba(250,204,21,.22),0 10px 22px rgba(0,0,0,.28)}
+.rpsSeat.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#9fb4cd}
+.rpsSeatNo{position:absolute;left:10px;top:10px;background:#10213a;border:1px solid var(--line);border-radius:999px;padding:4px 8px;font-size:12px;font-weight:1000;color:#b9d7ff}
+.rpsSeatName{font-size:23px;font-weight:1000;color:#facc15;margin:22px 0 8px}
+.rpsChoiceHidden{font-size:15px;font-weight:1000;color:#34d399;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.35);border-radius:12px;padding:10px;margin-top:8px}
+.rpsChoiceOpen{font-size:48px;line-height:1;margin-top:10px;text-shadow:0 0 16px rgba(250,204,21,.35)}
+.rpsChoiceOpen span{display:block;font-size:16px;margin-top:4px;color:#fff;text-shadow:none}
+.rpsPickArea{background:#081525;border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:12px;text-align:center}
+.rpsPickTitle{font-size:18px;font-weight:1000;color:#facc15;margin-bottom:10px}
+.rpsButtons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:520px;margin:0 auto}
+.rpsBtn{height:112px;border-radius:18px;background:linear-gradient(135deg,#10213a,#1d4ed8);border:1px solid rgba(56,189,248,.45);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:18px;box-shadow:0 12px 24px rgba(0,0,0,.28)}
+.rpsBtn .emoji{font-size:44px;line-height:1}
+.rpsBtn.selected{border-color:#facc15;background:linear-gradient(135deg,#1d4ed8,#2563eb);box-shadow:0 0 0 3px rgba(250,204,21,.25),0 0 20px rgba(250,204,21,.18)}
+.rpsBtn:disabled{opacity:.45;cursor:not-allowed}
+.rpsActionRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;max-width:520px;margin-left:auto;margin-right:auto}
+.rpsStatusBox{background:#0b1728;border:1px solid var(--line);border-radius:14px;padding:14px;font-weight:900;color:#dbeafe;line-height:1.55;margin-top:12px;text-align:center}
+.rpsHistory{margin-top:14px;background:#081525;border:1px solid var(--line);border-radius:18px;padding:14px}
+.rpsHistory h3{margin:0 0 10px;color:#facc15}
+.rpsHistoryList{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-height:360px;overflow:auto}
+.rpsHistoryCard{background:#0b1728;border:1px solid var(--line);border-radius:14px;padding:10px}
+.rpsHistoryTitle{font-weight:1000;color:#b9d7ff;margin-bottom:8px}
+.rpsHistoryPlayers{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.rpsHistoryPlayer{background:#081525;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;text-align:center;font-weight:900;min-height:72px}
+.rpsHistoryPlayer.win{border-color:#34d399;background:rgba(52,211,153,.10)}
+.rpsHistoryPlayer.lose{border-color:#fb7185;background:rgba(251,113,133,.10)}
+.rpsHistoryPlayer.draw{border-color:#facc15;background:rgba(250,204,21,.08)}
+.rpsHistoryEmoji{font-size:26px;line-height:1.1}
+.rpsRules4{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.rpsRuleBox{background:#081525;border:1px solid var(--line);border-radius:14px;padding:12px;color:#dbeafe;font-size:13px;line-height:1.55;font-weight:800}
+.rpsRuleBox b{color:#facc15}
+
 /* ===== 모바일 첫 화면 전용 최종 수정 =====
    - 첫 메뉴 화면에서만 모바일 크기로 표시
    - 아시아리그/경매/아시아EVENT 내부 페이지는 JS에서 pcMode로 전환되어 PC 화면 유지
@@ -381,8 +418,8 @@ html,body{min-width:0;width:100%}
     <div class="eventGrid">
       <div class="eventPanel">
         <div class="sectionHead">
-          <h2>컴퓨터와 가위바위보</h2>
-          <span class="tinyBadge">1기회 = 1판</span>
+          <h2>4인 선착순 가위바위보</h2>
+          <span class="tinyBadge">4명 모두 선택 시 자동 공개</span>
         </div>
         <div id="eventUserBox"></div>
         <div id="rpsGameBox"></div>
@@ -393,14 +430,10 @@ html,body{min-width:0;width:100%}
           <button class="gold" onclick="openEventAdmin()">운영진 패널</button>
         </div>
         <div id="eventSide"></div>
-        <div class="eventHint">
-          친선 승리 시 운영진이 +5기회, 패배 시 +3기회를 지급합니다. 1기회로 컴퓨터와 가위바위보 1판을 진행하며, 연승할수록 획득 점수가 1점 → 2점 → 4점 → 8점으로 상승합니다. 무승부는 연승이 유지되며, 패배 시에만 연승이 초기화됩니다.
-        </div>
       </div>
     </div>
   </div>
 </div>
-
 
 <div id="testPage" class="testPage" style="display:none">
   <div class="testWrap">
@@ -1048,355 +1081,191 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 
 
-/* ===== 아시아 EVENT 가위바위보 게임 ===== */
+/* ===== 아시아 EVENT 4인 가위바위보 게임 ===== */
 const EVENT_ADMIN_PASSWORD='0523';
-const EVENT_MEMBERS=[{"name": "경문", "pw": "6646"}, {"name": "기사", "pw": "1234"}, {"name": "네오", "pw": "3434"}, {"name": "노을(구노을)", "pw": "7126"}, {"name": "대원", "pw": "1237"}, {"name": "도레미", "pw": "1238"}, {"name": "동이", "pw": "2345"}, {"name": "둘리", "pw": "3125"}, {"name": "라곤", "pw": "9911"}, {"name": "라오", "pw": "3129"}, {"name": "레니", "pw": "2347"}, {"name": "로딩해", "pw": "7127"}, {"name": "리아", "pw": "3123"}, {"name": "미또", "pw": "7128"}, {"name": "미신트", "pw": "8465"}, {"name": "바밥", "pw": "1239"}, {"name": "백뭉이", "pw": "8745"}, {"name": "뽀등어", "pw": "6514"}, {"name": "브칠", "pw": "8811"}, {"name": "블랙", "pw": "4747"}, {"name": "상호(구로키)", "pw": "2349"}, {"name": "선셋(신노을)", "pw": "3526"}, {"name": "섯군", "pw": "3127"}, {"name": "소율", "pw": "6445"}, {"name": "소현", "pw": "2351"}, {"name": "수민", "pw": "9849"}, {"name": "승환", "pw": "5123"}, {"name": "승호", "pw": "4380"}, {"name": "시아", "pw": "6123"}, {"name": "애플", "pw": "5535"}, {"name": "용산", "pw": "2184"}, {"name": "유녕", "pw": "5124"}, {"name": "유진", "pw": "4443"}, {"name": "윤주모", "pw": "7123"}, {"name": "음", "pw": "5555"}, {"name": "이뚜", "pw": "6125"}, {"name": "이펙트", "pw": "6549"}, {"name": "자욱", "pw": "3126"}, {"name": "장어", "pw": "6126"}, {"name": "제로", "pw": "4441"}, {"name": "준클", "pw": "8846"}, {"name": "지건빵", "pw": "9871"}, {"name": "지헌", "pw": "2636"}, {"name": "짱아 (구짱아)", "pw": "5125"}, {"name": "짱이", "pw": "2587"}, {"name": "천유", "pw": "6644"}, {"name": "쿠타", "pw": "6129"}, {"name": "쿨쿨린이", "pw": "4575"}, {"name": "파라곤(토르)", "pw": "9875"}, {"name": "파솔라", "pw": "9874"}, {"name": "평정", "pw": "9885"}, {"name": "플로버", "pw": "5425"}, {"name": "피뚭(피셜)", "pw": "9873"}, {"name": "황새", "pw": "5443"}, {"name": "헬츠", "pw": "5129"}, {"name": "휘헌", "pw": "4126"}, {"name": "흠(하영)", "pw": "4466"}, {"name": "히스", "pw": "5487"}, {"name": "구리", "pw": "3737"}];
+const EVENT_MEMBERS=[{"name":"경문","pw":"6646"},{"name":"기사","pw":"1234"},{"name":"네오","pw":"3434"},{"name":"노을(구노을)","pw":"7126"},{"name":"대원","pw":"1237"},{"name":"도레미","pw":"1238"},{"name":"동이","pw":"2345"},{"name":"둘리","pw":"3125"},{"name":"라곤","pw":"9911"},{"name":"라오","pw":"3129"},{"name":"레니","pw":"2347"},{"name":"로딩해","pw":"7127"},{"name":"리아","pw":"3123"},{"name":"미또","pw":"7128"},{"name":"미신트","pw":"8465"},{"name":"바밥","pw":"1239"},{"name":"백뭉이","pw":"8745"},{"name":"뽀등어","pw":"6514"},{"name":"브칠","pw":"8811"},{"name":"블랙","pw":"4747"},{"name":"상호(구로키)","pw":"2349"},{"name":"선셋(신노을)","pw":"3526"},{"name":"섯군","pw":"3127"},{"name":"소율","pw":"6445"},{"name":"소현","pw":"2351"},{"name":"수민","pw":"9849"},{"name":"승환","pw":"5123"},{"name":"승호","pw":"4380"},{"name":"시아","pw":"6123"},{"name":"애플","pw":"5535"},{"name":"용산","pw":"2184"},{"name":"유녕","pw":"5124"},{"name":"유진","pw":"4443"},{"name":"윤주모","pw":"7123"},{"name":"음","pw":"5555"},{"name":"이뚜","pw":"6125"},{"name":"이펙트","pw":"6549"},{"name":"자욱","pw":"3126"},{"name":"장어","pw":"6126"},{"name":"제로","pw":"4441"},{"name":"준클","pw":"8846"},{"name":"지건빵","pw":"9871"},{"name":"지헌","pw":"2636"},{"name":"짱아 (구짱아)","pw":"5125"},{"name":"짱이","pw":"2587"},{"name":"천유","pw":"6644"},{"name":"쿠타","pw":"6129"},{"name":"쿨쿨린이","pw":"4575"},{"name":"파라곤(토르)","pw":"9875"},{"name":"파솔라","pw":"9874"},{"name":"평정","pw":"9885"},{"name":"플로버","pw":"5425"},{"name":"피뚭(피셜)","pw":"9873"},{"name":"황새","pw":"5443"},{"name":"헬츠","pw":"5129"},{"name":"휘헌","pw":"4126"},{"name":"흠(하영)","pw":"4466"},{"name":"히스","pw":"5487"},{"name":"구리","pw":"3737"}];
 const EVENT_TABLE='asia_event_card_game';
-let eventMembers=[...EVENT_MEMBERS];
-let eventMe=JSON.parse(localStorage.getItem('asia_event_me')||'null');
+const RPS_ITEMS=[{key:'scissors',label:'가위',emoji:'✌️',beats:'paper'},{key:'rock',label:'바위',emoji:'✊',beats:'scissors'},{key:'paper',label:'보',emoji:'🖐️',beats:'rock'}];
 let eventState=null;
 let eventLoaded=false;
-let rpsBusy=false;
-let rpsSpinTimer=null;
-let rpsActiveIndex=0;
-let rpsSelectedKey=null;
-let rpsSpinData=null;
-let rpsStopRequested=false;
-let rpsWheelRotation=0;
-let rpsAnimationFrame=null;
+let eventMembers=[...EVENT_MEMBERS];
+let eventMe=JSON.parse(localStorage.getItem('asia_event_me')||'null');
+let eventRevealing=false;
 
-const RPS_ITEMS=[
-  {key:'scissors',label:'가위',emoji:'✌️',beats:'paper'},
-  {key:'rock',label:'바위',emoji:'✊',beats:'scissors'},
-  {key:'paper',label:'보',emoji:'🖐️',beats:'rock'}
-];
-const RPS_WHEEL=Array.from({length:21},(_,i)=>i%3);
-function defaultEventState(){return {chances:{},scores:{},streaks:{},logs:[],computerIndex:0,lastRound:null,updatedAt:new Date().toISOString()};}
+function defaultEventState(){return {scores:{},chances:{},seats:[null,null,null,null],history:[],logs:[],updatedAt:new Date().toISOString()};}
 function normalizeEventState(st){
-  const d=defaultEventState();
-  const s=st&&typeof st==='object'?st:{};
-  return {
-    chances:s.chances&&typeof s.chances==='object'?s.chances:d.chances,
-    scores:s.scores&&typeof s.scores==='object'?s.scores:d.scores,
-    streaks:s.streaks&&typeof s.streaks==='object'?s.streaks:d.streaks,
-    logs:Array.isArray(s.logs)?s.logs:d.logs,
-    computerIndex:Number.isFinite(Number(s.computerIndex))?Number(s.computerIndex):0,
-    lastRound:s.lastRound||null,
-    updatedAt:s.updatedAt||d.updatedAt
-  };
+  const base=defaultEventState();
+  st=st&&typeof st==='object'?st:{};
+  st.scores=st.scores&&typeof st.scores==='object'?st.scores:{};
+  st.chances=st.chances&&typeof st.chances==='object'?st.chances:{};
+  st.seats=Array.isArray(st.seats)?st.seats.slice(0,4):[null,null,null,null];
+  while(st.seats.length<4) st.seats.push(null);
+  st.seats=st.seats.map(x=>x&&x.name?{name:String(x.name),choice:x.choice||null,choiceAt:x.choiceAt||null}:null);
+  st.history=Array.isArray(st.history)?st.history.slice(0,30):[];
+  st.logs=Array.isArray(st.logs)?st.logs.slice(0,120):[];
+  st.updatedAt=st.updatedAt||base.updatedAt;
+  return st;
 }
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 async function eventLoadMembers(){
   try{
-    const r=await sb.from('asia_event_members').select('nickname,password').order('nickname');
-    if(r.error) throw new Error(r.error.message);
-    if(Array.isArray(r.data) && r.data.length){
+    const r=await sb.from('asia_event_members').select('nickname,password').order('nickname',{ascending:true});
+    if(!r.error && r.data && r.data.length){
       eventMembers=r.data.map(m=>({name:String(m.nickname||'').trim(),pw:String(m.password||'').trim()})).filter(m=>m.name);
     }
-  }catch(e){
-    console.warn('asia_event_members 불러오기 실패, 기본 목록 사용',e);
-    eventMembers=[...EVENT_MEMBERS];
-  }
+  }catch(e){eventMembers=[...EVENT_MEMBERS];}
 }
 function eventMemberOptions(){return eventMembers.map(m=>`<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)}</option>`).join('');}
-function eventLog(msg){eventState.logs=[`[${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}] ${msg}`,...(eventState.logs||[])].slice(0,100);}
-async function eventSave(){
-  eventState.updatedAt=new Date().toISOString();
-  const r=await sb.from(EVENT_TABLE).upsert({id:1,state:eventState,updated_at:new Date().toISOString()},{onConflict:'id'}).select('id');
-  if(r.error) throw new Error(r.error.message);
-}
-async function eventLoad(){
-  const r=await sb.from(EVENT_TABLE).select('state').eq('id',1).maybeSingle();
-  if(r.error) throw new Error(r.error.message);
-  if(!r.data){eventState=defaultEventState(); await eventSave();}
-  else eventState=normalizeEventState(r.data.state);
-}
+function eventLog(msg){eventState.logs=[`[${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}] ${msg}`,...(eventState.logs||[])].slice(0,120);}
+async function eventSave(){eventState.updatedAt=new Date().toISOString(); const r=await sb.from(EVENT_TABLE).upsert({id:1,state:eventState,updated_at:new Date().toISOString()},{onConflict:'id'}).select('id'); if(r.error) throw new Error(r.error.message);}
+async function eventLoad(){const r=await sb.from(EVENT_TABLE).select('state').eq('id',1).maybeSingle(); if(r.error) throw new Error(r.error.message); if(!r.data){eventState=defaultEventState(); await eventSave();} else eventState=normalizeEventState(r.data.state);}
 async function eventBoot(){
-  try{
-    if(!eventLoaded){await eventLoadMembers(); await eventLoad(); eventLoaded=true;}
-    renderEvent();
-  }catch(e){
-    document.getElementById('eventUserBox').innerHTML=`<div class="errorBox">가위바위보 데이터를 불러오지 못했습니다.
-기존 asia_event_card_game 테이블을 그대로 사용합니다.
+  try{ if(!eventLoaded){await eventLoadMembers(); await eventLoad(); eventLoaded=true;} renderEvent(); }
+  catch(e){document.getElementById('eventUserBox').innerHTML=`<div class="errorBox">이벤트 데이터를 불러오지 못했습니다.\n${escapeHtml(e.message||e)}</div>`;}
+}
+function rpsItem(key){return RPS_ITEMS.find(x=>x.key===key)||null;}
+function rpsCompare(a,b){if(a===b) return 'draw'; const x=rpsItem(a); return x&&x.beats===b?'win':'lose';}
+function currentSeatIndex(){return eventState?.seats?.findIndex(s=>s&&eventMe&&s.name===eventMe.name) ?? -1;}
+function occupiedNames(){return new Set((eventState?.seats||[]).filter(Boolean).map(s=>s.name));}
+async function refreshEventBeforeAction(){await eventLoad(); eventState=normalizeEventState(eventState);}
 
-${escapeHtml(e.message||e)}</div>`;
-  }
-}
-function rpsWheelSegmentDeg(){return 360/RPS_WHEEL.length;}
-function rpsWheelBg(){
-  const seg=rpsWheelSegmentDeg();
-  const colors=['#1d4ed8','#f8e889'];
-  const parts=[];
-  for(let i=0;i<RPS_WHEEL.length;i++){
-    const a=(i*seg).toFixed(4);
-    const b=((i+1)*seg).toFixed(4);
-    parts.push(`${colors[i%2]} ${a}deg ${b}deg`);
-  }
-  return `conic-gradient(from ${(-seg/2).toFixed(4)}deg, ${parts.join(',')})`;
-}
-function rpsIndexFromRotation(rotation){
-  const seg=rpsWheelSegmentDeg();
-  return ((Math.round((-rotation)/seg)%RPS_WHEEL.length)+RPS_WHEEL.length)%RPS_WHEEL.length;
-}
-function rpsTargetRotationForIndex(index,startRotation,extraTurns=2){
-  const seg=rpsWheelSegmentDeg();
-  let target=(-index*seg);
-  while(target<=startRotation+360*extraTurns) target+=360;
-  return target;
-}
-function easeOutCubic(t){return 1-Math.pow(1-t,3);}
-function rpsSlotStyle(i){
-  const deg=(360/RPS_WHEEL.length)*i;
-  return `--deg:${deg}deg;`;
-}
-function renderRpsWheel(activeIndex){
-  const spinning=!!rpsBusy;
-  const wheelBg=rpsWheelBg();
-  return `<div class="rpsWheel"><div class="rpsPointer"></div><div id="rpsWheelDisc" class="rpsWheelDisc" style="--wheel-bg:${wheelBg};transform:rotate(${rpsWheelRotation}deg)">${RPS_WHEEL.map((itemIdx,i)=>{
-    const item=RPS_ITEMS[itemIdx];
-    return `<div class="rpsSlot ${i===activeIndex?'active':''}" style="${rpsSlotStyle(i)}"><div class="emoji">${item.emoji}</div><div class="label">${item.label}</div></div>`;
-  }).join('')}</div><button type="button" class="rpsCenter ${spinning?'stop':''}" onclick="event.stopPropagation(); requestRpsStop();" ${spinning?'':'disabled'}>${spinning?'중지':'대기'}</button></div>`;
-}
-function renderRpsGame(){
-  const box=document.getElementById('rpsGameBox'); if(!box) return;
-  const myName=eventMe?.name;
-  const disabled=!eventMe||rpsBusy||Number(eventState?.chances?.[myName]||0)<=0;
-  const last=eventState?.lastRound;
-  const selected=RPS_ITEMS.find(x=>x.key===rpsSelectedKey);
-  const myPick=last ? `${last.userEmoji} ${escapeHtml(last.userLabel)}` : (selected ? `${selected.emoji} ${escapeHtml(selected.label)}` : '-');
-  const comPick=last ? `${last.computerEmoji} ${escapeHtml(last.computerLabel)}` : '-';
-  const startReady=!!eventMe && !!rpsSelectedKey && !rpsBusy && Number(eventState?.chances?.[myName]||0)>0;
-  box.innerHTML=`<div class="rpsVsBar"><div class="rpsVsCell"><span>내 선택</span><div class="rpsVsValue">${myPick}</div></div><div class="rpsVsMiddle">VS</div><div class="rpsVsCell"><span>컴퓨터 선택</span><div class="rpsVsValue">${comPick}</div></div></div><div class="rpsGameWrap"><div class="rpsPickPanel"><div class="rpsPickTitle">내 선택</div><div class="rpsButtons">${RPS_ITEMS.map(item=>`<button class="rpsBtn ${rpsSelectedKey===item.key?'selected':''}" onclick="selectRps('${item.key}')" ${disabled?'disabled':''}><span class="emoji">${item.emoji}</span><span>${item.label}</span></button>`).join('')}</div><div style="margin-top:12px;color:#dbeafe;font-weight:900;line-height:1.5">가위/바위/보 중 하나를 선택 후<br><b style="color:#facc15">[진행하기]</b> 버튼을 눌러주세요.</div><button class="rpsStartBtn ${startReady?'ready':''}" onclick="startRps()" ${startReady?'':'disabled'}>진행하기</button></div><div class="rpsComputer"><div class="rpsPickTitle">컴퓨터 선택 돌림판</div><div id="rpsWheelHost">${renderRpsWheel(Number(eventState?.computerIndex||0))}</div><div class="rpsSpinHint">진행하면 돌림판이 빠르게 돌아갑니다.<br><b>[중지]</b>를 누르면 자연스럽게 서서히 멈추며 결과가 확정됩니다.</div><div class="rpsResultBox" style="margin-top:10px"><div>결과</div><div class="big">${last?escapeHtml(last.resultText):(rpsBusy?'돌아가는 중...':'대기중')}</div></div></div></div><div class="rpsRules"><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px"><div><b>점수 규칙 (연승 보너스)</b><br>1연승 1점 / 2연승 2점 / 3연승 4점 / 4연승 이상 8점</div><div><b>게임 설명</b><br>승리 시 연승이 유지되며 보너스 점수를 획득합니다.<br>무승부 시 연승은 유지되고, 다음 판으로 넘어갑니다.<br>패배 시 연승이 0으로 초기화됩니다.</div></div></div>`;
-}
-function selectRps(key){
-  if(rpsBusy) return;
-  rpsSelectedKey=key;
-  renderRpsGame();
-}
-function requestRpsStop(){
-  if(!rpsBusy || !rpsSpinData || rpsSpinData.stopping) return;
-  const now=performance.now();
-  rpsSpinData.stopping=true;
-  rpsSpinData.stopStartedAt=now;
-  rpsSpinData.stopDuration=2400;
-  const projected=rpsWheelRotation+720;
-  const finalIndex=rpsIndexFromRotation(projected);
-  rpsSpinData.finalIndex=finalIndex;
-  rpsSpinData.decelFrom=rpsWheelRotation;
-  rpsSpinData.decelTo=rpsTargetRotationForIndex(finalIndex,rpsWheelRotation,2);
-}
-function renderEvent(){
-  if(!eventState) eventState=defaultEventState();
-  eventState=normalizeEventState(eventState);
-  const userBox=document.getElementById('eventUserBox');
-  const side=document.getElementById('eventSide');
-  if(!userBox||!side) return;
-  const myName=eventMe?.name;
-  const myChance=Number(eventState.chances?.[myName]||0);
-  const myScore=Number(eventState.scores?.[myName]||0);
-  const myStreak=Number(eventState.streaks?.[myName]||0);
-  userBox.innerHTML=eventMe?`<div class="eventStatus"><div class="eventStat">로그인<b>${escapeHtml(myName)}</b></div><div class="eventStat">남은 기회<b>${myChance}</b></div><div class="eventStat">연승 / 점수<b>${myStreak}연승 / ${myScore}</b></div></div><button class="ghost" onclick="eventLogout()">로그아웃</button>`:`<div class="eventLogin"><select id="eventLoginName">${eventMemberOptions()}</select><input id="eventLoginPw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter') eventLogin()"><button class="gold" onclick="eventLogin()">로그인</button></div>`;
-  renderRpsGame();
-  const ranks=Object.entries(eventState.scores||{}).sort((a,b)=>Number(b[1])-Number(a[1])||a[0].localeCompare(b[0],'ko'));
-  const rows=(ranks.length?ranks:eventMembers.slice(0,10).map(m=>[m.name,0]));
-  side.innerHTML=`<table class="scoreTable"><thead><tr><th>순위</th><th>맴버</th><th>점수</th><th>기회</th><th>연승</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r[0])}</td><td>${Number(r[1]||0)}</td><td>${Number(eventState.chances?.[r[0]]||0)}</td><td>${Number(eventState.streaks?.[r[0]]||0)}</td></tr>`).join('')}</tbody></table><h2 style="margin:14px 0 0">로그</h2><div class="eventLog">${(eventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 로그가 없습니다.</div>'}</div><div class="eventHint">친선 승리 시 운영진이 +5기회, 패배 시 +3기회를 지급합니다.<br>1기회로 컴퓨터와 가위바위보 1판을 진행하며, 연승할수록 획득 점수가 1점 → 2점 → 4점 → 8점으로 상승합니다.<br>무승부는 연승이 유지되며, 패배 시에만 연승이 초기화됩니다.<br>컴퓨터 선택은 돌림판 방식으로 진행됩니다.<br>[중지] 버튼을 누르면 자연스럽게 서서히 멈추며 결과가 확정됩니다.</div>`;
-}
 async function eventLogin(){
   await eventLoadMembers();
   const name=document.getElementById('eventLoginName')?.value;
   const pw=document.getElementById('eventLoginPw')?.value;
   const ok=eventMembers.find(m=>m.name===name && m.pw===pw);
   if(!ok) return alert('맴버 또는 비밀번호가 맞지 않습니다.');
-  eventMe={name}; localStorage.setItem('asia_event_me',JSON.stringify(eventMe));
-  renderEvent();
+  eventMe={name}; localStorage.setItem('asia_event_me',JSON.stringify(eventMe)); renderEvent();
 }
-function eventLogout(){localStorage.removeItem('asia_event_me'); eventMe=null; rpsSelectedKey=null; renderEvent();}
-function rpsCompare(userKey, computerKey){
-  if(userKey===computerKey) return 'draw';
-  const user=RPS_ITEMS.find(x=>x.key===userKey);
-  return user&&user.beats===computerKey?'win':'lose';
-}
-function rpsWinPoint(streak){return Math.min(8, Math.pow(2, Math.max(0,Math.min(4,streak)-1)));}
-function getRpsFinalIndexForFairResult(userKey){
-  const outcomes=['win','draw','lose'];
-  const outcome=outcomes[Math.floor(Math.random()*outcomes.length)];
-  const possible=[];
-  RPS_WHEEL.forEach((itemIdx,i)=>{
-    const key=RPS_ITEMS[itemIdx].key;
-    if(rpsCompare(userKey,key)===outcome) possible.push(i);
-  });
-  return possible[Math.floor(Math.random()*possible.length)] ?? Math.floor(Math.random()*9);
-}
-async function startRps(){
-  if(rpsBusy||!eventMe) return;
-  if(!rpsSelectedKey) return alert('가위/바위/보 중 하나를 먼저 선택해주세요.');
-  await eventLoad();
-  eventState=normalizeEventState(eventState);
+function eventLogout(){localStorage.removeItem('asia_event_me'); eventMe=null; renderEvent();}
+async function joinRpsSeat(){
+  if(!eventMe) return alert('로그인 후 참여할 수 있습니다.');
+  await refreshEventBeforeAction();
   const name=eventMe.name;
+  if(occupiedNames().has(name)) return alert('이미 자리를 잡았습니다.');
   if(Number(eventState.chances?.[name]||0)<=0) return alert('남은 기회가 없습니다. 운영진에게 기회를 받아야 합니다.');
-  const user=RPS_ITEMS.find(x=>x.key===rpsSelectedKey);
-  if(!user) return alert('선택값을 확인할 수 없습니다. 다시 선택해주세요.');
-
-  rpsBusy=true;
-  rpsStopRequested=false;
-  eventState.chances[name]=Math.max(0,Number(eventState.chances?.[name]||0)-1);
-  eventState.lastRound=null;
-  eventLog(`${name}님 가위바위보 게임 시작! (남은 기회: ${eventState.chances[name]})`);
-  eventLog(`${name}님 선택: ${user.label}`);
-  renderEvent();
-  try{playWheelSpinSound();}catch(e){}
-
-  rpsSpinData={
-    name,
-    user,
-    startedAt:performance.now(),
-    lastTs:performance.now(),
-    speed:920,
-    stopping:false,
-    finalIndex:null,
-    decelFrom:0,
-    decelTo:0,
-    stopStartedAt:null,
-    stopDuration:2400
-  };
-  if(rpsAnimationFrame) cancelAnimationFrame(rpsAnimationFrame);
-  rpsAnimationFrame=requestAnimationFrame(rpsSpinLoop);
+  const idx=eventState.seats.findIndex(s=>!s);
+  if(idx<0) return alert('현재 4자리가 모두 찼습니다.');
+  eventState.seats[idx]={name,choice:null,choiceAt:null};
+  if(eventState.scores[name]==null) eventState.scores[name]=0;
+  if(eventState.chances[name]==null) eventState.chances[name]=0;
+  eventLog(`${idx+1}번 ${name} 선수가 입장했습니다.`);
+  await eventSave(); renderEvent();
 }
-function rpsSpinLoop(ts){
-  if(!rpsBusy||!rpsSpinData) return;
-  const data=rpsSpinData;
-  const elapsed=ts-data.startedAt;
-  const disc=document.getElementById('rpsWheelDisc');
-
-  if(!data.stopping){
-    const dt=Math.max(0,ts-data.lastTs);
-    data.lastTs=ts;
-    rpsWheelRotation+=data.speed*(dt/1000);
-    rpsWheelRotation%=360000;
-    rpsActiveIndex=rpsIndexFromRotation(rpsWheelRotation);
-    if(disc) disc.style.transform=`rotate(${rpsWheelRotation}deg)`;
-    const active=document.querySelectorAll('#rpsWheelDisc .rpsSlot');
-    active.forEach((el,i)=>el.classList.toggle('active',i===rpsActiveIndex));
-
-    // 15초 동안 멈추지 않으면 자동으로 감속하여 멈춥니다.
-    if(elapsed>=15000) requestRpsStop();
-
-    rpsAnimationFrame=requestAnimationFrame(rpsSpinLoop);
-    return;
-  }
-
-  const t=Math.min(1,(ts-data.stopStartedAt)/data.stopDuration);
-  rpsWheelRotation=data.decelFrom+(data.decelTo-data.decelFrom)*easeOutCubic(t);
-  rpsActiveIndex=data.finalIndex;
-  if(disc) disc.style.transform=`rotate(${rpsWheelRotation}deg)`;
-  const active=document.querySelectorAll('#rpsWheelDisc .rpsSlot');
-  active.forEach((el,i)=>el.classList.toggle('active',i===rpsActiveIndex));
-
-  if(t>=1){
-    finishRpsSpin(data.name,data.user,data.finalIndex);
-    return;
-  }
-  rpsAnimationFrame=requestAnimationFrame(rpsSpinLoop);
+async function leaveRpsSeat(){
+  if(!eventMe) return;
+  await refreshEventBeforeAction();
+  const idx=currentSeatIndex();
+  if(idx<0) return alert('현재 참여 중인 자리가 없습니다.');
+  eventLog(`${idx+1}번 ${eventMe.name} 선수가 자리를 나갔습니다.`);
+  eventState.seats[idx]=null;
+  await eventSave(); renderEvent();
 }
-async function finishRpsSpin(name,user,finalIndex){
-  if(rpsAnimationFrame) cancelAnimationFrame(rpsAnimationFrame);
-  rpsAnimationFrame=null;
-  try{stopWheelSpinSound(); playWheelResultSound();}catch(e){}
-  rpsActiveIndex=Number.isFinite(Number(finalIndex))?Number(finalIndex):rpsIndexFromRotation(rpsWheelRotation);
-  const computer=RPS_ITEMS[RPS_WHEEL[rpsActiveIndex]];
-  const host=document.getElementById('rpsWheelHost');
-  if(host) host.innerHTML=renderRpsWheel(rpsActiveIndex);
-  const outcome=rpsCompare(user.key,computer.key);
-  let resultText='';
-  eventLog(`컴퓨터 선택: ${computer.label}`);
-  if(outcome==='win'){
-    const streak=Number(eventState.streaks?.[name]||0)+1;
-    const point=rpsWinPoint(streak);
-    eventState.streaks[name]=streak;
-    eventState.scores[name]=Number(eventState.scores?.[name]||0)+point;
-    resultText=`승리! ${streak}연승 +${point}점`;
-    eventLog(`${name}님 승리! ${streak}연승 +${point}점`);
-  }else if(outcome==='draw'){
-    const streak=Number(eventState.streaks?.[name]||0);
-    resultText=`무승부! 연승 유지 (${streak}연승)`;
-    eventLog(`${name}님 무승부! 연승 유지 (${streak}연승)`);
-  }else{
-    eventState.streaks[name]=0;
-    resultText='패배! 연승 초기화';
-    eventLog(`${name}님 패배, 연승 초기화`);
-  }
-  eventState.computerIndex=rpsActiveIndex;
-  eventState.lastRound={
-    userKey:user.key,userLabel:user.label,userEmoji:user.emoji,
-    computerKey:computer.key,computerLabel:computer.label,computerEmoji:computer.emoji,
-    outcome,resultText,at:new Date().toISOString()
-  };
+async function pickRpsChoice(key){
+  if(!eventMe) return alert('로그인 후 선택할 수 있습니다.');
+  await refreshEventBeforeAction();
+  const idx=currentSeatIndex();
+  if(idx<0) return alert('먼저 자리를 잡아주세요.');
+  const name=eventMe.name;
+  if(Number(eventState.chances?.[name]||0)<=0) return alert('남은 기회가 없습니다.');
+  eventState.seats[idx].choice=key;
+  eventState.seats[idx].choiceAt=new Date().toISOString();
+  eventLog(`${idx+1}번 ${name} 선수는 선택했습니다.`);
   await eventSave();
-  rpsBusy=false;
-  rpsSpinData=null;
-  rpsStopRequested=false;
-  rpsSelectedKey=null;
+  await checkAndResolveRound();
   renderEvent();
+}
+function classifyRound(seats){
+  const keys=[...new Set(seats.map(s=>s.choice))];
+  if(keys.length===1 || keys.length===3) return {decisive:false,winners:[],losers:[],reason:'무승부'};
+  const [a,b]=keys;
+  const winKey=rpsCompare(a,b)==='win'?a:b;
+  const loseKey=winKey===a?b:a;
+  return {decisive:true,winners:seats.filter(s=>s.choice===winKey).map(s=>s.name),losers:seats.filter(s=>s.choice===loseKey).map(s=>s.name),reason:`${rpsItem(winKey).label} 승리`};
+}
+async function checkAndResolveRound(){
+  eventState=normalizeEventState(eventState);
+  const seats=eventState.seats;
+  if(!seats.every(s=>s&&s.choice)) return;
+  const snapshot=seats.map((s,i)=>({seat:i+1,name:s.name,choice:s.choice,label:rpsItem(s.choice).label,emoji:rpsItem(s.choice).emoji}));
+  const result=classifyRound(seats);
+  const hist={at:new Date().toISOString(),players:snapshot,result:result.reason,winners:result.winners,losers:result.losers,decisive:result.decisive};
+  eventState.history=[hist,...(eventState.history||[])].slice(0,30);
+  if(!result.decisive){
+    eventLog(`4명 선택 공개: ${result.reason}. 기회 차감 없이 다시 선택합니다.`);
+    eventState.seats=seats.map(s=>s?{name:s.name,choice:null,choiceAt:null}:null);
+    await eventSave();
+    showRoundPopup(hist);
+    return;
+  }
+  result.winners.forEach(name=>{
+    eventState.scores[name]=Number(eventState.scores?.[name]||0)+1;
+    eventState.chances[name]=Math.max(0,Number(eventState.chances?.[name]||0)-1);
+  });
+  result.losers.forEach(name=>{
+    eventState.chances[name]=Math.max(0,Number(eventState.chances?.[name]||0)-1);
+  });
+  eventLog(`결과 공개: ${result.reason}. 승리 ${result.winners.join(', ')} +1점 / 탈락 ${result.losers.join(', ')}`);
+  eventState.seats=seats.map(s=>{
+    if(result.losers.includes(s.name)) return null;
+    if(Number(eventState.chances?.[s.name]||0)<=0){ eventLog(`${s.name}님은 남은 기회가 없어 자리에서 나갑니다.`); return null; }
+    return {name:s.name,choice:null,choiceAt:null};
+  });
+  await eventSave();
+  showRoundPopup(hist);
+}
+function showRoundPopup(hist){
+  const cls=p=>hist.winners.includes(p.name)?'win':hist.losers.includes(p.name)?'lose':'draw';
+  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:760px"><div class="sectionHead"><h2>가위바위보 결과</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><div class="rpsHistoryCard"><div class="rpsHistoryTitle">${escapeHtml(hist.result)}</div><div class="rpsHistoryPlayers">${hist.players.map(p=>`<div class="rpsHistoryPlayer ${cls(p)}"><div>${p.seat}번<br>${escapeHtml(p.name)}</div><div class="rpsHistoryEmoji">${p.emoji}</div><div>${escapeHtml(p.label)}</div></div>`).join('')}</div></div><p class="eventHint">${hist.decisive?'승리자는 +1점, 패배자는 탈락합니다.':'무승부는 기회가 차감되지 않고 같은 자리에서 다시 선택합니다.'}</p></div></div>`;
+}
+function renderSeat(s,i){
+  if(!s) return `<div class="rpsSeat empty"><div class="rpsSeatNo">${i+1}번</div><div>빈 자리</div><button class="gold" onclick="joinRpsSeat()">자리잡기</button></div>`;
+  const me=eventMe&&eventMe.name===s.name;
+  const open=(eventState.seats||[]).every(x=>x&&x.choice);
+  const item=s.choice?rpsItem(s.choice):null;
+  return `<div class="rpsSeat ${me?'me':''}"><div class="rpsSeatNo">${i+1}번</div><div class="rpsSeatName">${escapeHtml(s.name)}</div>${item&&open?`<div class="rpsChoiceOpen">${item.emoji}<span>${escapeHtml(item.label)}</span></div>`:item?`<div class="rpsChoiceHidden">선택했습니다.</div>`:`<div class="rpsChoiceHidden" style="color:#9fb4cd;border-color:var(--line);background:#0b1728">선택 대기중</div>`}${me?`<button class="ghost" style="margin-top:10px" onclick="leaveRpsSeat()">자리나가기</button>`:''}</div>`;
+}
+function renderRpsGame(){
+  const box=document.getElementById('rpsGameBox'); if(!box) return;
+  const idx=currentSeatIndex();
+  const mySeat=idx>=0?eventState.seats[idx]:null;
+  const disabled=!eventMe || idx<0 || Number(eventState.chances?.[eventMe.name]||0)<=0;
+  box.innerHTML=`<div class="rpsRoom"><div class="rpsSeatGrid">${eventState.seats.map((s,i)=>renderSeat(s,i)).join('')}</div><div class="rpsPickArea"><div class="rpsPickTitle">내 선택</div><div class="rpsButtons">${RPS_ITEMS.map(item=>`<button class="rpsBtn ${mySeat?.choice===item.key?'selected':''}" onclick="pickRpsChoice('${item.key}')" ${disabled?'disabled':''}><span class="emoji">${item.emoji}</span><span>${item.label}</span></button>`).join('')}</div><div class="rpsStatusBox">4명이 모두 자리를 잡고 가위/바위/보를 선택해야 게임이 진행됩니다.<br>현재 참여 인원: ${(eventState.seats||[]).filter(Boolean).length}/4명 / 선택 완료: ${(eventState.seats||[]).filter(s=>s&&s.choice).length}/4명</div></div><div class="rpsRules4"><div class="rpsRuleBox"><b>기회 지급 변경</b><br>친선 승리 시 +2기회<br>친선 패배 시 +1기회</div><div class="rpsRuleBox"><b>진행 규칙</b><br>4명 모두 선택하면 전체 공개됩니다.<br>승부가 나면 승리자는 +1점, 패배자는 탈락합니다.<br>무승부는 기회 차감 없이 같은 자리에서 다시 선택합니다.</div></div><div class="rpsHistory"><h3>지나간 경기</h3><div class="rpsHistoryList">${renderHistory()}</div></div></div>`;
+}
+function renderHistory(){
+  const h=eventState.history||[];
+  if(!h.length) return '<div class="eventHint">아직 지나간 경기가 없습니다.</div>';
+  return h.map(x=>`<div class="rpsHistoryCard"><div class="rpsHistoryTitle">${new Date(x.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})} / ${escapeHtml(x.result)}</div><div class="rpsHistoryPlayers">${x.players.map(p=>`<div class="rpsHistoryPlayer ${x.winners?.includes(p.name)?'win':x.losers?.includes(p.name)?'lose':'draw'}"><div>${p.seat}번<br>${escapeHtml(p.name)}</div><div class="rpsHistoryEmoji">${p.emoji}</div><div>${escapeHtml(p.label)}</div></div>`).join('')}</div></div>`).join('');
+}
+function renderEvent(){
+  if(!eventState) eventState=defaultEventState(); eventState=normalizeEventState(eventState);
+  const userBox=document.getElementById('eventUserBox'); const side=document.getElementById('eventSide'); if(!userBox||!side) return;
+  const myName=eventMe?.name; const myChance=Number(eventState.chances?.[myName]||0); const myScore=Number(eventState.scores?.[myName]||0); const mySeat=currentSeatIndex();
+  userBox.innerHTML=eventMe?`<div class="eventStatus"><div class="eventStat">로그인<b>${escapeHtml(myName)}</b></div><div class="eventStat">남은 기회<b>${myChance}</b></div><div class="eventStat">점수 / 자리<b>${myScore}점 / ${mySeat>=0?mySeat+1+'번':'대기'}</b></div></div><button class="ghost" onclick="eventLogout()">로그아웃</button>`:`<div class="eventLogin"><select id="eventLoginName">${eventMemberOptions()}</select><input id="eventLoginPw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter') eventLogin()"><button class="gold" onclick="eventLogin()">로그인</button></div>`;
+  renderRpsGame();
+  const ranks=Object.entries(eventState.scores||{}).sort((a,b)=>Number(b[1])-Number(a[1])||a[0].localeCompare(b[0],'ko'));
+  const rows=(ranks.length?ranks:eventMembers.slice(0,10).map(m=>[m.name,0]));
+  side.innerHTML=`<table class="scoreTable"><thead><tr><th>순위</th><th>맴버</th><th>점수</th><th>기회</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r[0])}</td><td>${Number(r[1]||0)}</td><td>${Number(eventState.chances?.[r[0]]||0)}</td></tr>`).join('')}</tbody></table><h2 style="margin:14px 0 0">로그</h2><div class="eventLog">${(eventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 로그가 없습니다.</div>'}</div><div class="eventHint">컴퓨터 없이 유저 4명이 진행하는 가위바위보 게임입니다.<br>4명이 모두 선택해야 공개되며, 한 명이라도 비어 있으면 진행되지 않습니다.<br>승부가 난 경기만 기회가 차감됩니다.</div>`;
 }
 async function openEventAdmin(){
-  const pw=prompt('운영진 비밀번호를 입력하세요.');
-  if(pw!==EVENT_ADMIN_PASSWORD) return alert('운영진 비밀번호가 맞지 않습니다.');
-  await eventLoadMembers();
-  await eventLoad();
-  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:720px"><div class="sectionHead"><h2>아시아EVENT 운영진 패널</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><div class="eventAdmin"><select id="eventAdminMember">${eventMemberOptions()}</select><button class="gold" onclick="eventGiveChance(5)">친선 승리 +5기회</button><button class="ok" onclick="eventGiveChance(3)">친선 패배 +3기회</button><button class="danger" onclick="eventResetRpsRound()">최근 결과 초기화</button><button class="ghost" onclick="openEventAddMemberBox()">맴버추가하기</button><div class="eventAdminWide"><button class="ghost" onclick="eventRefreshAdmin()">새로고침</button><button class="danger" onclick="eventFullReset()">점수/기회까지 전체초기화</button><button class="ghost" onclick="modalRoot.innerHTML=''">완료</button></div></div><div id="eventAddMemberBox" style="display:none;margin-top:12px;border:1px solid var(--line);background:#081525;border-radius:14px;padding:12px"><h3 style="margin:0 0 8px;color:#facc15">맴버 추가하기</h3><div class="eventAdminWide"><input id="eventNewMemberName" placeholder="맴버명"><input id="eventNewMemberPw" placeholder="비번 4자리" maxlength="4" inputmode="numeric"><button class="gold" onclick="eventAddMember()">추가하기</button></div><p class="eventHint">추가된 맴버는 asia_event_members 테이블에 저장되며, 바로 로그인 목록에 반영됩니다.</p></div><p class="eventHint">기회 지급은 기존과 동일합니다. 친선 승리 +5기회, 패배 +3기회입니다.</p></div></div>`;
+  const pw=prompt('운영진 비밀번호를 입력하세요.'); if(pw!==EVENT_ADMIN_PASSWORD) return alert('운영진 비밀번호가 맞지 않습니다.');
+  await eventLoadMembers(); await eventLoad();
+  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:720px"><div class="sectionHead"><h2>아시아EVENT 운영진 패널</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><div class="eventAdmin"><select id="eventAdminMember">${eventMemberOptions()}</select><button class="gold" onclick="eventGiveChance(2)">친선 승리 +2기회</button><button class="ok" onclick="eventGiveChance(1)">친선 패배 +1기회</button><button class="danger" onclick="eventResetSeats()">자리 초기화</button><button class="ghost" onclick="openEventAddMemberBox()">맴버추가하기</button><div class="eventAdminWide"><button class="ghost" onclick="eventRefreshAdmin()">새로고침</button><button class="danger" onclick="eventFullReset()">점수/기회까지 전체초기화</button><button class="ghost" onclick="modalRoot.innerHTML=''">완료</button></div></div><div id="eventAddMemberBox" style="display:none;margin-top:12px;border:1px solid var(--line);background:#081525;border-radius:14px;padding:12px"><h3 style="margin:0 0 8px;color:#facc15">맴버 추가하기</h3><div class="eventAdminWide"><input id="eventNewMemberName" placeholder="맴버명"><input id="eventNewMemberPw" placeholder="비번 4자리" maxlength="4" inputmode="numeric"><button class="gold" onclick="eventAddMember()">추가하기</button></div></div><p class="eventHint">친선 승리 +2기회, 친선 패배 +1기회로 지급됩니다.</p></div></div>`;
 }
 async function eventRefreshAdmin(){await eventLoadMembers(); await eventLoad(); renderEvent(); alert('새로고침 완료');}
-function openEventAddMemberBox(){
-  const box=document.getElementById('eventAddMemberBox');
-  if(box) box.style.display=box.style.display==='none'?'block':'none';
-  setTimeout(()=>document.getElementById('eventNewMemberName')?.focus(),0);
-}
+function openEventAddMemberBox(){const box=document.getElementById('eventAddMemberBox'); if(box) box.style.display=box.style.display==='none'?'block':'none';}
 async function eventAddMember(){
-  const name=(document.getElementById('eventNewMemberName')?.value||'').trim();
-  const pw=(document.getElementById('eventNewMemberPw')?.value||'').trim();
-  if(!name) return alert('맴버명을 입력해주세요.');
-  if(!/^\d{4}$/.test(pw)) return alert('비밀번호는 숫자 4자리로 입력해주세요.');
-  await eventLoadMembers();
-  if(eventMembers.some(m=>m.name===name)) return alert('이미 존재하는 맴버명입니다.');
-  const r=await sb.from('asia_event_members').insert({nickname:name,password:pw,score:0,chances:0}).select('id');
-  if(r.error) return alert('맴버 추가 실패: '+r.error.message);
-  eventMembers.push({name,pw});
-  eventMembers.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
-  if(!eventState.scores) eventState.scores={};
-  if(!eventState.chances) eventState.chances={};
-  if(!eventState.streaks) eventState.streaks={};
-  eventState.scores[name]=Number(eventState.scores?.[name]||0);
-  eventState.chances[name]=Number(eventState.chances?.[name]||0);
-  eventState.streaks[name]=Number(eventState.streaks?.[name]||0);
-  eventLog(`운영진이 새 맴버 ${name}님을 추가했습니다.`);
-  await eventSave();
-  alert(`${name}님이 추가되었습니다.`);
-  openEventAdmin();
-  renderEvent();
+  const name=(document.getElementById('eventNewMemberName')?.value||'').trim(); const pw=(document.getElementById('eventNewMemberPw')?.value||'').trim();
+  if(!name) return alert('맴버명을 입력해주세요.'); if(!/^\d{4}$/.test(pw)) return alert('비밀번호는 숫자 4자리로 입력해주세요.');
+  await eventLoadMembers(); if(eventMembers.some(m=>m.name===name)) return alert('이미 존재하는 맴버명입니다.');
+  const r=await sb.from('asia_event_members').insert({nickname:name,password:pw,score:0,chances:0}).select('id'); if(r.error) return alert('맴버 추가 실패: '+r.error.message);
+  eventMembers.push({name,pw}); eventMembers.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  if(!eventState.scores) eventState.scores={}; if(!eventState.chances) eventState.chances={};
+  eventState.scores[name]=0; eventState.chances[name]=0; eventLog(`운영진이 새 맴버 ${name}님을 추가했습니다.`); await eventSave(); alert(`${name}님이 추가되었습니다.`); openEventAdmin(); renderEvent();
 }
-async function eventGiveChance(n){
-  await eventLoad();
-  eventState=normalizeEventState(eventState);
-  const name=document.getElementById('eventAdminMember')?.value;
-  if(!name) return;
-  eventState.chances[name]=Number(eventState.chances?.[name]||0)+n;
-  if(eventState.scores?.[name]==null) eventState.scores[name]=0;
-  if(eventState.streaks?.[name]==null) eventState.streaks[name]=0;
-  eventLog(`운영진이 ${name}님에게 +${n}기회를 지급`);
-  await eventSave(); renderEvent(); alert(`${name}님에게 +${n}기회를 지급했습니다.`);
-}
-async function eventResetRpsRound(){
-  if(!confirm('최근 가위바위보 결과 화면만 초기화할까요? 점수와 기회는 유지됩니다.')) return;
-  await eventLoad(); eventState=normalizeEventState(eventState);
-  eventState.lastRound=null; eventState.computerIndex=0;
-  eventLog('운영진이 최근 결과 화면을 초기화했습니다.');
-  await eventSave(); renderEvent(); alert('최근 결과 화면을 초기화했습니다.');
-}
-async function eventFullReset(){
-  if(!confirm('점수, 기회, 연승, 로그까지 모두 초기화할까요?')) return;
-  eventState=defaultEventState();
-  eventLog('운영진이 전체초기화를 진행했습니다.');
-  await eventSave(); renderEvent(); alert('전체초기화 완료');
-}
+async function eventGiveChance(n){await eventLoad(); eventState=normalizeEventState(eventState); const name=document.getElementById('eventAdminMember')?.value; if(!name) return; eventState.chances[name]=Number(eventState.chances?.[name]||0)+n; if(eventState.scores?.[name]==null) eventState.scores[name]=0; eventLog(`운영진이 ${name}님에게 +${n}기회를 지급`); await eventSave(); renderEvent(); alert(`${name}님에게 +${n}기회를 지급했습니다.`);}
+async function eventResetSeats(){if(!confirm('현재 자리와 선택만 초기화할까요? 점수와 기회는 유지됩니다.')) return; await eventLoad(); eventState=normalizeEventState(eventState); eventState.seats=[null,null,null,null]; eventLog('운영진이 현재 자리를 초기화했습니다.'); await eventSave(); renderEvent(); alert('자리 초기화 완료');}
+async function eventFullReset(){if(!confirm('점수, 기회, 자리, 로그까지 모두 초기화할까요?')) return; eventState=defaultEventState(); eventLog('운영진이 전체초기화를 진행했습니다.'); await eventSave(); renderEvent(); alert('전체초기화 완료');}
 
 const SUPABASE_URL = 'https://xyibdanmecakevhtdajl.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_uvYqwDymxodcSdpT1zAWyg_PeVHh_ZO';
