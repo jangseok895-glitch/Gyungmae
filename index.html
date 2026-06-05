@@ -178,15 +178,18 @@ html,body{min-width:0;width:100%}
     .rpsStartBtn{width:100%;height:46px;margin-top:12px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#dbeafe;font-size:16px;font-weight:1000}
     .rpsStartBtn.ready{background:linear-gradient(135deg,#facc15,#f97316);color:#201000}
     .rpsComputer{background:#081525;border:1px solid var(--line);border-radius:18px;padding:14px;text-align:center;min-height:455px}
-    .rpsWheel{position:relative;width:330px;height:330px;margin:4px auto 10px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#15243b 0 27%,#081525 28% 100%);border:1px solid rgba(56,189,248,.25);box-shadow:inset 0 0 25px rgba(0,0,0,.55),0 0 24px rgba(251,113,133,.13)}
-    .rpsWheel:after{content:'';position:absolute;inset:35px;border-radius:50%;border:1px dashed rgba(250,204,21,.35);pointer-events:none}
-    .rpsSlot{position:absolute;left:50%;top:50%;width:76px;height:76px;border-radius:50%;background:#10213a;border:2px solid rgba(255,255,255,.16);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:1000;color:#dbeafe;box-shadow:0 10px 18px rgba(0,0,0,.35)}
-    .rpsSlot:after{content:'';position:absolute;left:50%;top:50%;width:8px;height:8px;border-radius:50%;background:rgba(250,204,21,.75);transform:translate(-50%,-50%) translateY(-96px);box-shadow:0 0 8px rgba(250,204,21,.35)}
-    .rpsSlot .emoji{font-size:27px;line-height:1}
-    .rpsSlot .label{font-size:12px;margin-top:3px}
-    .rpsSlot.active{border-color:#facc15;background:linear-gradient(135deg,#facc15,#fb7185);color:#1d0b00;box-shadow:0 0 0 4px rgba(250,204,21,.23),0 0 24px rgba(250,204,21,.35);transform:var(--pos) scale(1.12)!important;z-index:4}
-    .rpsCenter{position:absolute;left:50%;top:50%;width:112px;height:112px;transform:translate(-50%,-50%);border-radius:50%;background:linear-gradient(135deg,#fb7185,#a855f7);border:5px solid #fff;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:1000;color:#fff;line-height:1.1;box-shadow:0 12px 28px rgba(0,0,0,.45);z-index:5;user-select:none}
+    .rpsWheel{position:relative;width:350px;height:350px;margin:4px auto 10px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:visible}
+    .rpsPointer{position:absolute;left:50%;top:-10px;transform:translateX(-50%);width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;border-top:54px solid #f97316;filter:drop-shadow(0 5px 6px rgba(0,0,0,.45));z-index:12}
+    .rpsWheelDisc{position:absolute;inset:12px;border-radius:50%;border:10px solid #c7e1f3;background:#1d4ed8;box-shadow:inset 0 0 20px rgba(0,0,0,.35),0 0 24px rgba(56,189,248,.14);will-change:transform;overflow:hidden}
+    .rpsWheelDisc:before{content:'';position:absolute;inset:0;border-radius:50%;background:var(--wheel-bg)}
+    .rpsWheelDisc:after{content:'';position:absolute;left:50%;top:50%;width:14px;height:14px;transform:translate(-50%,-50%);border-radius:50%;background:#facc15;border:3px solid rgba(255,255,255,.85);z-index:3}
+    .rpsSlot{position:absolute;left:50%;top:50%;width:54px;height:54px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:1000;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.55);z-index:2;transform:rotate(var(--deg)) translateY(-124px) rotate(calc(-1 * var(--deg)))}
+    .rpsSlot .emoji{font-size:24px;line-height:1}
+    .rpsSlot .label{font-size:11px;margin-top:1px}
+    .rpsSlot.active{background:rgba(250,204,21,.92);color:#1d0b00;text-shadow:none;box-shadow:0 0 0 3px rgba(255,255,255,.8),0 0 22px rgba(250,204,21,.65)}
+    .rpsCenter{position:absolute;left:50%;top:50%;width:116px;height:116px;transform:translate(-50%,-50%);border-radius:50%;background:linear-gradient(135deg,#fb7185,#a855f7);border:5px solid #fff;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:1000;color:#fff;line-height:1.1;box-shadow:0 12px 28px rgba(0,0,0,.45);z-index:15;user-select:none}
     .rpsCenter.stop{background:linear-gradient(135deg,#ef4444,#b91c1c);cursor:pointer;font-size:28px}
+    .rpsCenter.stop:hover{filter:brightness(1.08)}
     .rpsResultBox{background:#0b1728;border:1px solid var(--line);border-radius:14px;padding:12px;min-height:86px;display:flex;flex-direction:column;justify-content:center;gap:6px;font-weight:1000}
     .rpsResultBox .big{font-size:24px;color:#facc15;text-shadow:0 0 10px rgba(250,204,21,.25)}
     .rpsRules{background:#081525;border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:12px;color:#dbeafe;font-size:13px;line-height:1.55;font-weight:800}
@@ -1059,13 +1062,15 @@ let rpsActiveIndex=0;
 let rpsSelectedKey=null;
 let rpsSpinData=null;
 let rpsStopRequested=false;
+let rpsWheelRotation=0;
+let rpsAnimationFrame=null;
 
 const RPS_ITEMS=[
   {key:'scissors',label:'가위',emoji:'✌️',beats:'paper'},
   {key:'rock',label:'바위',emoji:'✊',beats:'scissors'},
   {key:'paper',label:'보',emoji:'🖐️',beats:'rock'}
 ];
-const RPS_WHEEL=[0,1,2,0,1,2,0,1,2];
+const RPS_WHEEL=Array.from({length:21},(_,i)=>i%3);
 function defaultEventState(){return {chances:{},scores:{},streaks:{},logs:[],computerIndex:0,lastRound:null,updatedAt:new Date().toISOString()};}
 function normalizeEventState(st){
   const d=defaultEventState();
@@ -1116,16 +1121,40 @@ async function eventBoot(){
 ${escapeHtml(e.message||e)}</div>`;
   }
 }
+function rpsWheelSegmentDeg(){return 360/RPS_WHEEL.length;}
+function rpsWheelBg(){
+  const seg=rpsWheelSegmentDeg();
+  const colors=['#1d4ed8','#f8e889'];
+  const parts=[];
+  for(let i=0;i<RPS_WHEEL.length;i++){
+    const a=(i*seg).toFixed(4);
+    const b=((i+1)*seg).toFixed(4);
+    parts.push(`${colors[i%2]} ${a}deg ${b}deg`);
+  }
+  return `conic-gradient(from ${(-seg/2).toFixed(4)}deg, ${parts.join(',')})`;
+}
+function rpsIndexFromRotation(rotation){
+  const seg=rpsWheelSegmentDeg();
+  return ((Math.round((-rotation)/seg)%RPS_WHEEL.length)+RPS_WHEEL.length)%RPS_WHEEL.length;
+}
+function rpsTargetRotationForIndex(index,startRotation,extraTurns=2){
+  const seg=rpsWheelSegmentDeg();
+  let target=(-index*seg);
+  while(target<=startRotation+360*extraTurns) target+=360;
+  return target;
+}
+function easeOutCubic(t){return 1-Math.pow(1-t,3);}
 function rpsSlotStyle(i){
-  const deg=(360/9)*i-90;
-  return `--pos:translate(-50%,-50%) rotate(${deg}deg) translate(132px) rotate(${-deg}deg);transform:var(--pos);`;
+  const deg=(360/RPS_WHEEL.length)*i;
+  return `--deg:${deg}deg;`;
 }
 function renderRpsWheel(activeIndex){
   const spinning=!!rpsBusy;
-  return `<div class="rpsWheel">${RPS_WHEEL.map((itemIdx,i)=>{
+  const wheelBg=rpsWheelBg();
+  return `<div class="rpsWheel"><div class="rpsPointer"></div><div id="rpsWheelDisc" class="rpsWheelDisc" style="--wheel-bg:${wheelBg};transform:rotate(${rpsWheelRotation}deg)">${RPS_WHEEL.map((itemIdx,i)=>{
     const item=RPS_ITEMS[itemIdx];
     return `<div class="rpsSlot ${i===activeIndex?'active':''}" style="${rpsSlotStyle(i)}"><div class="emoji">${item.emoji}</div><div class="label">${item.label}</div></div>`;
-  }).join('')}<button type="button" class="rpsCenter ${spinning?'stop':''}" onclick="event.stopPropagation(); requestRpsStop();" ${spinning?'':'disabled'}>${spinning?'중지':'대기'}</button></div>`;
+  }).join('')}</div><button type="button" class="rpsCenter ${spinning?'stop':''}" onclick="event.stopPropagation(); requestRpsStop();" ${spinning?'':'disabled'}>${spinning?'중지':'대기'}</button></div>`;
 }
 function renderRpsGame(){
   const box=document.getElementById('rpsGameBox'); if(!box) return;
@@ -1136,7 +1165,7 @@ function renderRpsGame(){
   const myPick=last ? `${last.userEmoji} ${escapeHtml(last.userLabel)}` : (selected ? `${selected.emoji} ${escapeHtml(selected.label)}` : '-');
   const comPick=last ? `${last.computerEmoji} ${escapeHtml(last.computerLabel)}` : '-';
   const startReady=!!eventMe && !!rpsSelectedKey && !rpsBusy && Number(eventState?.chances?.[myName]||0)>0;
-  box.innerHTML=`<div class="rpsVsBar"><div class="rpsVsCell"><span>내 선택</span><div class="rpsVsValue">${myPick}</div></div><div class="rpsVsMiddle">VS</div><div class="rpsVsCell"><span>컴퓨터 선택</span><div class="rpsVsValue">${comPick}</div></div></div><div class="rpsGameWrap"><div class="rpsPickPanel"><div class="rpsPickTitle">내 선택</div><div class="rpsButtons">${RPS_ITEMS.map(item=>`<button class="rpsBtn ${rpsSelectedKey===item.key?'selected':''}" onclick="selectRps('${item.key}')" ${disabled?'disabled':''}><span class="emoji">${item.emoji}</span><span>${item.label}</span></button>`).join('')}</div><div style="margin-top:12px;color:#dbeafe;font-weight:900;line-height:1.5">가위/바위/보 중 하나를 선택 후<br><b style="color:#facc15">[진행하기]</b> 버튼을 눌러주세요.</div><button class="rpsStartBtn ${startReady?'ready':''}" onclick="startRps()" ${startReady?'':'disabled'}>진행하기</button></div><div class="rpsComputer"><div class="rpsPickTitle">컴퓨터 선택 (최대 5초)</div><div id="rpsWheelHost">${renderRpsWheel(Number(eventState?.computerIndex||0))}</div><div class="rpsSpinHint">처음에는 빠르게, 점점 천천히 돌아갑니다.<br><b>[중지]</b>를 누르면 서서히 멈추며 결과가 확정됩니다.</div><div class="rpsResultBox" style="margin-top:10px"><div>결과</div><div class="big">${last?escapeHtml(last.resultText):(rpsBusy?'선택 중...':'대기중')}</div></div></div></div><div class="rpsRules"><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px"><div><b>점수 규칙 (연승 보너스)</b><br>1연승 1점 / 2연승 2점 / 3연승 4점 / 4연승 이상 8점</div><div><b>게임 설명</b><br>승리 시 연승이 유지되며 보너스 점수를 획득합니다.<br>무승부 시 연승은 유지되고, 다음 판으로 넘어갑니다.<br>패배 시 연승이 0으로 초기화됩니다.</div></div></div>`;
+  box.innerHTML=`<div class="rpsVsBar"><div class="rpsVsCell"><span>내 선택</span><div class="rpsVsValue">${myPick}</div></div><div class="rpsVsMiddle">VS</div><div class="rpsVsCell"><span>컴퓨터 선택</span><div class="rpsVsValue">${comPick}</div></div></div><div class="rpsGameWrap"><div class="rpsPickPanel"><div class="rpsPickTitle">내 선택</div><div class="rpsButtons">${RPS_ITEMS.map(item=>`<button class="rpsBtn ${rpsSelectedKey===item.key?'selected':''}" onclick="selectRps('${item.key}')" ${disabled?'disabled':''}><span class="emoji">${item.emoji}</span><span>${item.label}</span></button>`).join('')}</div><div style="margin-top:12px;color:#dbeafe;font-weight:900;line-height:1.5">가위/바위/보 중 하나를 선택 후<br><b style="color:#facc15">[진행하기]</b> 버튼을 눌러주세요.</div><button class="rpsStartBtn ${startReady?'ready':''}" onclick="startRps()" ${startReady?'':'disabled'}>진행하기</button></div><div class="rpsComputer"><div class="rpsPickTitle">컴퓨터 선택 돌림판</div><div id="rpsWheelHost">${renderRpsWheel(Number(eventState?.computerIndex||0))}</div><div class="rpsSpinHint">진행하면 돌림판이 빠르게 돌아갑니다.<br><b>[중지]</b>를 누르면 자연스럽게 서서히 멈추며 결과가 확정됩니다.</div><div class="rpsResultBox" style="margin-top:10px"><div>결과</div><div class="big">${last?escapeHtml(last.resultText):(rpsBusy?'돌아가는 중...':'대기중')}</div></div></div></div><div class="rpsRules"><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px"><div><b>점수 규칙 (연승 보너스)</b><br>1연승 1점 / 2연승 2점 / 3연승 4점 / 4연승 이상 8점</div><div><b>게임 설명</b><br>승리 시 연승이 유지되며 보너스 점수를 획득합니다.<br>무승부 시 연승은 유지되고, 다음 판으로 넘어갑니다.<br>패배 시 연승이 0으로 초기화됩니다.</div></div></div>`;
 }
 function selectRps(key){
   if(rpsBusy) return;
@@ -1144,9 +1173,16 @@ function selectRps(key){
   renderRpsGame();
 }
 function requestRpsStop(){
-  if(!rpsBusy || !rpsSpinData || rpsStopRequested) return;
-  rpsStopRequested=true;
-  rpsSpinData.manualStop=true;
+  if(!rpsBusy || !rpsSpinData || rpsSpinData.stopping) return;
+  const now=performance.now();
+  rpsSpinData.stopping=true;
+  rpsSpinData.stopStartedAt=now;
+  rpsSpinData.stopDuration=2400;
+  const projected=rpsWheelRotation+720;
+  const finalIndex=rpsIndexFromRotation(projected);
+  rpsSpinData.finalIndex=finalIndex;
+  rpsSpinData.decelFrom=rpsWheelRotation;
+  rpsSpinData.decelTo=rpsTargetRotationForIndex(finalIndex,rpsWheelRotation,2);
 }
 function renderEvent(){
   if(!eventState) eventState=defaultEventState();
@@ -1162,7 +1198,7 @@ function renderEvent(){
   renderRpsGame();
   const ranks=Object.entries(eventState.scores||{}).sort((a,b)=>Number(b[1])-Number(a[1])||a[0].localeCompare(b[0],'ko'));
   const rows=(ranks.length?ranks:eventMembers.slice(0,10).map(m=>[m.name,0]));
-  side.innerHTML=`<table class="scoreTable"><thead><tr><th>순위</th><th>맴버</th><th>점수</th><th>기회</th><th>연승</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r[0])}</td><td>${Number(r[1]||0)}</td><td>${Number(eventState.chances?.[r[0]]||0)}</td><td>${Number(eventState.streaks?.[r[0]]||0)}</td></tr>`).join('')}</tbody></table><h2 style="margin:14px 0 0">로그</h2><div class="eventLog">${(eventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 로그가 없습니다.</div>'}</div><div class="eventHint">친선 승리 시 운영진이 +5기회, 패배 시 +3기회를 지급합니다.<br>1기회로 컴퓨터와 가위바위보 1판을 진행하며, 연승할수록 획득 점수가 1점 → 2점 → 4점 → 8점으로 상승합니다.<br>무승부는 연승이 유지되며, 패배 시에만 연승이 초기화됩니다.<br>컴퓨터 선택은 처음 빠르게 돌다가 점점 천천히 돌아가며 최대 5초 후 자동으로 결정됩니다.<br>원할 경우 [중지] 버튼을 눌러 즉시 멈출 수 있습니다.</div>`;
+  side.innerHTML=`<table class="scoreTable"><thead><tr><th>순위</th><th>맴버</th><th>점수</th><th>기회</th><th>연승</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r[0])}</td><td>${Number(r[1]||0)}</td><td>${Number(eventState.chances?.[r[0]]||0)}</td><td>${Number(eventState.streaks?.[r[0]]||0)}</td></tr>`).join('')}</tbody></table><h2 style="margin:14px 0 0">로그</h2><div class="eventLog">${(eventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 로그가 없습니다.</div>'}</div><div class="eventHint">친선 승리 시 운영진이 +5기회, 패배 시 +3기회를 지급합니다.<br>1기회로 컴퓨터와 가위바위보 1판을 진행하며, 연승할수록 획득 점수가 1점 → 2점 → 4점 → 8점으로 상승합니다.<br>무승부는 연승이 유지되며, 패배 시에만 연승이 초기화됩니다.<br>컴퓨터 선택은 돌림판 방식으로 진행됩니다.<br>[중지] 버튼을 누르면 자연스럽게 서서히 멈추며 결과가 확정됩니다.</div>`;
 }
 async function eventLogin(){
   await eventLoadMembers();
@@ -1202,44 +1238,70 @@ async function startRps(){
 
   rpsBusy=true;
   rpsStopRequested=false;
-  const finalIndex=getRpsFinalIndexForFairResult(rpsSelectedKey);
-  rpsSpinData={finalIndex,manualStop:false,startedAt:Date.now(),delay:48,phase:'fast'};
   eventState.chances[name]=Math.max(0,Number(eventState.chances?.[name]||0)-1);
   eventState.lastRound=null;
   eventLog(`${name}님 가위바위보 게임 시작! (남은 기회: ${eventState.chances[name]})`);
   eventLog(`${name}님 선택: ${user.label}`);
   renderEvent();
   try{playWheelSpinSound();}catch(e){}
-  rpsSpinLoop(name,user);
+
+  rpsSpinData={
+    name,
+    user,
+    startedAt:performance.now(),
+    lastTs:performance.now(),
+    speed:920,
+    stopping:false,
+    finalIndex:null,
+    decelFrom:0,
+    decelTo:0,
+    stopStartedAt:null,
+    stopDuration:2400
+  };
+  if(rpsAnimationFrame) cancelAnimationFrame(rpsAnimationFrame);
+  rpsAnimationFrame=requestAnimationFrame(rpsSpinLoop);
 }
-function rpsSpinLoop(name,user){
+function rpsSpinLoop(ts){
   if(!rpsBusy||!rpsSpinData) return;
-  const now=Date.now();
-  const elapsed=now-rpsSpinData.startedAt;
-  const shouldFinish=rpsSpinData.manualStop ? elapsed>=1200 && rpsSpinData.delay>=210 : elapsed>=5000;
-  rpsActiveIndex=(rpsActiveIndex+1)%9;
-  const host=document.getElementById('rpsWheelHost');
-  if(host) host.innerHTML=renderRpsWheel(rpsActiveIndex);
-  if(shouldFinish){
-    finishRpsSpin(name,user);
+  const data=rpsSpinData;
+  const elapsed=ts-data.startedAt;
+  const disc=document.getElementById('rpsWheelDisc');
+
+  if(!data.stopping){
+    const dt=Math.max(0,ts-data.lastTs);
+    data.lastTs=ts;
+    rpsWheelRotation+=data.speed*(dt/1000);
+    rpsWheelRotation%=360000;
+    rpsActiveIndex=rpsIndexFromRotation(rpsWheelRotation);
+    if(disc) disc.style.transform=`rotate(${rpsWheelRotation}deg)`;
+    const active=document.querySelectorAll('#rpsWheelDisc .rpsSlot');
+    active.forEach((el,i)=>el.classList.toggle('active',i===rpsActiveIndex));
+
+    // 15초 동안 멈추지 않으면 자동으로 감속하여 멈춥니다.
+    if(elapsed>=15000) requestRpsStop();
+
+    rpsAnimationFrame=requestAnimationFrame(rpsSpinLoop);
     return;
   }
-  if(rpsSpinData.manualStop){
-    rpsSpinData.delay=Math.min(260, rpsSpinData.delay+22);
-  }else if(elapsed<1500){
-    rpsSpinData.delay=48;
-  }else if(elapsed<3300){
-    rpsSpinData.delay=Math.min(130, rpsSpinData.delay+7);
-  }else{
-    rpsSpinData.delay=Math.min(235, rpsSpinData.delay+12);
+
+  const t=Math.min(1,(ts-data.stopStartedAt)/data.stopDuration);
+  rpsWheelRotation=data.decelFrom+(data.decelTo-data.decelFrom)*easeOutCubic(t);
+  rpsActiveIndex=data.finalIndex;
+  if(disc) disc.style.transform=`rotate(${rpsWheelRotation}deg)`;
+  const active=document.querySelectorAll('#rpsWheelDisc .rpsSlot');
+  active.forEach((el,i)=>el.classList.toggle('active',i===rpsActiveIndex));
+
+  if(t>=1){
+    finishRpsSpin(data.name,data.user,data.finalIndex);
+    return;
   }
-  clearTimeout(rpsSpinTimer);
-  rpsSpinTimer=setTimeout(()=>rpsSpinLoop(name,user), rpsSpinData.delay);
+  rpsAnimationFrame=requestAnimationFrame(rpsSpinLoop);
 }
-async function finishRpsSpin(name,user){
-  clearTimeout(rpsSpinTimer);
+async function finishRpsSpin(name,user,finalIndex){
+  if(rpsAnimationFrame) cancelAnimationFrame(rpsAnimationFrame);
+  rpsAnimationFrame=null;
   try{stopWheelSpinSound(); playWheelResultSound();}catch(e){}
-  rpsActiveIndex=rpsSpinData?.finalIndex ?? Math.floor(Math.random()*9);
+  rpsActiveIndex=Number.isFinite(Number(finalIndex))?Number(finalIndex):rpsIndexFromRotation(rpsWheelRotation);
   const computer=RPS_ITEMS[RPS_WHEEL[rpsActiveIndex]];
   const host=document.getElementById('rpsWheelHost');
   if(host) host.innerHTML=renderRpsWheel(rpsActiveIndex);
