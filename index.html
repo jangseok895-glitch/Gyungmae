@@ -161,7 +161,7 @@ html,body{min-width:0;width:100%}
     .eventHint{font-size:12px;color:#9fb4cd;line-height:1.5;margin-top:8px}
 
 
-    /* ===== 아시아 EVENT / 가위바위보 게임 ===== */
+    /* ===== 아시아 EVENT / O.X 게임 ===== */
     .rpsVsBar{display:grid;grid-template-columns:1fr 90px 1fr;gap:10px;align-items:center;margin:12px 0 14px;padding:10px 14px;background:#081525;border:1px solid rgba(251,113,133,.75);border-radius:10px;box-shadow:0 0 18px rgba(251,113,133,.08)}
     .rpsVsCell{display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:center;font-weight:1000;color:#dbeafe;text-align:center}
     .rpsVsValue{height:44px;border:1px solid var(--line);background:#0b1728;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff}
@@ -202,7 +202,7 @@ html,body{min-width:0;width:100%}
 
 
 
-/* ===== 아시아 EVENT / 4인 가위바위보 ===== */
+/* ===== 아시아 EVENT / 4인 O.X ===== */
 .rpsRoom{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
 .rpsSeatGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .rpsSeat{min-height:190px;background:#081525;border:1px solid var(--line);border-radius:18px;padding:12px;text-align:center;position:relative;box-shadow:0 10px 22px rgba(0,0,0,.22)}
@@ -408,7 +408,7 @@ html,body{min-width:0;width:100%}
 <div id="eventPage" class="eventPage" style="display:none">
   <div class="eventWrap">
     <div class="eventTop">
-      <h1>[아시아EVENT] 가위바위보 게임</h1>
+      <h1>[아시아EVENT] O.X 게임</h1>
       <div class="topBtns">
         <button class="ghost" onclick="showLandingPage()">처음으로</button>
         <button class="ghost" onclick="showLeaguePage()">아시아리그 대진표</button>
@@ -418,7 +418,7 @@ html,body{min-width:0;width:100%}
     <div class="eventGrid">
       <div class="eventPanel">
         <div class="sectionHead">
-          <h2>4인 선착순 가위바위보</h2>
+          <h2>4인 선착순 O.X 게임</h2>
           <span class="tinyBadge">4명 모두 선택 시 자동 공개</span>
         </div>
         <div id="eventUserBox"></div>
@@ -1081,11 +1081,11 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 
 
-/* ===== 아시아 EVENT 4인 가위바위보 게임 ===== */
+/* ===== 아시아 EVENT 4인 O.X 게임 ===== */
 const EVENT_ADMIN_PASSWORD='0523';
 const EVENT_MEMBERS=[{"name":"경문","pw":"6646"},{"name":"기사","pw":"1234"},{"name":"네오","pw":"3434"},{"name":"노을(구노을)","pw":"7126"},{"name":"대원","pw":"1237"},{"name":"도레미","pw":"1238"},{"name":"동이","pw":"2345"},{"name":"둘리","pw":"3125"},{"name":"라곤","pw":"9911"},{"name":"라오","pw":"3129"},{"name":"레니","pw":"2347"},{"name":"로딩해","pw":"7127"},{"name":"리아","pw":"3123"},{"name":"미또","pw":"7128"},{"name":"미신트","pw":"8465"},{"name":"바밥","pw":"1239"},{"name":"백뭉이","pw":"8745"},{"name":"뽀등어","pw":"6514"},{"name":"브칠","pw":"8811"},{"name":"블랙","pw":"4747"},{"name":"상호(구로키)","pw":"2349"},{"name":"선셋(신노을)","pw":"3526"},{"name":"섯군","pw":"3127"},{"name":"소율","pw":"6445"},{"name":"소현","pw":"2351"},{"name":"수민","pw":"9849"},{"name":"승환","pw":"5123"},{"name":"승호","pw":"4380"},{"name":"시아","pw":"6123"},{"name":"애플","pw":"5535"},{"name":"용산","pw":"2184"},{"name":"유녕","pw":"5124"},{"name":"유진","pw":"4443"},{"name":"윤주모","pw":"7123"},{"name":"음","pw":"5555"},{"name":"이뚜","pw":"6125"},{"name":"이펙트","pw":"6549"},{"name":"자욱","pw":"3126"},{"name":"장어","pw":"6126"},{"name":"제로","pw":"4441"},{"name":"준클","pw":"8846"},{"name":"지건빵","pw":"9871"},{"name":"지헌","pw":"2636"},{"name":"짱아 (구짱아)","pw":"5125"},{"name":"짱이","pw":"2587"},{"name":"천유","pw":"6644"},{"name":"쿠타","pw":"6129"},{"name":"쿨쿨린이","pw":"4575"},{"name":"파라곤(토르)","pw":"9875"},{"name":"파솔라","pw":"9874"},{"name":"평정","pw":"9885"},{"name":"플로버","pw":"5425"},{"name":"피뚭(피셜)","pw":"9873"},{"name":"황새","pw":"5443"},{"name":"헬츠","pw":"5129"},{"name":"휘헌","pw":"4126"},{"name":"흠(하영)","pw":"4466"},{"name":"히스","pw":"5487"},{"name":"구리","pw":"3737"}];
 const EVENT_TABLE='asia_event_card_game';
-const RPS_ITEMS=[{key:'scissors',label:'가위',emoji:'✌️',beats:'paper'},{key:'rock',label:'바위',emoji:'✊',beats:'scissors'},{key:'paper',label:'보',emoji:'🖐️',beats:'rock'}];
+const RPS_ITEMS=[{key:'O',label:'O',emoji:'⭕'},{key:'X',label:'X',emoji:'❌'}];
 let eventState=null;
 let eventLoaded=false;
 let eventMembers=[...EVENT_MEMBERS];
@@ -1176,12 +1176,19 @@ async function pickRpsChoice(key){
   renderEvent();
 }
 function classifyRound(seats){
-  const keys=[...new Set(seats.map(s=>s.choice))];
-  if(keys.length===1 || keys.length===3) return {decisive:false,winners:[],losers:[],reason:'무승부'};
-  const [a,b]=keys;
-  const winKey=rpsCompare(a,b)==='win'?a:b;
-  const loseKey=winKey===a?b:a;
-  return {decisive:true,winners:seats.filter(s=>s.choice===winKey).map(s=>s.name),losers:seats.filter(s=>s.choice===loseKey).map(s=>s.name),reason:`${rpsItem(winKey).label} 승리`};
+  const counts={O:0,X:0};
+  seats.forEach(s=>{ if(s && s.choice) counts[s.choice]=(counts[s.choice]||0)+1; });
+  if(counts.O===4 || counts.X===4){
+    return {valid:false,reason:'전원 같은 선택',points:{},message:'소수 선택자가 없어 기회 차감 없이 다시 선택합니다.'};
+  }
+  const points={};
+  if(counts.O===2 && counts.X===2){
+    seats.forEach(s=>{points[s.name]=1;});
+    return {valid:true,reason:'2:2 동률',points,message:'2:2 동률로 전원 +1점'};
+  }
+  const minority=counts.O<counts.X?'O':'X';
+  seats.forEach(s=>{points[s.name]=s.choice===minority?2:0;});
+  return {valid:true,reason:`${minority} 소수 선택`,points,message:`${minority}를 선택한 선수 +2점`};
 }
 async function checkAndResolveRound(){
   eventState=normalizeEventState(eventState);
@@ -1189,25 +1196,26 @@ async function checkAndResolveRound(){
   if(!seats.every(s=>s&&s.choice)) return;
   const snapshot=seats.map((s,i)=>({seat:i+1,name:s.name,choice:s.choice,label:rpsItem(s.choice).label,emoji:rpsItem(s.choice).emoji}));
   const result=classifyRound(seats);
-  const hist={at:new Date().toISOString(),players:snapshot,result:result.reason,winners:result.winners,losers:result.losers,decisive:result.decisive};
+  const hist={at:new Date().toISOString(),players:snapshot,result:result.message||result.reason,points:result.points||{},valid:result.valid!==false};
   eventState.history=[hist,...(eventState.history||[])].slice(0,30);
-  if(!result.decisive){
+
+  if(result.valid===false){
     eventLog(`4명 선택 공개: ${result.reason}. 기회 차감 없이 다시 선택합니다.`);
     eventState.seats=seats.map(s=>s?{name:s.name,choice:null,choiceAt:null}:null);
     await eventSave();
     showRoundPopup(hist);
     return;
   }
-  result.winners.forEach(name=>{
-    eventState.scores[name]=Number(eventState.scores?.[name]||0)+1;
-    eventState.chances[name]=Math.max(0,Number(eventState.chances?.[name]||0)-1);
+
+  seats.forEach(s=>{
+    const add=Number(result.points?.[s.name]||0);
+    eventState.scores[s.name]=Number(eventState.scores?.[s.name]||0)+add;
+    eventState.chances[s.name]=Math.max(0,Number(eventState.chances?.[s.name]||0)-1);
   });
-  result.losers.forEach(name=>{
-    eventState.chances[name]=Math.max(0,Number(eventState.chances?.[name]||0)-1);
-  });
-  eventLog(`결과 공개: ${result.reason}. 승리 ${result.winners.join(', ')} +1점 / 탈락 ${result.losers.join(', ')}`);
+
+  const pointText=seats.map(s=>`${s.name} +${Number(result.points?.[s.name]||0)}점`).join(' / ');
+  eventLog(`결과 공개: ${result.message}. ${pointText}`);
   eventState.seats=seats.map(s=>{
-    if(result.losers.includes(s.name)) return null;
     if(Number(eventState.chances?.[s.name]||0)<=0){ eventLog(`${s.name}님은 남은 기회가 없어 자리에서 나갑니다.`); return null; }
     return {name:s.name,choice:null,choiceAt:null};
   });
@@ -1215,8 +1223,9 @@ async function checkAndResolveRound(){
   showRoundPopup(hist);
 }
 function showRoundPopup(hist){
-  const cls=p=>hist.winners.includes(p.name)?'win':hist.losers.includes(p.name)?'lose':'draw';
-  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:760px"><div class="sectionHead"><h2>가위바위보 결과</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><div class="rpsHistoryCard"><div class="rpsHistoryTitle">${escapeHtml(hist.result)}</div><div class="rpsHistoryPlayers">${hist.players.map(p=>`<div class="rpsHistoryPlayer ${cls(p)}"><div>${p.seat}번<br>${escapeHtml(p.name)}</div><div class="rpsHistoryEmoji">${p.emoji}</div><div>${escapeHtml(p.label)}</div></div>`).join('')}</div></div><p class="eventHint">${hist.decisive?'승리자는 +1점, 패배자는 탈락합니다.':'무승부는 기회가 차감되지 않고 같은 자리에서 다시 선택합니다.'}</p></div></div>`;
+  const pts=hist.points||{};
+  const cls=p=>Number(pts[p.name]||0)>=2?'win':Number(pts[p.name]||0)===1?'draw':'lose';
+  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:760px"><div class="sectionHead"><h2>O.X 게임 결과</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><div class="rpsHistoryCard"><div class="rpsHistoryTitle">${escapeHtml(hist.result)}</div><div class="rpsHistoryPlayers">${hist.players.map(p=>`<div class="rpsHistoryPlayer ${cls(p)}"><div>${p.seat}번<br>${escapeHtml(p.name)}</div><div class="rpsHistoryEmoji">${p.emoji}</div><div>${escapeHtml(p.label)}</div><div style="margin-top:4px;color:#facc15">+${Number(pts[p.name]||0)}점</div></div>`).join('')}</div></div><p class="eventHint">${hist.valid?'이번 경기는 참여자 전원의 기회가 1회 차감됩니다.':'전원 같은 선택은 무효 처리되며, 기회 차감 없이 다시 선택합니다.'}</p></div></div>`;
 }
 function renderSeat(s,i){
   if(!s) return `<div class="rpsSeat empty"><div class="rpsSeatNo">${i+1}번</div><div>빈 자리</div><button class="gold" onclick="joinRpsSeat()">자리잡기</button></div>`;
@@ -1230,12 +1239,20 @@ function renderRpsGame(){
   const idx=currentSeatIndex();
   const mySeat=idx>=0?eventState.seats[idx]:null;
   const disabled=!eventMe || idx<0 || Number(eventState.chances?.[eventMe.name]||0)<=0;
-  box.innerHTML=`<div class="rpsRoom"><div class="rpsSeatGrid">${eventState.seats.map((s,i)=>renderSeat(s,i)).join('')}</div><div class="rpsPickArea"><div class="rpsPickTitle">내 선택</div><div class="rpsButtons">${RPS_ITEMS.map(item=>`<button class="rpsBtn ${mySeat?.choice===item.key?'selected':''}" onclick="pickRpsChoice('${item.key}')" ${disabled?'disabled':''}><span class="emoji">${item.emoji}</span><span>${item.label}</span></button>`).join('')}</div><div class="rpsStatusBox">4명이 모두 자리를 잡고 가위/바위/보를 선택해야 게임이 진행됩니다.<br>현재 참여 인원: ${(eventState.seats||[]).filter(Boolean).length}/4명 / 선택 완료: ${(eventState.seats||[]).filter(s=>s&&s.choice).length}/4명</div></div><div class="rpsRules4"><div class="rpsRuleBox"><b>기회 지급 변경</b><br>친선 승리 시 +2기회<br>친선 패배 시 +1기회</div><div class="rpsRuleBox"><b>진행 규칙</b><br>4명 모두 선택하면 전체 공개됩니다.<br>승부가 나면 승리자는 +1점, 패배자는 탈락합니다.<br>무승부는 기회 차감 없이 같은 자리에서 다시 선택합니다.</div></div><div class="rpsHistory"><h3>지나간 경기</h3><div class="rpsHistoryList">${renderHistory()}</div></div></div>`;
+  box.innerHTML=`<div class="rpsRoom"><div class="rpsSeatGrid">${eventState.seats.map((s,i)=>renderSeat(s,i)).join('')}</div><div class="rpsPickArea"><div class="rpsPickTitle">O / X 선택</div><div class="rpsButtons">${RPS_ITEMS.map(item=>`<button class="rpsBtn ${mySeat?.choice===item.key?'selected':''}" onclick="pickRpsChoice('${item.key}')" ${disabled?'disabled':''}><span class="emoji">${item.emoji}</span><span>${item.label}</span></button>`).join('')}</div><div class="rpsStatusBox">4명이 모두 자리를 잡고 O/X를 선택해야 게임이 진행됩니다.<br>현재 참여 인원: ${(eventState.seats||[]).filter(Boolean).length}/4명 / 선택 완료: ${(eventState.seats||[]).filter(s=>s&&s.choice).length}/4명</div></div><div class="rpsRules4"><div class="rpsRuleBox"><b>기회 지급 변경</b><br>친선 승리 시 +3기회<br>친선 패배 시 +2기회</div><div class="rpsRuleBox"><b>진행 규칙</b><br>4명 모두 선택하면 전체 공개됩니다.<br>O/O/O/X처럼 3:1이면 적게 고른 1명만 +2점입니다.<br>O/O/X/X처럼 2:2이면 전원 +1점입니다.<br>전원 같은 선택은 무효이며 기회 차감 없이 다시 선택합니다.</div></div><div class="rpsHistory"><h3>지나간 경기</h3><div class="rpsHistoryList">${renderHistory()}</div></div></div>`;
 }
 function renderHistory(){
   const h=eventState.history||[];
   if(!h.length) return '<div class="eventHint">아직 지나간 경기가 없습니다.</div>';
-  return h.map(x=>`<div class="rpsHistoryCard"><div class="rpsHistoryTitle">${new Date(x.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})} / ${escapeHtml(x.result)}</div><div class="rpsHistoryPlayers">${x.players.map(p=>`<div class="rpsHistoryPlayer ${x.winners?.includes(p.name)?'win':x.losers?.includes(p.name)?'lose':'draw'}"><div>${p.seat}번<br>${escapeHtml(p.name)}</div><div class="rpsHistoryEmoji">${p.emoji}</div><div>${escapeHtml(p.label)}</div></div>`).join('')}</div></div>`).join('');
+  return h.map(x=>{
+    const pts=x.points||{};
+    const playerHtml=x.players.map(p=>{
+      const add=Number(pts[p.name]||0);
+      const cls=add>=2?'win':add===1?'draw':'lose';
+      return `<div class="rpsHistoryPlayer ${cls}"><div>${p.seat}번<br>${escapeHtml(p.name)}</div><div class="rpsHistoryEmoji">${p.emoji}</div><div>${escapeHtml(p.label)}</div><div style="margin-top:4px;color:#facc15">+${add}점</div></div>`;
+    }).join('');
+    return `<div class="rpsHistoryCard"><div class="rpsHistoryTitle">${new Date(x.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})} / ${escapeHtml(x.result)}</div><div class="rpsHistoryPlayers">${playerHtml}</div></div>`;
+  }).join('');
 }
 function renderEvent(){
   if(!eventState) eventState=defaultEventState(); eventState=normalizeEventState(eventState);
@@ -1245,12 +1262,12 @@ function renderEvent(){
   renderRpsGame();
   const ranks=Object.entries(eventState.scores||{}).sort((a,b)=>Number(b[1])-Number(a[1])||a[0].localeCompare(b[0],'ko'));
   const rows=(ranks.length?ranks:eventMembers.slice(0,10).map(m=>[m.name,0]));
-  side.innerHTML=`<table class="scoreTable"><thead><tr><th>순위</th><th>맴버</th><th>점수</th><th>기회</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r[0])}</td><td>${Number(r[1]||0)}</td><td>${Number(eventState.chances?.[r[0]]||0)}</td></tr>`).join('')}</tbody></table><h2 style="margin:14px 0 0">로그</h2><div class="eventLog">${(eventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 로그가 없습니다.</div>'}</div><div class="eventHint">컴퓨터 없이 유저 4명이 진행하는 가위바위보 게임입니다.<br>4명이 모두 선택해야 공개되며, 한 명이라도 비어 있으면 진행되지 않습니다.<br>승부가 난 경기만 기회가 차감됩니다.</div>`;
+  side.innerHTML=`<table class="scoreTable"><thead><tr><th>순위</th><th>맴버</th><th>점수</th><th>기회</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r[0])}</td><td>${Number(r[1]||0)}</td><td>${Number(eventState.chances?.[r[0]]||0)}</td></tr>`).join('')}</tbody></table><h2 style="margin:14px 0 0">로그</h2><div class="eventLog">${(eventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 로그가 없습니다.</div>'}</div><div class="eventHint">컴퓨터 없이 유저 4명이 진행하는 O.X 게임입니다.<br>4명이 모두 선택해야 공개되며, 한 명이라도 비어 있으면 진행되지 않습니다.<br>유효한 O.X 경기만 기회가 차감됩니다.</div>`;
 }
 async function openEventAdmin(){
   const pw=prompt('운영진 비밀번호를 입력하세요.'); if(pw!==EVENT_ADMIN_PASSWORD) return alert('운영진 비밀번호가 맞지 않습니다.');
   await eventLoadMembers(); await eventLoad();
-  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:720px"><div class="sectionHead"><h2>아시아EVENT 운영진 패널</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><div class="eventAdmin"><select id="eventAdminMember">${eventMemberOptions()}</select><button class="gold" onclick="eventGiveChance(2)">친선 승리 +2기회</button><button class="ok" onclick="eventGiveChance(1)">친선 패배 +1기회</button><button class="danger" onclick="eventResetSeats()">자리 초기화</button><button class="ghost" onclick="openEventAddMemberBox()">맴버추가하기</button><div class="eventAdminWide"><button class="ghost" onclick="eventRefreshAdmin()">새로고침</button><button class="danger" onclick="eventFullReset()">점수/기회까지 전체초기화</button><button class="ghost" onclick="modalRoot.innerHTML=''">완료</button></div></div><div id="eventAddMemberBox" style="display:none;margin-top:12px;border:1px solid var(--line);background:#081525;border-radius:14px;padding:12px"><h3 style="margin:0 0 8px;color:#facc15">맴버 추가하기</h3><div class="eventAdminWide"><input id="eventNewMemberName" placeholder="맴버명"><input id="eventNewMemberPw" placeholder="비번 4자리" maxlength="4" inputmode="numeric"><button class="gold" onclick="eventAddMember()">추가하기</button></div></div><p class="eventHint">친선 승리 +2기회, 친선 패배 +1기회로 지급됩니다.</p></div></div>`;
+  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:720px"><div class="sectionHead"><h2>아시아EVENT 운영진 패널</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><div class="eventAdmin"><select id="eventAdminMember">${eventMemberOptions()}</select><button class="gold" onclick="eventGiveChance(3)">친선 승리 +3기회</button><button class="ok" onclick="eventGiveChance(2)">친선 패배 +2기회</button><button class="danger" onclick="eventResetSeats()">자리 초기화</button><button class="ghost" onclick="openEventAddMemberBox()">맴버추가하기</button><div class="eventAdminWide"><button class="ghost" onclick="eventRefreshAdmin()">새로고침</button><button class="danger" onclick="eventFullReset()">점수/기회까지 전체초기화</button><button class="ghost" onclick="modalRoot.innerHTML=''">완료</button></div></div><div id="eventAddMemberBox" style="display:none;margin-top:12px;border:1px solid var(--line);background:#081525;border-radius:14px;padding:12px"><h3 style="margin:0 0 8px;color:#facc15">맴버 추가하기</h3><div class="eventAdminWide"><input id="eventNewMemberName" placeholder="맴버명"><input id="eventNewMemberPw" placeholder="비번 4자리" maxlength="4" inputmode="numeric"><button class="gold" onclick="eventAddMember()">추가하기</button></div></div><p class="eventHint">친선 승리 +3기회, 친선 패배 +2기회로 지급됩니다.</p></div></div>`;
 }
 async function eventRefreshAdmin(){await eventLoadMembers(); await eventLoad(); renderEvent(); alert('새로고침 완료');}
 function openEventAddMemberBox(){const box=document.getElementById('eventAddMemberBox'); if(box) box.style.display=box.style.display==='none'?'block':'none';}
