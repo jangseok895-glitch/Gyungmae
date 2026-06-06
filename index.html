@@ -1204,7 +1204,8 @@ function classifyRound(seats){
   const counts={O:0,X:0};
   seats.forEach(s=>{ if(s && s.choice) counts[s.choice]=(counts[s.choice]||0)+1; });
   if(counts.O===4 || counts.X===4){
-    return {valid:false,reason:'전원 같은 선택',points:{},message:'소수 선택자가 없어 기회 차감 없이 다시 선택합니다.'};
+    const points={}; currentSeats.forEach(s=>points[s.name]=1);
+    return {valid:true,reason:'전원 같은 선택',points,message:'전원 같은 선택으로 모두 +1점'};
   }
   const points={};
   if(counts.O===2 && counts.X===2){
@@ -1295,7 +1296,7 @@ function renderRpsGame(){
   const idx=currentSeatIndex();
   const mySeat=idx>=0?eventState.seats[idx]:null;
   const disabled=!eventMe || idx<0 || Number(eventState.chances?.[eventMe.name]||0)<=0;
-  box.innerHTML=`<div class="rpsRoom"><div class="rpsSeatGrid">${eventState.seats.map((s,i)=>renderSeat(s,i)).join('')}</div><div class="rpsPickArea"><div class="rpsPickTitle">O / X 선택</div><div class="rpsButtons">${RPS_ITEMS.map(item=>`<button class="rpsBtn ${mySeat?.choice===item.key?'selected':''}" onclick="pickRpsChoice('${item.key}')" ${disabled?'disabled':''}><span class="emoji">${item.emoji}</span><span>${item.label}</span></button>`).join('')}</div><div class="rpsStatusBox">4명이 모두 자리를 잡고 O/X를 선택해야 게임이 진행됩니다.<br>한 판 종료 후에는 4명 모두 다시 자리를 잡아야 합니다.<br>현재 참여 인원: ${(eventState.seats||[]).filter(Boolean).length}/4명 / 선택 완료: ${(eventState.seats||[]).filter(s=>s&&s.choice).length}/4명</div></div><div class="rpsRules4"><div class="rpsRuleBox"><b>기회 지급 변경</b><br>친선 승리 시 +3기회<br>친선 패배 시 +2기회</div><div class="rpsRuleBox"><b>진행 규칙</b><br>4명 모두 선택하면 전체 공개됩니다.<br>O/O/O/X처럼 3:1이면 적게 고른 1명만 +2점입니다.<br>O/O/X/X처럼 2:2이면 전원 +1점입니다.<br>전원 같은 선택은 무효이며 기회 차감 없이 다시 선택합니다.</div></div><div class="rpsHistory"><h3>지나간 경기</h3><div class="rpsHistoryList">${renderHistory()}</div></div></div>`;
+  box.innerHTML=`<div class="rpsRoom"><div class="rpsSeatGrid">${eventState.seats.map((s,i)=>renderSeat(s,i)).join('')}</div><div class="rpsPickArea"><div class="rpsPickTitle">O / X 선택</div><div class="rpsButtons">${RPS_ITEMS.map(item=>`<button class="rpsBtn ${mySeat?.choice===item.key?'selected':''}" onclick="pickRpsChoice('${item.key}')" ${disabled?'disabled':''}><span class="emoji">${item.emoji}</span><span>${item.label}</span></button>`).join('')}</div><div class="rpsStatusBox">4명이 모두 자리를 잡고 O/X를 선택해야 게임이 진행됩니다.<br>한 판 종료 후에는 4명 모두 다시 자리를 잡아야 합니다.<br>현재 참여 인원: ${(eventState.seats||[]).filter(Boolean).length}/4명 / 선택 완료: ${(eventState.seats||[]).filter(s=>s&&s.choice).length}/4명</div></div><div class="rpsRules4"><div class="rpsRuleBox"><b>기회 지급 변경</b><br>친선 승리 시 +3기회<br>친선 패배 시 +2기회</div><div class="rpsRuleBox"><b>진행 규칙</b><br>4명 모두 선택하면 전체 공개됩니다.<br>O/O/O/X처럼 3:1이면 적게 고른 1명만 +2점입니다.<br>O/O/X/X처럼 2:2이면 전원 +1점입니다.<br>전원 같은 선택도 전원 +1점입니다.</div></div><div class="rpsHistory"><h3>지나간 경기</h3><div class="rpsHistoryList">${renderHistory()}</div></div></div>`;
 }
 function renderHistory(){
   const h=eventState.history||[];
@@ -1318,7 +1319,7 @@ function renderEvent(){
   renderRpsGame();
   const ranks=Object.entries(eventState.scores||{}).sort((a,b)=>Number(b[1])-Number(a[1])||a[0].localeCompare(b[0],'ko'));
   const rows=(ranks.length?ranks:eventMembers.slice(0,10).map(m=>[m.name,0]));
-  side.innerHTML=`<table class="scoreTable"><thead><tr><th>순위</th><th>맴버</th><th>점수</th><th>기회</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r[0])}</td><td>${Number(r[1]||0)}</td><td>${Number(eventState.chances?.[r[0]]||0)}</td></tr>`).join('')}</tbody></table><h2 style="margin:14px 0 0">로그</h2><div class="eventLog">${(eventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 로그가 없습니다.</div>'}</div><div class="eventHint">컴퓨터 없이 유저 4명이 진행하는 O.X 게임입니다.<br>4명이 모두 선택해야 공개되며, 한 명이라도 비어 있으면 진행되지 않습니다.<br>유효한 O.X 경기만 기회가 차감됩니다.<br>한 판이 끝나면 자리는 자동 초기화됩니다.</div>`;
+  side.innerHTML=`<table class="scoreTable"><thead><tr><th>순위</th><th>맴버</th><th>점수</th><th>기회</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r[0])}</td><td>${Number(r[1]||0)}</td><td>${Number(eventState.chances?.[r[0]]||0)}</td></tr>`).join('')}</tbody></table><h2 style="margin:14px 0 0">로그</h2><div class="eventLog">${(eventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 로그가 없습니다.</div>'}</div><div class="eventHint">컴퓨터 없이 유저 4명이 진행하는 O.X 게임입니다.<br>4명이 모두 선택해야 공개되며, 한 명이라도 비어 있으면 진행되지 않습니다.<br>4명이 모두 선택해 공개된 경기는 기회가 차감됩니다.<br>한 판이 끝나면 자리는 자동 초기화됩니다.</div>`;
 }
 async function openEventAdmin(){
   const pw=prompt('운영진 비밀번호를 입력하세요.'); if(pw!==EVENT_ADMIN_PASSWORD) return alert('운영진 비밀번호가 맞지 않습니다.');
