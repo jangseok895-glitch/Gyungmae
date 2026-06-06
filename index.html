@@ -237,6 +237,26 @@ html,body{min-width:0;width:100%}
 .rpsRuleBox{background:#081525;border:1px solid var(--line);border-radius:14px;padding:12px;color:#dbeafe;font-size:13px;line-height:1.55;font-weight:800}
 .rpsRuleBox b{color:#facc15}
 
+
+/* ===== O.X 공개 긴장감 팝업 ===== */
+.oxRevealModal{width:760px;max-width:92vw;background:radial-gradient(circle at 50% 0%,rgba(250,204,21,.18),transparent 34%),#0f1b2e;border:1px solid rgba(250,204,21,.5);border-radius:22px;padding:22px;box-shadow:0 24px 80px rgba(0,0,0,.68);text-align:center}
+.oxRevealTitle{font-size:34px;font-weight:1000;color:#facc15;text-shadow:0 0 16px rgba(250,204,21,.35);margin-bottom:8px}
+.oxRevealSub{font-size:16px;font-weight:900;color:#b9d7ff;margin-bottom:18px}
+.oxGaugeOuter{width:100%;height:36px;background:#050b14;border:1px solid var(--line);border-radius:999px;overflow:hidden;box-shadow:inset 0 0 16px rgba(0,0,0,.55)}
+.oxGaugeFill{width:0%;height:100%;background:linear-gradient(90deg,#ef4444,#f97316,#facc15);border-radius:999px;box-shadow:0 0 18px rgba(250,204,21,.55);transition:width .08s linear}
+.oxGaugePercent{font-size:30px;font-weight:1000;color:#fff;margin-top:12px}
+.oxRevealCards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+.oxRevealCard{min-height:135px;background:#081525;border:1px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:1000;transform:rotateY(0deg);transition:transform .7s ease, border-color .3s ease, background .3s ease}
+.oxRevealCard.waiting .oxRevealEmoji{font-size:54px;color:#9fb4cd}
+.oxRevealCard.opened{transform:rotateY(360deg);border-color:#facc15;background:linear-gradient(135deg,#10213a,#1d4ed8)}
+.oxRevealCard.win{border-color:#34d399;background:rgba(52,211,153,.12)}
+.oxRevealCard.draw{border-color:#facc15;background:rgba(250,204,21,.10)}
+.oxRevealCard.lose{border-color:#fb7185;background:rgba(251,113,133,.10)}
+.oxRevealName{font-size:15px;color:#dbeafe;margin-bottom:8px}
+.oxRevealEmoji{font-size:48px;line-height:1}
+.oxRevealPoint{margin-top:7px;color:#facc15;font-size:18px}
+.oxRevealResult{margin-top:16px;background:#081525;border:1px solid var(--line);border-radius:14px;padding:12px;font-size:20px;font-weight:1000;color:#facc15}
+
 /* ===== 모바일 첫 화면 전용 최종 수정 =====
    - 첫 메뉴 화면에서만 모바일 크기로 표시
    - 아시아리그/경매/아시아EVENT 내부 페이지는 JS에서 pcMode로 전환되어 PC 화면 유지
@@ -1086,6 +1106,9 @@ const EVENT_ADMIN_PASSWORD='0523';
 const EVENT_MEMBERS=[{"name":"경문","pw":"6646"},{"name":"기사","pw":"1234"},{"name":"네오","pw":"3434"},{"name":"노을(구노을)","pw":"7126"},{"name":"대원","pw":"1237"},{"name":"도레미","pw":"1238"},{"name":"동이","pw":"2345"},{"name":"둘리","pw":"3125"},{"name":"라곤","pw":"9911"},{"name":"라오","pw":"3129"},{"name":"레니","pw":"2347"},{"name":"로딩해","pw":"7127"},{"name":"리아","pw":"3123"},{"name":"미또","pw":"7128"},{"name":"미신트","pw":"8465"},{"name":"바밥","pw":"1239"},{"name":"백뭉이","pw":"8745"},{"name":"뽀등어","pw":"6514"},{"name":"브칠","pw":"8811"},{"name":"블랙","pw":"4747"},{"name":"상호(구로키)","pw":"2349"},{"name":"선셋(신노을)","pw":"3526"},{"name":"섯군","pw":"3127"},{"name":"소율","pw":"6445"},{"name":"소현","pw":"2351"},{"name":"수민","pw":"9849"},{"name":"승환","pw":"5123"},{"name":"승호","pw":"4380"},{"name":"시아","pw":"6123"},{"name":"애플","pw":"5535"},{"name":"용산","pw":"2184"},{"name":"유녕","pw":"5124"},{"name":"유진","pw":"4443"},{"name":"윤주모","pw":"7123"},{"name":"음","pw":"5555"},{"name":"이뚜","pw":"6125"},{"name":"이펙트","pw":"6549"},{"name":"자욱","pw":"3126"},{"name":"장어","pw":"6126"},{"name":"제로","pw":"4441"},{"name":"준클","pw":"8846"},{"name":"지건빵","pw":"9871"},{"name":"지헌","pw":"2636"},{"name":"짱아 (구짱아)","pw":"5125"},{"name":"짱이","pw":"2587"},{"name":"천유","pw":"6644"},{"name":"쿠타","pw":"6129"},{"name":"쿨쿨린이","pw":"4575"},{"name":"파라곤(토르)","pw":"9875"},{"name":"파솔라","pw":"9874"},{"name":"평정","pw":"9885"},{"name":"플로버","pw":"5425"},{"name":"피뚭(피셜)","pw":"9873"},{"name":"황새","pw":"5443"},{"name":"헬츠","pw":"5129"},{"name":"휘헌","pw":"4126"},{"name":"흠(하영)","pw":"4466"},{"name":"히스","pw":"5487"},{"name":"구리","pw":"3737"}];
 const EVENT_TABLE='asia_event_card_game';
 const RPS_ITEMS=[{key:'O',label:'O',emoji:'⭕'},{key:'X',label:'X',emoji:'❌'}];
+const OX_SEAT_SOUND_URL='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EB%9D%B5%EB%8F%99.mp3';
+const OX_PICK_SOUND_URL='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EC%9E%90%EB%A6%AC%EC%9D%B4%EB%8F%99%EC%82%AC%EB%9E%8C.mp3';
+function playOxSound(url){try{const a=new Audio(url); a.currentTime=0; const p=a.play(); if(p&&p.catch) p.catch(()=>{});}catch(e){}}
 let eventState=null;
 let eventLoaded=false;
 let eventMembers=[...EVENT_MEMBERS];
@@ -1150,6 +1173,7 @@ async function joinRpsSeat(){
   if(eventState.scores[name]==null) eventState.scores[name]=0;
   if(eventState.chances[name]==null) eventState.chances[name]=0;
   eventLog(`${idx+1}번 ${name} 선수가 입장했습니다.`);
+  playOxSound(OX_SEAT_SOUND_URL);
   await eventSave(); renderEvent();
 }
 async function leaveRpsSeat(){
@@ -1171,6 +1195,7 @@ async function pickRpsChoice(key){
   eventState.seats[idx].choice=key;
   eventState.seats[idx].choiceAt=new Date().toISOString();
   eventLog(`${idx+1}번 ${name} 선수는 선택했습니다.`);
+  playOxSound(OX_PICK_SOUND_URL);
   await eventSave();
   await checkAndResolveRound();
   renderEvent();
@@ -1194,41 +1219,74 @@ async function checkAndResolveRound(){
   eventState=normalizeEventState(eventState);
   const seats=eventState.seats;
   if(!seats.every(s=>s&&s.choice)) return;
+
   const snapshot=seats.map((s,i)=>({seat:i+1,name:s.name,choice:s.choice,label:rpsItem(s.choice).label,emoji:rpsItem(s.choice).emoji}));
   const result=classifyRound(seats);
   const hist={at:new Date().toISOString(),players:snapshot,result:result.message||result.reason,points:result.points||{},valid:result.valid!==false};
+
+  await showOxRevealProgress(hist);
+
+  eventState=normalizeEventState(eventState);
   eventState.history=[hist,...(eventState.history||[])].slice(0,30);
 
   if(result.valid===false){
     eventLog(`4명 선택 공개: ${result.reason}. 기회 차감 없이 다시 선택합니다.`);
-    eventState.seats=seats.map(s=>s?{name:s.name,choice:null,choiceAt:null}:null);
+    eventState.seats=eventState.seats.map(s=>s?{name:s.name,choice:null,choiceAt:null}:null);
     await eventSave();
-    showRoundPopup(hist);
     return;
   }
 
-  seats.forEach(s=>{
+  const currentSeats=eventState.seats;
+  currentSeats.forEach(s=>{
     const add=Number(result.points?.[s.name]||0);
     eventState.scores[s.name]=Number(eventState.scores?.[s.name]||0)+add;
     eventState.chances[s.name]=Math.max(0,Number(eventState.chances?.[s.name]||0)-1);
   });
 
-  const pointText=seats.map(s=>`${s.name} +${Number(result.points?.[s.name]||0)}점`).join(' / ');
+  const pointText=currentSeats.map(s=>`${s.name} +${Number(result.points?.[s.name]||0)}점`).join(' / ');
   eventLog(`결과 공개: ${result.message}. ${pointText}`);
   eventState.seats=[null,null,null,null];
   eventLog('한 판이 종료되어 4명 자리가 모두 초기화되었습니다. 다음 판은 다시 자리를 잡아야 합니다.');
   await eventSave();
-  showRoundPopup(hist);
+}
+function oxPlayerClass(hist,p){
+  const add=Number((hist.points||{})[p.name]||0);
+  if(add>=2) return 'win';
+  if(add===1) return 'draw';
+  return 'lose';
+}
+function buildOxRevealCards(hist,opened){
+  const pts=hist.points||{};
+  return hist.players.map(p=>`<div class="oxRevealCard ${opened?'opened '+oxPlayerClass(hist,p):'waiting'}"><div class="oxRevealName">${p.seat}번 ${escapeHtml(p.name)}</div><div class="oxRevealEmoji">${opened?p.emoji:'🂠'}</div>${opened?`<div>${escapeHtml(p.label)}</div><div class="oxRevealPoint">+${Number(pts[p.name]||0)}점</div>`:''}</div>`).join('');
+}
+function showOxRevealProgress(hist){
+  return new Promise(resolve=>{
+    modalRoot.innerHTML=`<div class="modalBg"><div class="oxRevealModal"><div class="oxRevealTitle">곧 공개됩니다...</div><div class="oxRevealSub">4명 모두 선택 완료 · O.X 결과 분석중</div><div class="oxGaugeOuter"><div id="oxGaugeFill" class="oxGaugeFill"></div></div><div id="oxGaugePercent" class="oxGaugePercent">0%</div><div id="oxRevealCards" class="oxRevealCards">${buildOxRevealCards(hist,false)}</div><div id="oxRevealResult" class="oxRevealResult" style="display:none"></div></div></div>`;
+    let pct=0;
+    const fill=document.getElementById('oxGaugeFill');
+    const percent=document.getElementById('oxGaugePercent');
+    const cards=document.getElementById('oxRevealCards');
+    const resultBox=document.getElementById('oxRevealResult');
+    const timer=setInterval(()=>{
+      pct=Math.min(100,pct+2);
+      if(fill) fill.style.width=pct+'%';
+      if(percent) percent.textContent=pct+'%';
+      if(pct>=100){
+        clearInterval(timer);
+        if(cards) cards.innerHTML=buildOxRevealCards(hist,true);
+        if(resultBox){ resultBox.style.display='block'; resultBox.textContent='💥 결과 공개 !! '+hist.result; }
+        setTimeout(()=>{ modalRoot.innerHTML=''; resolve(); },4000);
+      }
+    },100);
+  });
 }
 function showRoundPopup(hist){
-  const pts=hist.points||{};
-  const cls=p=>Number(pts[p.name]||0)>=2?'win':Number(pts[p.name]||0)===1?'draw':'lose';
-  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:760px"><div class="sectionHead"><h2>O.X 게임 결과</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><div class="rpsHistoryCard"><div class="rpsHistoryTitle">${escapeHtml(hist.result)}</div><div class="rpsHistoryPlayers">${hist.players.map(p=>`<div class="rpsHistoryPlayer ${cls(p)}"><div>${p.seat}번<br>${escapeHtml(p.name)}</div><div class="rpsHistoryEmoji">${p.emoji}</div><div>${escapeHtml(p.label)}</div><div style="margin-top:4px;color:#facc15">+${Number(pts[p.name]||0)}점</div></div>`).join('')}</div></div><p class="eventHint">${hist.valid?'이번 경기는 참여자 전원의 기회가 1회 차감됩니다.':'전원 같은 선택은 무효 처리되며, 기회 차감 없이 다시 선택합니다.'}</p></div></div>`;
+  showOxRevealProgress(hist);
 }
 function renderSeat(s,i){
   if(!s) return `<div class="rpsSeat empty"><div class="rpsSeatNo">${i+1}번</div><div>빈 자리</div><button class="gold" onclick="joinRpsSeat()">자리잡기</button></div>`;
   const me=eventMe&&eventMe.name===s.name;
-  const open=(eventState.seats||[]).every(x=>x&&x.choice);
+  const open=false;
   const item=s.choice?rpsItem(s.choice):null;
   return `<div class="rpsSeat ${me?'me':''}"><div class="rpsSeatNo">${i+1}번</div><div class="rpsSeatName">${escapeHtml(s.name)}</div>${item&&open?`<div class="rpsChoiceOpen">${item.emoji}<span>${escapeHtml(item.label)}</span></div>`:item?`<div class="rpsChoiceHidden">선택했습니다.</div>`:`<div class="rpsChoiceHidden" style="color:#9fb4cd;border-color:var(--line);background:#0b1728">선택 대기중</div>`}${me?`<button class="ghost" style="margin-top:10px" onclick="leaveRpsSeat()">자리나가기</button>`:''}</div>`;
 }
