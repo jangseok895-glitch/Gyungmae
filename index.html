@@ -1213,8 +1213,8 @@ function classifyRound(seats){
     return {valid:true,reason:'2:2 동률',points,message:'2:2 동률로 전원 +1점'};
   }
   const minority=counts.O<counts.X?'O':'X';
-  seats.forEach(s=>{points[s.name]=s.choice===minority?2:0;});
-  return {valid:true,reason:`${minority} 소수 선택`,points,message:`${minority}를 선택한 선수 +2점`};
+  seats.forEach(s=>{points[s.name]=s.choice===minority?3:0;});
+  return {valid:true,reason:`${minority} 소수 선택`,points,message:`${minority}를 선택한 선수 +3점`};
 }
 async function checkAndResolveRound(){
   eventState=normalizeEventState(eventState);
@@ -1252,7 +1252,7 @@ async function checkAndResolveRound(){
 }
 function oxPlayerClass(hist,p){
   const add=Number((hist.points||{})[p.name]||0);
-  if(add>=2) return 'win';
+  if(add>=3) return 'win';
   if(add===1) return 'draw';
   return 'lose';
 }
@@ -1296,7 +1296,7 @@ function renderRpsGame(){
   const idx=currentSeatIndex();
   const mySeat=idx>=0?eventState.seats[idx]:null;
   const disabled=!eventMe || idx<0 || Number(eventState.chances?.[eventMe.name]||0)<=0;
-  box.innerHTML=`<div class="rpsRoom"><div class="rpsSeatGrid">${eventState.seats.map((s,i)=>renderSeat(s,i)).join('')}</div><div class="rpsPickArea"><div class="rpsPickTitle">O / X 선택</div><div class="rpsButtons">${RPS_ITEMS.map(item=>`<button class="rpsBtn ${mySeat?.choice===item.key?'selected':''}" onclick="pickRpsChoice('${item.key}')" ${disabled?'disabled':''}><span class="emoji">${item.emoji}</span><span>${item.label}</span></button>`).join('')}</div><div class="rpsStatusBox">4명이 모두 자리를 잡고 O/X를 선택해야 게임이 진행됩니다.<br>한 판 종료 후에는 4명 모두 다시 자리를 잡아야 합니다.<br>현재 참여 인원: ${(eventState.seats||[]).filter(Boolean).length}/4명 / 선택 완료: ${(eventState.seats||[]).filter(s=>s&&s.choice).length}/4명</div></div><div class="rpsRules4"><div class="rpsRuleBox"><b>기회 지급 변경</b><br>친선 승리 시 +3기회<br>친선 패배 시 +2기회</div><div class="rpsRuleBox"><b>진행 규칙</b><br>4명 모두 선택하면 전체 공개됩니다.<br>O/O/O/X처럼 3:1이면 적게 고른 1명만 +2점입니다.<br>O/O/X/X처럼 2:2이면 전원 +1점입니다.<br>전원 같은 선택도 전원 +1점입니다.</div></div><div class="rpsHistory"><h3>지나간 경기</h3><div class="rpsHistoryList">${renderHistory()}</div></div></div>`;
+  box.innerHTML=`<div class="rpsRoom"><div class="rpsSeatGrid">${eventState.seats.map((s,i)=>renderSeat(s,i)).join('')}</div><div class="rpsPickArea"><div class="rpsPickTitle">O / X 선택</div><div class="rpsButtons">${RPS_ITEMS.map(item=>`<button class="rpsBtn ${mySeat?.choice===item.key?'selected':''}" onclick="pickRpsChoice('${item.key}')" ${disabled?'disabled':''}><span class="emoji">${item.emoji}</span><span>${item.label}</span></button>`).join('')}</div><div class="rpsStatusBox">4명이 모두 자리를 잡고 O/X를 선택해야 게임이 진행됩니다.<br>한 판 종료 후에는 4명 모두 다시 자리를 잡아야 합니다.<br>현재 참여 인원: ${(eventState.seats||[]).filter(Boolean).length}/4명 / 선택 완료: ${(eventState.seats||[]).filter(s=>s&&s.choice).length}/4명</div></div><div class="rpsRules4"><div class="rpsRuleBox"><b>기회 지급 변경</b><br>친선 승리 시 +3기회<br>친선 패배 시 +2기회</div><div class="rpsRuleBox"><b>진행 규칙</b><br>4명 모두 선택하면 전체 공개됩니다.<br>O/O/O/X처럼 3:1이면 적게 고른 1명만 +3점입니다.<br>O/O/X/X처럼 2:2이면 전원 +1점입니다.<br>전원 같은 선택도 전원 +1점입니다.</div></div><div class="rpsHistory"><h3>지나간 경기</h3><div class="rpsHistoryList">${renderHistory()}</div></div></div>`;
 }
 function renderHistory(){
   const h=eventState.history||[];
@@ -1305,7 +1305,7 @@ function renderHistory(){
     const pts=x.points||{};
     const playerHtml=x.players.map(p=>{
       const add=Number(pts[p.name]||0);
-      const cls=add>=2?'win':add===1?'draw':'lose';
+      const cls=add>=3?'win':add===1?'draw':'lose';
       return `<div class="rpsHistoryPlayer ${cls}"><div>${p.seat}번<br>${escapeHtml(p.name)}</div><div class="rpsHistoryEmoji">${p.emoji}</div><div>${escapeHtml(p.label)}</div><div style="margin-top:4px;color:#facc15">+${add}점</div></div>`;
     }).join('');
     return `<div class="rpsHistoryCard"><div class="rpsHistoryTitle">${new Date(x.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})} / ${escapeHtml(x.result)}</div><div class="rpsHistoryPlayers">${playerHtml}</div></div>`;
