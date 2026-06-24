@@ -2,216 +2,2259 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>AE ASIA LEAGUE - 아시아 내전</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>아시아리그 팀원 경매</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
-    :root{--bg:#07111f;--card:#0f1b2e;--line:#29415f;--text:#eaf4ff;--muted:#9fb4cd;--accent:#38bdf8;--gold:#facc15;--danger:#fb7185;--ok:#34d399;--warn:#f59e0b;--orange:#f97316;--purple:#a855f7}
-    *{box-sizing:border-box} body{margin:0;font-family:Arial,'Noto Sans KR',sans-serif;background:#07111f;color:var(--text)} button,input,select{font-family:inherit} button{cursor:pointer;border:0;border-radius:12px;padding:10px 14px;font-weight:1000;color:#07111f;background:var(--accent)} button:disabled{opacity:.45;cursor:not-allowed}.ghost{background:#1d314e;color:var(--text);border:1px solid var(--line)}.gold{background:var(--gold);color:#251a00}.danger{background:var(--danger);color:white}.ok{background:var(--ok);color:#052014}.warn{background:var(--warn);color:#231300}.muted{color:var(--muted)}
-    .landingPage{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 15%,rgba(250,204,21,.20),transparent 30%),linear-gradient(135deg,#05070b,#0b1728 45%,#05070b);padding:40px}.landingCard{width:1120px;border:1px solid rgba(250,204,21,.45);border-radius:28px;background:rgba(7,17,31,.88);box-shadow:0 30px 100px rgba(0,0,0,.55);padding:48px;text-align:center}.landingCard h1{font-size:64px;line-height:1;margin:0 0 14px;color:#facc15;text-shadow:0 0 18px rgba(250,204,21,.35)}.landingCard p{margin:0 0 34px;color:#b9d7ff;font-size:20px;font-weight:900}.landingBtns{display:grid;grid-template-columns:repeat(5,1fr);gap:22px}.landingBtn{height:150px;border-radius:24px;font-size:34px;font-weight:1000;letter-spacing:-1px;border:1px solid rgba(255,255,255,.13);box-shadow:0 15px 35px rgba(0,0,0,.35)}.landingBtn.test{background:linear-gradient(135deg,#facc15,#f97316);color:#201000}.landingBtn.event{background:linear-gradient(135deg,#fb7185,#a855f7);color:#fff}.landingBtn.auction{background:linear-gradient(135deg,#38bdf8,#2563eb);color:#02111f}.landingBtn.league{background:linear-gradient(135deg,#facc15,#f97316);color:#201000}.landingBtn.war{background:linear-gradient(135deg,#ef4444,#f97316);color:white;text-shadow:0 2px 4px rgba(0,0,0,.35)}
-    .page{min-height:100vh;background:radial-gradient(circle at 15% 5%,rgba(239,68,68,.15),transparent 30%),linear-gradient(135deg,#05070b,#091426 60%,#05070b);padding:18px 0 38px}.wrap{width:1280px;margin:0 auto}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.top h1{margin:0;color:#facc15;font-size:36px;text-shadow:0 0 16px rgba(250,204,21,.35)}.topBtns{display:flex;gap:8px;align-items:center}.grid{display:grid;grid-template-columns:380px 1fr;gap:14px;align-items:start}.panel{border:1px solid rgba(250,204,21,.35);background:rgba(15,27,46,.95);border-radius:18px;padding:14px;box-shadow:0 18px 45px rgba(0,0,0,.32)}.panel h2{margin:0 0 10px;color:#facc15}.login{display:grid;grid-template-columns:1fr 120px;gap:8px;margin-top:8px}.login select,.login input,.modal input{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:11px;font-size:15px}.status{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.stat{background:#081525;border:1px solid var(--line);border-radius:13px;padding:10px;text-align:center;font-weight:900}.stat b{display:block;font-size:24px;color:#facc15;margin-top:4px}.ruleBox{background:#081525;border:1px solid var(--line);border-radius:14px;padding:13px;line-height:1.65;font-weight:800;color:#dbeafe}.ruleBox b{color:#facc15}.fullBanner{display:none;margin-bottom:12px;background:linear-gradient(135deg,#ef4444,#b91c1c);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:16px;padding:15px;text-align:center;font-size:30px;font-weight:1000;letter-spacing:2px;box-shadow:0 0 22px rgba(239,68,68,.32)}.fullBanner.on{display:block}.lockedBanner{display:none;margin-bottom:12px;background:linear-gradient(135deg,#facc15,#f97316);color:#251000;border-radius:16px;padding:13px;text-align:center;font-size:22px;font-weight:1000}.lockedBanner.on{display:block}
-    .lineGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.lineCard{background:#081525;border:1px solid var(--line);border-radius:16px;padding:11px;min-height:285px}.lineTitle{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:19px;font-weight:1000;color:#facc15;margin-bottom:8px}.slot{min-height:48px;margin:7px 0;background:#0b1728;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:9px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:1000}.slot.empty{color:#53677f;justify-content:center}.lv{color:#34d399;font-size:13px;white-space:nowrap}.name{word-break:keep-all}.teams{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.teamCard{background:#081525;border:1px solid var(--line);border-radius:16px;padding:12px;min-height:165px}.teamCard h3{margin:0 0 8px;font-size:22px}.teamCard.a h3{color:#ef4444}.teamCard.b h3{color:#f59e0b}.teamCard.c h3{color:#22c55e}.teamCard.d h3{color:#38bdf8}.teamMember{background:#0b1728;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;margin:6px 0;font-weight:900;display:flex;justify-content:space-between}.teamHead{display:flex;justify-content:space-between;align-items:center;gap:8px}.confirmedBadge{display:inline-flex;background:#34d399;color:#052014;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:1000}.teamColorBadge{display:inline-flex;background:#facc15;color:#251000;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:1000;max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.orderLoginBox{margin-top:12px;background:#081525;border:1px solid var(--line);border-radius:14px;padding:12px}.orderLogin{display:grid;grid-template-columns:1fr 140px 90px;gap:8px}.orderLogin select,.orderLogin input,.orderSelect{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:10px;font-size:14px}.orderGrid{display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:center;margin:8px 0}.orderHint{font-size:13px;line-height:1.5;color:#b9d7ff;font-weight:800}.actionRow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.log{height:190px;overflow:auto;background:#081525;border:1px solid var(--line);border-radius:12px;padding:8px;margin-top:10px}.log div{padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.08);font-weight:900;color:#ffd6df}.modalBg{position:fixed;inset:0;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;z-index:20}.modal{width:440px;background:#0f1b2e;border:1px solid rgba(250,204,21,.45);border-radius:18px;padding:16px;box-shadow:0 20px 70px rgba(0,0,0,.62)}.modal h2{margin:0 0 10px;color:#facc15}.modalBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.adminBox{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
-    @media(max-width:768px){body:not(.pcMode){overflow-x:hidden}.landingPage{padding:10px}.landingCard{width:calc(100vw - 24px);padding:18px 14px;border-radius:18px}.landingCard h1{font-size:30px}.landingCard p{font-size:14px;margin-bottom:14px}.landingBtns{grid-template-columns:1fr;gap:9px}.landingBtn{height:56px;font-size:18px;border-radius:14px}.wrap{width:1280px}body.pcMode{min-width:1280px}}
-  </style>
+    :root{--bg:#07111f;--card:#0f1b2e;--line:#29415f;--text:#eaf4ff;--muted:#9fb4cd;--accent:#38bdf8;--gold:#facc15;--danger:#fb7185;--ok:#34d399;--warn:#f59e0b;--red:#ff4d6d}
+    *{box-sizing:border-box}
+html,body{min-width:0;width:100%}
+    body.pcMode{min-width:1180px}
+    body{margin:0;font-family:Arial,'Noto Sans KR',sans-serif;background:#07111f;color:var(--text);font-size:14px}
+    button,input,select{font-family:inherit}
+    button{cursor:pointer;border:0;border-radius:11px;padding:9px 13px;font-weight:900;color:#07111f;background:var(--accent)}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .ghost{background:#1d314e;color:var(--text);border:1px solid var(--line)}
+    .gold{background:var(--gold);color:#251a00}
+    .danger{background:var(--danger);color:white}
+    .ok{background:var(--ok);color:#052014}
+    .warn{background:var(--warn);color:#231300}
+    .wrap{width:1180px;margin:0 auto;padding:16px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+    .title h1{margin:0;font-size:28px}
+    .title p{margin:6px 0 0;color:#9cc7f7}
+    .topBtns{display:flex;gap:8px;align-items:center}
+    .badge{display:inline-flex;align-items:center;border:1px solid var(--line);background:#10213a;border-radius:999px;padding:7px 10px;color:#b9d7ff;font-weight:900;white-space:nowrap}
+    .card{background:rgba(15,27,46,.96);border:1px solid var(--line);border-radius:18px;padding:13px;box-shadow:0 10px 25px rgba(0,0,0,.22)}
+    .card h2{margin:0;font-size:18px}
+    .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+    .tinyBadge{display:inline-flex;align-items:center;border:1px solid var(--line);background:#10213a;border-radius:999px;padding:5px 9px;color:#b9d7ff;font-size:12px;font-weight:900;white-space:nowrap}
+    .muted{color:var(--muted)}
+    .loginRow{display:grid;grid-template-columns:150px 170px 90px 1fr;gap:8px;align-items:end}
+    .loginRow input,.loginRow select,.bidBox input,.modal input,.adminGrid input{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:10px;font-size:14px}
+    .loginRow label{display:block;margin:0 0 5px;color:var(--muted)}
+    .mainGrid{display:grid;grid-template-columns:555px 1fr;gap:12px;margin-top:12px}
+    .captains{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+    .captain{background:#0b1728;border:1px solid var(--line);border-radius:13px;padding:10px 6px;text-align:center}
+    .captain.on{border-color:#ef4444;box-shadow:0 0 0 1px rgba(239,68,68,.58),0 0 13px rgba(239,68,68,.22)}
+    .coin{font-size:22px;color:var(--gold);font-weight:1000;line-height:1}
+    .small{font-size:12px;color:#b9d7ff}
+    .playersGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+    .playerItem{position:relative;min-height:39px;border:1px solid var(--line);background:#0b1728;border-radius:10px;padding:6px 8px;display:flex;align-items:center;justify-content:center;font-weight:900}
+    .playerItem .num{position:absolute;left:8px;top:4px;font-size:11px;color:#9fb4cd}
+    .playerItem.now{border-color:#f5e500;background:#243916;box-shadow:0 0 0 1px rgba(250,204,21,.35)}
+    .playerItem.sold{opacity:.55;text-decoration:line-through}
+    .playerItem.sold:after{content:'X';position:absolute;font-size:30px;color:#ff4d6d;font-weight:1000;opacity:.8}
+    .auctionNow{display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:center}
+    .playerBox{height:135px;border-radius:18px;background:linear-gradient(135deg,#3155f4,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:1000}
+    .timer{font-size:48px;font-weight:1000;color:var(--gold);line-height:1}
+    .highest{margin-top:8px;font-size:17px;color:#b9d7ff}
+    .highestName{color:#34d399;font-weight:1000}
+    .highestAmount{color:#facc15;font-size:21px;font-weight:1000;text-shadow:0 0 8px rgba(250,204,21,.35)}
+    .bidBox{display:grid;grid-template-columns:1fr 115px 115px;gap:8px;margin-top:12px}
+    .teams{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+    .team{background:#0b1728;border:1px solid var(--line);border-radius:13px;padding:10px;min-height:110px}
+    .team h3{margin:0 0 7px;color:#38bdf8}
+    .member{padding:6px 8px;margin:5px 0;background:#13243d;border-radius:9px;display:flex;justify-content:space-between;gap:6px;font-weight:800}
+    .log{height:176px;overflow:auto;background:#081525;border:1px solid var(--line);border-radius:12px;padding:8px}
+    .log div{padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.08);color:#ff4d6d;font-weight:900}
+    .logCoin{color:#facc15!important;font-size:1.18em;font-weight:1000;text-shadow:0 0 8px rgba(250,204,21,.35)}
+    .errorBox{border:1px solid var(--danger);background:rgba(251,113,133,.13);padding:10px;border-radius:12px;margin-bottom:10px;color:#ffd7de;white-space:pre-wrap}
+    .modalBg{position:fixed;inset:0;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;z-index:20}
+    .modal{width:620px;background:#0f1b2e;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    .adminGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+    .adminGrid label{display:block;margin-bottom:4px;color:#b9d7ff;font-weight:900}
+    .adminPwBox{display:grid;grid-template-columns:1fr 90px 90px;gap:8px;margin-top:12px}
+    .adminPwBox input{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:10px;font-size:14px}
+
+
+    /* ===== 맵 돌림판 팝업 ===== */
+    .mapWheelModal{width:760px;max-width:92vw;background:#0f1b2e;border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:0 20px 70px rgba(0,0,0,.58)}
+    .mapWheelLayout{display:grid;grid-template-columns:390px 1fr;gap:14px;align-items:center;margin-top:12px}
+    .wheelWrap{position:relative;width:380px;height:380px;margin:0 auto;display:flex;align-items:center;justify-content:center}
+    .wheelPointer{position:absolute;top:-1px;left:50%;transform:translateX(-50%);z-index:5;width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-top:36px solid #facc15;filter:drop-shadow(0 5px 6px rgba(0,0,0,.4))}
+    .wheelPointer:after{content:'';position:absolute;left:-8px;top:-34px;width:16px;height:16px;background:#fff;border-radius:50%;box-shadow:0 0 8px rgba(255,255,255,.5)}
+    .wheelCanvas{width:360px;height:360px;border-radius:50%;background:#081525;border:8px solid #213a5c;box-shadow:inset 0 0 18px rgba(0,0,0,.55),0 0 24px rgba(56,189,248,.14);transition:transform 5.2s cubic-bezier(.08,.78,.12,1)}
+    .wheelHub{position:absolute;width:82px;height:82px;border-radius:50%;background:linear-gradient(135deg,#facc15,#f97316);border:6px solid #fff;color:#251a00;display:flex;align-items:center;justify-content:center;font-weight:1000;box-shadow:0 0 18px rgba(0,0,0,.45);z-index:4;text-align:center;line-height:1.05}
+    .mapWheelResult{min-height:94px;background:#081525;border:1px solid var(--line);border-radius:16px;padding:12px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .mapWheelResult .label{font-size:12px;color:#9fb4cd;font-weight:900;margin-bottom:6px}
+    .mapWheelResult .name{font-size:30px;color:#facc15;font-weight:1000;line-height:1.1;text-shadow:0 0 10px rgba(250,204,21,.25)}
+    .mapWheelButtons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .mapWheelList{height:180px;overflow:auto;margin-top:10px;background:#081525;border:1px solid var(--line);border-radius:12px;padding:8px;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
+    .mapChip{font-size:11px;font-weight:900;color:#b9d7ff;border:1px solid rgba(56,189,248,.22);background:#10213a;border-radius:999px;padding:4px 7px;white-space:nowrap}
+    .mapWheelHint{font-size:12px;color:#9fb4cd;margin-top:8px;line-height:1.45}
+
+    /* ===== 첫 화면 / 아시아리그 조추첨 ===== */
+    .landingPage{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 15%,rgba(250,204,21,.20),transparent 30%),linear-gradient(135deg,#05070b,#0b1728 45%,#05070b);padding:40px}
+    .landingCard{width:960px;border:1px solid rgba(250,204,21,.45);border-radius:28px;background:rgba(7,17,31,.88);box-shadow:0 30px 100px rgba(0,0,0,.55);padding:48px;text-align:center}
+    .landingCard h1{font-size:64px;line-height:1;margin:0 0 14px;color:#facc15;text-shadow:0 0 18px rgba(250,204,21,.35)}
+    .landingCard p{margin:0 0 34px;color:#b9d7ff;font-size:20px;font-weight:900}
+    .landingBtns{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+    .landingBtn{height:150px;border-radius:24px;font-size:38px;font-weight:1000;letter-spacing:-1px;border:1px solid rgba(255,255,255,.13);box-shadow:0 15px 35px rgba(0,0,0,.35)}
+    .landingBtn.league{background:linear-gradient(135deg,#facc15,#f97316);color:#201000}
+    .landingBtn.auction{background:linear-gradient(135deg,#38bdf8,#2563eb);color:#02111f}
+    .leaguePage{min-height:100vh;background:#05070b;color:#fff;padding:18px 0 34px}
+    .leagueWrap{width:1280px;margin:0 auto}
+    .leagueTop{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+    .leagueTop h1{margin:0;color:#facc15;font-size:32px}
+    .leaguePosterBox{position:relative;width:75%;margin:0 auto;border:1px solid rgba(250,204,21,.5);border-radius:14px;overflow:hidden;background:#0b1728;box-shadow:0 16px 42px rgba(0,0,0,.45)}
+    .leaguePosterImg{width:100%;display:block}
+    .leagueGroupOverlay{position:absolute;left:18px;right:18px;top:248px;display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+    .leagueGroupCard{height:87px;border-radius:9px;padding:7px 8px;text-align:center;display:flex;flex-direction:column;justify-content:flex-start;gap:4px;background:rgba(0,0,0,.18)}
+    .leagueGroupCard.a{border:1px solid #ef4444}.leagueGroupCard.b{border:1px solid #f59e0b}.leagueGroupCard.c{border:1px solid #22c55e}.leagueGroupCard.d{border:1px solid #38bdf8}.leagueGroupCard.e{border:1px solid #a855f7}
+    .leagueGroupTitle{font-size:20px;font-weight:1000;line-height:1}
+    .leagueMembers{background:#fff;color:#111;border-radius:3px;min-height:26px;padding:4px 5px;font-size:13px;font-weight:900;line-height:1.2;display:flex;align-items:center;justify-content:center;word-break:keep-all}
+    .leagueTeamName{font-size:13px;color:#e5e7eb;font-weight:900}
+    .leaguePanel{margin-top:16px;border:1px solid rgba(250,204,21,.35);border-radius:16px;background:rgba(15,27,46,.94);padding:14px}
+    .leaguePanel h2{margin:0 0 10px;color:#facc15}
+    .leagueTimeGrid{display:grid;grid-template-columns:180px 1fr;gap:8px;font-size:18px;font-weight:900}
+    .leagueTimeGrid div{border:1px solid rgba(255,255,255,.12);background:#081525;border-radius:10px;padding:10px}
+    .leagueModal{width:980px;max-width:94vw;background:#0f1b2e;border:1px solid rgba(250,204,21,.45);border-radius:22px;padding:16px;box-shadow:0 20px 70px rgba(0,0,0,.62)}
+    .leagueModalLayout{display:grid;grid-template-columns:360px 1fr;gap:16px;margin-top:12px}
+    .leagueWheelWrap{position:relative;width:340px;height:340px;margin:auto;display:flex;align-items:center;justify-content:center}
+    .leagueWheelPointer{position:absolute;top:-2px;left:50%;transform:translateX(-50%);z-index:5;width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:34px solid #facc15}
+    .leagueWheelCanvas{width:320px;height:320px;border-radius:50%;background:#081525;border:8px solid #243b5a;transition:transform 4.5s cubic-bezier(.08,.78,.12,1)}
+    .leagueWheelHub{position:absolute;width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,#facc15,#f97316);border:5px solid #fff;color:#211300;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:1000;z-index:4}
+    .leagueInputGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+    .leagueInputTeam{border:1px solid var(--line);border-radius:14px;background:#081525;padding:8px}
+    .leagueInputTeam h3{margin:0 0 8px;color:#facc15}
+    .leagueInputTeam input{width:100%;margin-bottom:6px;background:#0b1728;border:1px solid var(--line);border-radius:9px;color:white;padding:8px;font-size:13px}
+    .assignBtns{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}
+    .assignBtns button.assigned{background:#1f2937;color:#9ca3af}
+    .leagueResultBox{border:1px solid var(--line);background:#081525;border-radius:12px;padding:10px;min-height:70px;text-align:center;font-size:20px;font-weight:1000;color:#facc15}
+    .leagueAssignedList{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
+    .leagueAssignedItem{border:1px solid rgba(255,255,255,.15);border-radius:10px;background:#0b1728;padding:8px;text-align:center;font-weight:900;font-size:13px}
+
+
+    /* ===== 아시아 EVENT / 카드게임 ===== */
+    .landingBtns.event3{grid-template-columns:1fr 1fr 1fr}
+    .landingBtn.event{background:linear-gradient(135deg,#fb7185,#a855f7);color:#fff}
+    .eventPage{min-height:100vh;background:radial-gradient(circle at 20% 10%,rgba(251,113,133,.17),transparent 28%),linear-gradient(135deg,#05070b,#091426 55%,#05070b);padding:18px 0 34px;color:#fff}
+    .eventWrap{width:1280px;margin:0 auto}
+    .eventTop{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+    .eventTop h1{margin:0;color:#fb7185;font-size:34px;text-shadow:0 0 16px rgba(251,113,133,.35)}
+    .eventGrid{display:grid;grid-template-columns:840px 1fr;gap:14px;align-items:start}
+    .eventPanel{border:1px solid rgba(251,113,133,.35);background:rgba(15,27,46,.94);border-radius:18px;padding:14px;box-shadow:0 18px 45px rgba(0,0,0,.32)}
+    .eventLogin{display:grid;grid-template-columns:1fr 150px 92px;gap:8px;margin-top:10px}
+    .eventLogin select,.eventLogin input,.eventAdmin select,.eventAdmin input{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:10px;font-size:14px}
+    .eventStatus{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+    .eventStat{background:#081525;border:1px solid var(--line);border-radius:13px;padding:10px;text-align:center}
+    .eventStat b{display:block;font-size:24px;color:#facc15;margin-top:3px}
+    .cardBoard{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:12px}
+    .memoryCard{height:122px;perspective:900px;position:relative;border-radius:16px}
+    .memoryInner{position:absolute;inset:0;transition:transform .55s cubic-bezier(.2,.75,.2,1.05);transform-style:preserve-3d;border-radius:16px}
+    .memoryCard.flipped .memoryInner{transform:rotateY(180deg)}
+    .memoryFace{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:1000;box-shadow:0 8px 20px rgba(0,0,0,.3);user-select:none}
+    .memoryBack{background:linear-gradient(135deg,#13243d,#1d4ed8);border:1px solid rgba(56,189,248,.45);font-size:34px;color:#dff7ff;text-shadow:0 0 12px rgba(56,189,248,.5)}
+    .memoryFront{transform:rotateY(180deg);background:linear-gradient(135deg,#fff7ed,#fde68a);border:1px solid rgba(250,204,21,.65);color:#281500;flex-direction:column;gap:4px;font-size:38px}
+    .memoryFront span{font-size:13px;color:#6b3f00}
+    .memoryCard.matched .memoryFront{background:linear-gradient(135deg,#dcfce7,#86efac);border-color:#34d399}
+    .memoryCard.locked{pointer-events:none;opacity:.95}
+    .eventAdmin{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .eventAdminWide{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .scoreTable{width:100%;border-collapse:collapse;margin-top:8px;background:#081525;border-radius:12px;overflow:hidden}
+    .scoreTable th,.scoreTable td{border-bottom:1px solid rgba(255,255,255,.08);padding:9px;text-align:center;font-weight:900}
+    .scoreTable th{color:#b9d7ff;background:#10213a}
+    .eventLog{height:260px;overflow:auto;background:#081525;border:1px solid var(--line);border-radius:12px;padding:8px;margin-top:8px}
+    .eventLog div{padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.08);font-weight:900;color:#ffd6df}
+    .eventHint{font-size:12px;color:#9fb4cd;line-height:1.5;margin-top:8px}
+
+
+    /* ===== 아시아 EVENT / O.X 게임 ===== */
+    .rpsVsBar{display:grid;grid-template-columns:1fr 90px 1fr;gap:10px;align-items:center;margin:12px 0 14px;padding:10px 14px;background:#081525;border:1px solid rgba(251,113,133,.75);border-radius:10px;box-shadow:0 0 18px rgba(251,113,133,.08)}
+    .rpsVsCell{display:grid;grid-template-columns:90px 1fr;gap:10px;align-items:center;font-weight:1000;color:#dbeafe;text-align:center}
+    .rpsVsValue{height:44px;border:1px solid var(--line);background:#0b1728;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff}
+    .rpsVsMiddle{text-align:center;font-size:30px;font-weight:1000;color:#facc15;text-shadow:0 0 10px rgba(250,204,21,.3)}
+    .rpsGameWrap{display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start;margin-top:12px}
+    .rpsPickPanel{background:#081525;border:1px solid var(--line);border-radius:18px;padding:14px;text-align:center}
+    .rpsPickTitle{font-size:18px;font-weight:1000;color:#facc15;margin-bottom:10px}
+    .rpsButtons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .rpsBtn{height:118px;border-radius:18px;background:linear-gradient(135deg,#10213a,#1d4ed8);border:1px solid rgba(56,189,248,.45);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:16px;box-shadow:0 12px 24px rgba(0,0,0,.28)}
+    .rpsBtn .emoji{font-size:46px;line-height:1}
+    .rpsBtn:hover{filter:brightness(1.08)}
+    .rpsBtn.selected{border-color:#facc15;background:linear-gradient(135deg,#1d4ed8,#2563eb);box-shadow:0 0 0 3px rgba(250,204,21,.25),0 0 20px rgba(250,204,21,.18)}
+    .rpsBtn:disabled{opacity:.45;cursor:not-allowed}
+    .rpsStartBtn{width:100%;height:46px;margin-top:12px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#dbeafe;font-size:16px;font-weight:1000}
+    .rpsStartBtn.ready{background:linear-gradient(135deg,#facc15,#f97316);color:#201000}
+    .rpsComputer{background:#081525;border:1px solid var(--line);border-radius:18px;padding:14px;text-align:center;min-height:455px}
+    .rpsWheel{position:relative;width:350px;height:350px;margin:4px auto 10px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:visible}
+    .rpsPointer{position:absolute;left:50%;top:-10px;transform:translateX(-50%);width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;border-top:54px solid #f97316;filter:drop-shadow(0 5px 6px rgba(0,0,0,.45));z-index:12}
+    .rpsWheelDisc{position:absolute;inset:12px;border-radius:50%;border:10px solid #c7e1f3;background:#1d4ed8;box-shadow:inset 0 0 20px rgba(0,0,0,.35),0 0 24px rgba(56,189,248,.14);will-change:transform;overflow:hidden}
+    .rpsWheelDisc:before{content:'';position:absolute;inset:0;border-radius:50%;background:var(--wheel-bg)}
+    .rpsWheelDisc:after{content:'';position:absolute;left:50%;top:50%;width:14px;height:14px;transform:translate(-50%,-50%);border-radius:50%;background:#facc15;border:3px solid rgba(255,255,255,.85);z-index:3}
+    .rpsSlot{position:absolute;left:50%;top:50%;width:54px;height:54px;border-radius:999px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:1000;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.55);z-index:2;transform:rotate(var(--deg)) translateY(-124px) rotate(calc(-1 * var(--deg)))}
+    .rpsSlot .emoji{font-size:24px;line-height:1}
+    .rpsSlot .label{font-size:11px;margin-top:1px}
+    .rpsSlot.active{background:rgba(250,204,21,.92);color:#1d0b00;text-shadow:none;box-shadow:0 0 0 3px rgba(255,255,255,.8),0 0 22px rgba(250,204,21,.65)}
+    .rpsCenter{position:absolute;left:50%;top:50%;width:116px;height:116px;transform:translate(-50%,-50%);border-radius:50%;background:linear-gradient(135deg,#fb7185,#a855f7);border:5px solid #fff;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:1000;color:#fff;line-height:1.1;box-shadow:0 12px 28px rgba(0,0,0,.45);z-index:15;user-select:none}
+    .rpsCenter.stop{background:linear-gradient(135deg,#ef4444,#b91c1c);cursor:pointer;font-size:28px}
+    .rpsCenter.stop:hover{filter:brightness(1.08)}
+    .rpsResultBox{background:#0b1728;border:1px solid var(--line);border-radius:14px;padding:12px;min-height:86px;display:flex;flex-direction:column;justify-content:center;gap:6px;font-weight:1000}
+    .rpsResultBox .big{font-size:24px;color:#facc15;text-shadow:0 0 10px rgba(250,204,21,.25)}
+    .rpsRules{background:#081525;border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:12px;color:#dbeafe;font-size:13px;line-height:1.55;font-weight:800}
+    .rpsRules b{color:#facc15}
+    .rpsExplain{background:#081525;border:1px solid var(--line);border-radius:14px;padding:12px;color:#dbeafe;font-size:13px;line-height:1.65;font-weight:800;text-align:left}
+    .rpsExplain b{color:#facc15}
+    .rpsSpinHint{font-size:13px;color:#b9d7ff;font-weight:900;line-height:1.5;margin-top:8px}
+    .rpsSpinHint b{color:#facc15}
+
+
+
+
+/* ===== 아시아 EVENT / 4인 O.X ===== */
+.rpsRoom{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
+.rpsSeatGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.rpsSeat{min-height:190px;background:#081525;border:1px solid var(--line);border-radius:18px;padding:12px;text-align:center;position:relative;box-shadow:0 10px 22px rgba(0,0,0,.22)}
+.rpsSeat.me{border-color:#facc15;box-shadow:0 0 0 2px rgba(250,204,21,.22),0 10px 22px rgba(0,0,0,.28)}
+.rpsSeat.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#9fb4cd}
+.rpsSeatNo{position:absolute;left:10px;top:10px;background:#10213a;border:1px solid var(--line);border-radius:999px;padding:4px 8px;font-size:12px;font-weight:1000;color:#b9d7ff}
+.rpsSeatName{font-size:23px;font-weight:1000;color:#facc15;margin:22px 0 8px}
+.rpsChoiceHidden{font-size:15px;font-weight:1000;color:#34d399;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.35);border-radius:12px;padding:10px;margin-top:8px}
+.rpsChoiceOpen{font-size:48px;line-height:1;margin-top:10px;text-shadow:0 0 16px rgba(250,204,21,.35)}
+.rpsChoiceOpen span{display:block;font-size:16px;margin-top:4px;color:#fff;text-shadow:none}
+.rpsPickArea{background:#081525;border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:12px;text-align:center}
+.rpsPickTitle{font-size:18px;font-weight:1000;color:#facc15;margin-bottom:10px}
+.rpsButtons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:520px;margin:0 auto}
+.rpsBtn{height:112px;border-radius:18px;background:linear-gradient(135deg,#10213a,#1d4ed8);border:1px solid rgba(56,189,248,.45);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:18px;box-shadow:0 12px 24px rgba(0,0,0,.28)}
+.rpsBtn .emoji{font-size:44px;line-height:1}
+.rpsBtn.selected{border-color:#facc15;background:linear-gradient(135deg,#1d4ed8,#2563eb);box-shadow:0 0 0 3px rgba(250,204,21,.25),0 0 20px rgba(250,204,21,.18)}
+.rpsBtn:disabled{opacity:.45;cursor:not-allowed}
+.rpsActionRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;max-width:520px;margin-left:auto;margin-right:auto}
+.rpsStatusBox{background:#0b1728;border:1px solid var(--line);border-radius:14px;padding:14px;font-weight:900;color:#dbeafe;line-height:1.55;margin-top:12px;text-align:center}
+.rpsHistory{margin-top:14px;background:#081525;border:1px solid var(--line);border-radius:18px;padding:14px}
+.rpsHistory h3{margin:0 0 10px;color:#facc15}
+.rpsHistoryList{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-height:360px;overflow:auto}
+.rpsHistoryCard{background:#0b1728;border:1px solid var(--line);border-radius:14px;padding:10px}
+.rpsHistoryTitle{font-weight:1000;color:#b9d7ff;margin-bottom:8px}
+.rpsHistoryPlayers{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.rpsHistoryPlayer{background:#081525;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;text-align:center;font-weight:900;min-height:72px}
+.rpsHistoryPlayer.win{border-color:#34d399;background:rgba(52,211,153,.10)}
+.rpsHistoryPlayer.lose{border-color:#fb7185;background:rgba(251,113,133,.10)}
+.rpsHistoryPlayer.draw{border-color:#facc15;background:rgba(250,204,21,.08)}
+.rpsHistoryEmoji{font-size:26px;line-height:1.1}
+.rpsRules4{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.rpsRuleBox{background:#081525;border:1px solid var(--line);border-radius:14px;padding:12px;color:#dbeafe;font-size:13px;line-height:1.55;font-weight:800}
+.rpsRuleBox b{color:#facc15}
+
+
+/* ===== O.X 공개 긴장감 팝업 ===== */
+.oxRevealModal{width:760px;max-width:92vw;background:radial-gradient(circle at 50% 0%,rgba(250,204,21,.18),transparent 34%),#0f1b2e;border:1px solid rgba(250,204,21,.5);border-radius:22px;padding:22px;box-shadow:0 24px 80px rgba(0,0,0,.68);text-align:center}
+.oxRevealTitle{font-size:34px;font-weight:1000;color:#facc15;text-shadow:0 0 16px rgba(250,204,21,.35);margin-bottom:8px}
+.oxRevealSub{font-size:16px;font-weight:900;color:#b9d7ff;margin-bottom:18px}
+.oxGaugeOuter{width:100%;height:36px;background:#050b14;border:1px solid var(--line);border-radius:999px;overflow:hidden;box-shadow:inset 0 0 16px rgba(0,0,0,.55)}
+.oxGaugeFill{width:0%;height:100%;background:linear-gradient(90deg,#ef4444,#f97316,#facc15);border-radius:999px;box-shadow:0 0 18px rgba(250,204,21,.55);transition:width .08s linear}
+.oxGaugePercent{font-size:30px;font-weight:1000;color:#fff;margin-top:12px}
+.oxRevealCards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+.oxRevealCard{min-height:135px;background:#081525;border:1px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:1000;transform:rotateY(0deg);transition:transform .7s ease, border-color .3s ease, background .3s ease}
+.oxRevealCard.waiting .oxRevealEmoji{font-size:54px;color:#9fb4cd}
+.oxRevealCard.opened{transform:rotateY(360deg);border-color:#facc15;background:linear-gradient(135deg,#10213a,#1d4ed8)}
+.oxRevealCard.win{border-color:#34d399;background:rgba(52,211,153,.12)}
+.oxRevealCard.draw{border-color:#facc15;background:rgba(250,204,21,.10)}
+.oxRevealCard.lose{border-color:#fb7185;background:rgba(251,113,133,.10)}
+.oxRevealName{font-size:15px;color:#dbeafe;margin-bottom:8px}
+.oxRevealEmoji{font-size:48px;line-height:1}
+.oxRevealPoint{margin-top:7px;color:#facc15;font-size:18px}
+.oxRevealResult{margin-top:16px;background:#081525;border:1px solid var(--line);border-radius:14px;padding:12px;font-size:20px;font-weight:1000;color:#facc15}
+
+/* ===== 모바일 첫 화면 전용 최종 수정 =====
+   - 첫 메뉴 화면에서만 모바일 크기로 표시
+   - 아시아리그/경매/아시아EVENT 내부 페이지는 JS에서 pcMode로 전환되어 PC 화면 유지
+*/
+@media (max-width: 768px){
+  body:not(.pcMode){
+    min-width:0 !important;
+    width:100% !important;
+    overflow-x:hidden !important;
+  }
+
+  body:not(.pcMode) .landingPage{
+    min-width:0 !important;
+    width:100vw !important;
+    min-height:100dvh !important;
+    height:100dvh !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    padding:10px !important;
+    overflow:hidden !important;
+  }
+
+  body:not(.pcMode) .landingCard{
+    width:calc(100vw - 24px) !important;
+    max-width:360px !important;
+    border-radius:18px !important;
+    padding:18px 14px !important;
+    margin:0 auto !important;
+    text-align:center !important;
+    box-shadow:0 14px 38px rgba(0,0,0,.45) !important;
+  }
+
+  body:not(.pcMode) .landingCard h1{
+    font-size:30px !important;
+    line-height:1.05 !important;
+    margin:0 0 8px !important;
+    letter-spacing:-1px !important;
+    white-space:normal !important;
+  }
+
+  body:not(.pcMode) .landingCard p{
+    font-size:14px !important;
+    line-height:1.25 !important;
+    margin:0 0 14px !important;
+  }
+
+  body:not(.pcMode) .landingBtns,
+  body:not(.pcMode) .landingBtns.event3,
+  body:not(.pcMode) .landingBtns.event4{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:9px !important;
+    width:100% !important;
+  }
+
+  body:not(.pcMode) .landingBtn{
+    width:100% !important;
+    height:56px !important;
+    min-height:56px !important;
+    border-radius:14px !important;
+    font-size:18px !important;
+    line-height:1.1 !important;
+    padding:0 10px !important;
+    letter-spacing:-.5px !important;
+    white-space:nowrap !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+  }
+}
+
+@media (max-width: 360px){
+  body:not(.pcMode) .landingCard h1{font-size:26px !important;}
+  body:not(.pcMode) .landingCard p{font-size:13px !important;}
+  body:not(.pcMode) .landingBtn{height:52px !important;min-height:52px !important;font-size:16px !important;}
+}
+
+
+/* ===== ASIA TEST TABLE / 일반Æ 테스트 돌림판 ===== */
+.landingBtns.event4{grid-template-columns:repeat(4,1fr)}
+.landingBtn.test{background:linear-gradient(135deg,#facc15,#f97316);color:#201000}
+.testPage{min-height:100vh;background:#05070b;color:white;padding:18px 0 34px}
+.testWrap{width:1280px;margin:0 auto}
+.testTop{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.testTop h1{margin:0;color:#facc15;font-size:34px;text-shadow:0 0 16px rgba(250,204,21,.35)}
+.testBoard{display:grid;grid-template-columns:900px 1fr;gap:16px;align-items:start}
+.testPosterBox{position:relative;width:900px;border:1px solid rgba(250,204,21,.45);border-radius:18px;overflow:hidden;background:#111;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+.testPosterImg{width:100%;display:block}
+.testNeedleArea{position:absolute;left:53%;top:48.5%;width:260px;height:260px;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none}
+.testNeedle{position:absolute;left:50%;top:50%;width:14px;height:116px;background:linear-gradient(to top,#facc15,#ff3131);border-radius:999px;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(0deg);box-shadow:0 0 18px rgba(255,49,49,.75);transition:transform 4.7s cubic-bezier(.08,.78,.12,1)}
+.testNeedle:before{content:'';position:absolute;left:50%;top:-18px;transform:translateX(-50%);width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-bottom:32px solid #ff3131;filter:drop-shadow(0 0 8px rgba(255,49,49,.65))}
+.testNeedleHub{position:absolute;left:50%;top:50%;width:48px;height:48px;transform:translate(-50%,-50%);border-radius:50%;background:linear-gradient(135deg,#facc15,#f97316);border:5px solid white;box-shadow:0 0 18px rgba(0,0,0,.6)}
+.testPanel{border:1px solid rgba(250,204,21,.35);background:rgba(15,27,46,.96);border-radius:18px;padding:14px;box-shadow:0 18px 45px rgba(0,0,0,.32)}
+.testPanel h2{margin:0 0 10px;color:#facc15}
+.testPanel input{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:white;padding:12px;font-size:16px;font-weight:900}
+.testResult{margin-top:12px;background:#081525;border:1px solid var(--line);border-radius:14px;padding:14px;min-height:185px;text-align:center;color:#b9d7ff;font-weight:900}
+.testResult b{display:none;color:#facc15;font-size:23px;margin-top:7px;line-height:1.25;text-shadow:0 0 10px rgba(250,204,21,.25)}
+.testSpinActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.testSpinActions button{width:100%;font-size:21px}
+.testSelectedList{margin-top:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.testSelectedRow{min-height:72px;border:1px solid rgba(250,204,21,.28);background:#0b1728;border-radius:10px;padding:8px;color:#7f93ad;font-size:12px;font-weight:1000;line-height:1.25;text-align:center;display:flex;align-items:center;justify-content:center}
+.testSelectedRow.empty{color:#7f93ad}
+.testMapCard{position:relative;overflow:hidden;border-radius:12px;border:2px solid rgba(250,204,21,.95);height:140px;background:#000;box-shadow:0 0 12px rgba(250,204,21,.22);display:flex;align-items:center;justify-content:center}
+.testMapCard img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;background:#000}
+.testMapCard:after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);pointer-events:none}
+.testMapInfo{display:none}
+.testInfo{margin-top:12px;background:#081525;border:1px solid var(--line);border-radius:14px;padding:12px;color:#dbeafe;font-size:13px;line-height:1.55;font-weight:800}
+.testInfo b{color:#facc15}
+.testLog{margin-top:12px;height:280px;overflow:auto;background:#081525;border:1px solid var(--line);border-radius:14px;padding:10px}
+.testLog div{padding:8px 0;border-bottom:1px dashed rgba(255,255,255,.1);color:#ffd6df;font-weight:900;line-height:1.35}
+@media (max-width:768px){body:not(.pcMode) .landingBtns.event4{grid-template-columns:1fr !important}}
+
+
+/* ===== 아시아 내전 페이지 ===== */
+.landingBtns.event5{grid-template-columns:repeat(5,1fr)}
+.landingBtn.war{background:linear-gradient(135deg,#ef4444,#f97316);color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.35)}
+.awPage{min-height:100vh;background:radial-gradient(circle at 15% 5%,rgba(239,68,68,.15),transparent 30%),linear-gradient(135deg,#05070b,#091426 60%,#05070b);padding:18px 0 38px;color:#fff}
+.awWrap{width:1280px;margin:0 auto}.awTop{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.awTop h1{margin:0;color:#facc15;font-size:36px;text-shadow:0 0 16px rgba(250,204,21,.35)}.awGrid{display:grid;grid-template-columns:380px 1fr;gap:14px;align-items:start}.awPanel{border:1px solid rgba(250,204,21,.35);background:rgba(15,27,46,.95);border-radius:18px;padding:14px;box-shadow:0 18px 45px rgba(0,0,0,.32)}.awPanel h2{margin:0 0 10px;color:#facc15}.awLogin select,.awLogin input,.awOrderLogin select,.awOrderLogin input,.awModal input,.awOrderSelect{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:11px;font-size:15px}.awLogin{display:grid;grid-template-columns:1fr 120px;gap:8px;margin-top:8px}.awStatus{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.awStat{background:#081525;border:1px solid var(--line);border-radius:13px;padding:10px;text-align:center;font-weight:900}.awStat b{display:block;font-size:20px;color:#facc15;margin-top:4px}.awRuleBox{background:#081525;border:1px solid var(--line);border-radius:14px;padding:13px;line-height:1.65;font-weight:800;color:#dbeafe}.awRuleBox b{color:#facc15}.awFullBanner{display:none;margin-bottom:12px;background:linear-gradient(135deg,#ef4444,#b91c1c);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:16px;padding:15px;text-align:center;font-size:30px;font-weight:1000;letter-spacing:2px;box-shadow:0 0 22px rgba(239,68,68,.32)}.awFullBanner.on{display:block}.awLockedBanner{display:none;margin-bottom:12px;background:linear-gradient(135deg,#facc15,#f97316);color:#251000;border-radius:16px;padding:13px;text-align:center;font-size:22px;font-weight:1000}.awLockedBanner.on{display:block}.awLineGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.awLineCard{background:#081525;border:1px solid var(--line);border-radius:16px;padding:11px;min-height:285px}.awLineTitle{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:19px;font-weight:1000;color:#facc15;margin-bottom:8px}.awSlot{min-height:48px;margin:7px 0;background:#0b1728;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:9px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:1000}.awSlot.empty{color:#53677f;justify-content:center}.awName{word-break:keep-all}.awTeams{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.awTeamCard{background:#081525;border:1px solid var(--line);border-radius:16px;padding:12px;min-height:165px}.awTeamCard h3{margin:0 0 8px;font-size:22px}.awTeamCard.a h3{color:#ef4444}.awTeamCard.b h3{color:#f59e0b}.awTeamCard.c h3{color:#22c55e}.awTeamCard.d h3{color:#38bdf8}.awTeamMember{background:#0b1728;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;margin:6px 0;font-weight:900;display:flex;justify-content:space-between}.awTeamHead{display:flex;justify-content:space-between;align-items:center;gap:8px}.awConfirmedBadge{display:inline-flex;background:#34d399;color:#052014;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:1000}.awTeamColorBadge{display:inline-flex;background:#facc15;color:#251000;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:1000;max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.awOrderLoginBox{margin-top:12px;background:#081525;border:1px solid var(--line);border-radius:14px;padding:12px}.awOrderLogin{display:grid;grid-template-columns:1fr 140px 90px;gap:8px}.awOrderGrid{display:grid;grid-template-columns:135px 1fr;gap:8px;align-items:center;margin:8px 0}.awOrderHint{font-size:13px;line-height:1.5;color:#b9d7ff;font-weight:800}.awActionRow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.awLog{height:190px;overflow:auto;background:#081525;border:1px solid var(--line);border-radius:12px;padding:8px;margin-top:10px}.awLog div{padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.08);font-weight:900;color:#ffd6df}.awModalBg{position:fixed;inset:0;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;z-index:30}.awModal{width:470px;background:#0f1b2e;border:1px solid rgba(250,204,21,.45);border-radius:18px;padding:16px;box-shadow:0 20px 70px rgba(0,0,0,.62)}.awModal h2{margin:0 0 10px;color:#facc15}.awModalBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.awAdminBox{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
+@media (max-width:768px){body:not(.pcMode) .landingBtns.event5{grid-template-columns:1fr !important}.awWrap{width:1280px}body.pcMode{min-width:1280px}}
+
+</style>
 </head>
 <body>
 <div id="landingPage" class="landingPage">
   <div class="landingCard">
     <h1>AE ASIA LEAGUE</h1>
     <p>아시아리그 시즌39 운영 페이지</p>
-    <div class="landingBtns">
-      <button class="landingBtn test" onclick="notReady('테스트')">테스트</button>
-      <button class="landingBtn event" onclick="notReady('아시아 EVENT')">아시아<br>EVENT</button>
-      <button class="landingBtn auction" onclick="notReady('아시아리그 경매')">아시아리그<br>경매</button>
-      <button class="landingBtn league" onclick="notReady('아시아리그 대진표')">아시아리그<br>대진표</button>
-      <button class="landingBtn war" onclick="showWarPage()">아시아<br>내전</button>
+    <div class="landingBtns event5">
+      <button class="landingBtn test" onclick="showTestPage()">테스트</button>
+      <button class="landingBtn event" onclick="showEventPage()">아시아 EVENT</button>
+      <button class="landingBtn auction" onclick="showAuctionPage()">아시아리그 경매</button>
+      <button class="landingBtn league" onclick="showLeaguePage()">아시아리그 대진표</button>
+      <button class="landingBtn war" onclick="showWarPage()">아시아 내전</button>
     </div>
   </div>
 </div>
 
-<div id="warPage" class="page" style="display:none">
-  <div class="wrap">
-    <div class="top">
-      <h1>[아시아 내전]</h1>
+<div id="leaguePage" class="leaguePage" style="display:none">
+  <div class="leagueWrap">
+    <div class="leagueTop">
+      <h1>아시아리그 [시즌39]</h1>
       <div class="topBtns">
-        <button class="gold" onclick="openTeamDraw()">팀 추첨</button>
-        <button class="warn" onclick="openAdminPanel()">운영진 패널</button>
+        <button class="gold" onclick="openLeagueDraw()">조추첨하기</button>
         <button class="ghost" onclick="showLandingPage()">처음으로</button>
+        <button class="ghost" onclick="showAuctionPage()">아시아리그 경매</button>
       </div>
     </div>
-    <div id="fullBanner" class="fullBanner">FULL</div>
-    <div id="lockedBanner" class="lockedBanner">운영진 확정 완료 · 더 이상 지원할 수 없습니다.</div>
-    <div class="grid">
-      <div class="panel">
-        <h2>로그인 / 지원하기</h2>
-        <div id="loginBox"></div>
-        <div class="actionRow">
-          <button id="applyBtn" class="gold" onclick="applyWar()">지원하기</button>
-          <button class="ghost" onclick="logoutWar()">로그아웃</button>
-        </div>
-        <div class="ruleBox" style="margin-top:12px">
-          <b>아시아 내전 규칙</b><br>
-          총 4명이 한 팀이며 개인전으로 진행합니다.<br><br>
-          개인전 1 : 각 팀 2명씩 출전<br>
-          개인전 2 : 각 팀 2명씩 출전<br><br>
-          카러플 커스텀 개인전 점수를 기준으로 하며, 아이디 공개로 진행됩니다.<br>
-          팀끼리는 컬러를 맞춰야 합니다.<br>
-          한 팀을 저격하거나 괴롭히는 행위는 가능합니다.<br><br>
-          개인전 1 + 2 점수를 합산하여 최고 점수 2팀이 결승전에 진출합니다.<br>
-          결승전은 4:4 개인전으로 진행되며, 합산 점수로 우승이 결정됩니다.
-        </div>
-        <div class="log" id="warLog"></div>
+
+    <div class="leaguePosterBox">
+      <img class="leaguePosterImg" src="https://i.ibb.co/m5FQ8SgN/4472c0c0-72ab-4d13-8615-b70ca66748cf.jpg" alt="아시아리그 시즌39 대진표">
+      <div class="leagueGroupOverlay">
+        <div class="leagueGroupCard a"><div class="leagueGroupTitle" style="color:#ef4444">A조</div><div id="leagueMembers_A" class="leagueMembers">미정</div><div id="leagueTeam_A" class="leagueTeamName">( 팀 )</div></div>
+        <div class="leagueGroupCard b"><div class="leagueGroupTitle" style="color:#f59e0b">B조</div><div id="leagueMembers_B" class="leagueMembers">미정</div><div id="leagueTeam_B" class="leagueTeamName">( 팀 )</div></div>
+        <div class="leagueGroupCard c"><div class="leagueGroupTitle" style="color:#22c55e">C조</div><div id="leagueMembers_C" class="leagueMembers">미정</div><div id="leagueTeam_C" class="leagueTeamName">( 팀 )</div></div>
+        <div class="leagueGroupCard d"><div class="leagueGroupTitle" style="color:#38bdf8">D조</div><div id="leagueMembers_D" class="leagueMembers">미정</div><div id="leagueTeam_D" class="leagueTeamName">( 팀 )</div></div>
+        <div class="leagueGroupCard e"><div class="leagueGroupTitle" style="color:#a855f7">E조</div><div id="leagueMembers_E" class="leagueMembers">미정</div><div id="leagueTeam_E" class="leagueTeamName">( 팀 )</div></div>
       </div>
-      <div>
-        <div class="panel">
-          <h2>참가선수</h2>
-          <p class="muted" style="margin-top:0">실력 기준에 따라 1라인부터 자동 배정됩니다. 각 라인은 최대 4명입니다.</p>
-          <div class="lineGrid" id="lineGrid"></div>
-        </div>
-        <div class="panel" style="margin-top:14px">
-          <div class="teamHead"><h2>팀 추첨 결과</h2><button id="orderOpenBtn" class="ok" style="display:none" onclick="toggleOrderLogin()">출전순서 정하기</button></div>
-          <div id="orderLoginBox" class="orderLoginBox" style="display:none"></div>
-          <p class="muted" style="margin-top:0">1라인, 2라인, 3라인, 4라인에서 각각 1명씩 랜덤으로 뽑혀 한 팀이 됩니다.</p>
-          <div class="teams" id="teamGrid"></div>
-        </div>
+    </div>
+
+    <div class="leaguePanel">
+      <h2>진행 시간</h2>
+      <div class="leagueTimeGrid">
+        <div>18:30</div><div>조추첨</div>
+        <div>19:00</div><div>A vs B / C vs D</div>
+        <div>19:25</div><div>E vs A / B vs C</div>
+        <div>19:50</div><div>D vs E</div>
+        <div>20:15</div><div>PLAY IN : 예선 4위 vs 예선 5위</div>
+        <div>20:45</div><div>준결승 1 : 예선 1위 vs PLAY IN 승자 / 준결승 2 : 예선 2위 vs 예선 3위</div>
+        <div>21:15</div><div>결승전 / 3,4위전 동시 진행</div>
       </div>
     </div>
   </div>
 </div>
+
+
+
+<div id="eventPage" class="eventPage" style="display:none">
+  <div class="eventWrap">
+    <div class="eventTop">
+      <h1>[아시아EVENT] O.X 게임</h1>
+      <div class="topBtns">
+        <button class="ghost" onclick="showLandingPage()">처음으로</button>
+        <button class="ghost" onclick="showLeaguePage()">아시아리그 대진표</button>
+        <button class="ghost" onclick="showAuctionPage()">아시아리그 경매</button>
+      </div>
+    </div>
+    <div class="eventGrid">
+      <div class="eventPanel">
+        <div class="sectionHead">
+          <h2>4인 선착순 O.X 게임</h2>
+          <span class="tinyBadge">4명 모두 선택 시 자동 공개</span>
+        </div>
+        <div id="eventUserBox"></div>
+        <div id="rpsGameBox"></div>
+      </div>
+      <div class="eventPanel">
+        <div class="sectionHead">
+          <h2>내 정보 / 순위</h2>
+          <button class="gold" onclick="openEventAdmin()">운영진 패널</button>
+        </div>
+        <div id="eventSide"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="testPage" class="testPage" style="display:none">
+  <div class="testWrap">
+    <div class="testTop">
+      <h1>ASIA TEST TABLE</h1>
+      <div class="topBtns">
+        <button class="ghost" onclick="showLandingPage()">처음으로</button>
+        <button class="ghost" onclick="showEventPage()">아시아 EVENT</button>
+        <button class="ghost" onclick="showAuctionPage()">아시아리그 경매</button>
+        <button class="ghost" onclick="showLeaguePage()">아시아리그 대진표</button>
+      </div>
+    </div>
+
+    <div class="testBoard">
+      <div class="testPosterBox">
+        <img class="testPosterImg" src="https://i.ibb.co/zh5mkTP2/mainpic.jpg" alt="ASIA TEST TABLE">
+        <div class="testNeedleArea">
+          <div id="testNeedle" class="testNeedle"></div>
+          <div class="testNeedleHub"></div>
+        </div>
+      </div>
+
+      <div class="testPanel">
+        <h2>본인 아이디 입력</h2>
+        <input id="testUserId" placeholder="본인 아이디를 입력하세요" autocomplete="off">
+
+        <div class="testSpinActions">
+          <button id="testSpinBtn" class="gold" onclick="spinTestWheel()">돌리기</button>
+          <button class="ghost" onclick="captureTestPanelOnly()">스크린샷</button>
+        </div>
+
+        <div class="testResult">
+          선택된 맵
+          <b id="testResultName">대기중</b>
+          <div id="testSelectedList" class="testSelectedList">
+            <div class="testSelectedRow empty">1번 맵 : 대기중</div>
+            <div class="testSelectedRow empty">2번 맵 : 대기중</div>
+            <div class="testSelectedRow empty">3번 맵 : 대기중</div>
+          </div>
+        </div>
+
+        <div class="testInfo">
+          <b>안내</b><br>
+          본인 아이디를 입력해야 돌릴 수 있습니다.<br>
+          한 아이디당 총 3번까지 돌릴 수 있으며, 돌린 결과는 LOG에 저장됩니다.<br>
+          입력한 아이디 기록은 30분 뒤 자동으로 리셋됩니다.<br>
+          돌리면 바로 기록되므로 다시 돌리시면 안 됩니다.
+        </div>
+
+        <h2 style="margin-top:14px">LOG</h2>
+        <div id="testLog" class="testLog"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div id="warPage" class="awPage" style="display:none">
+  <div class="awWrap">
+    <div class="awTop"><h1>[아시아 내전]</h1><div class="topBtns"><button class="gold" onclick="awOpenTeamDraw()">팀 추첨</button><button class="warn" onclick="awOpenAdminPanel()">운영진 패널</button><button class="ghost" onclick="showLandingPage()">처음으로</button></div></div>
+    <div id="awFullBanner" class="awFullBanner">FULL</div><div id="awLockedBanner" class="awLockedBanner">운영진 확정 완료 · 더 이상 지원할 수 없습니다.</div>
+    <div class="awGrid">
+      <div class="awPanel"><h2>로그인 / 지원하기</h2><div id="awLoginBox"></div><div class="awActionRow"><button id="awApplyBtn" class="gold" onclick="awApply()">지원하기</button><button class="ghost" onclick="awLogout()">로그아웃</button></div><div class="awRuleBox" style="margin-top:12px"><b>아시아 내전 규칙</b><br>총 4명이 한 팀이며 개인전으로 진행합니다.<br><br>개인전 1 : 각 팀 2명씩 출전<br>개인전 2 : 각 팀 2명씩 출전<br><br>카러플 커스텀 개인전 점수를 기준으로 하며, 아이디 공개로 진행됩니다.<br>팀끼리는 컬러를 맞춰야 합니다.<br>한 팀을 저격하거나 괴롭히는 행위는 가능합니다.<br><br>개인전 1 + 2 점수를 합산하여 최고 점수 2팀이 결승전에 진출합니다.<br>결승전은 4:4 개인전으로 진행되며, 합산 점수로 우승이 결정됩니다.</div><div class="awLog" id="awLog"></div></div>
+      <div><div class="awPanel"><h2>참가선수</h2><p class="muted" style="margin-top:0">실력 기준에 따라 1라인부터 자동 배정됩니다. 각 라인은 최대 4명입니다.</p><div class="awLineGrid" id="awLineGrid"></div></div><div class="awPanel" style="margin-top:14px"><div class="awTeamHead"><h2>팀 추첨 결과</h2><button id="awOrderOpenBtn" class="ok" style="display:none" onclick="awToggleOrderLogin()">출전순서 정하기</button></div><div id="awOrderLoginBox" class="awOrderLoginBox" style="display:none"></div><p class="muted" style="margin-top:0">1라인, 2라인, 3라인, 4라인에서 각각 1명씩 랜덤으로 뽑혀 한 팀이 됩니다.</p><div class="awTeams" id="awTeamGrid"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="app" style="display:none"><div class="wrap">불러오는 중...</div></div>
 <div id="modalRoot"></div>
 
 <script>
-const SUPABASE_URL='https://xyibdanmecakevhtdajl.supabase.co';
-const SUPABASE_ANON_KEY='sb_publishable_uvYqwDymxodcSdpT1zAWyg_PeVHh_ZO';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-const WAR_TABLE='asia_civil_war_state';
-const ADMIN_PW='0523';
-let warMembers=[], warState=null, warMe=JSON.parse(localStorage.getItem('asia_war_me')||'null');
-let refreshTimer=null;
-const modalRoot=document.getElementById('modalRoot');
-function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-function defaultWarState(){return {applications:[],finalized:false,teams:null,teamOrders:{},logs:[],updatedAt:new Date().toISOString()};}
-function normalizeWarState(st){st=st&&typeof st==='object'?st:{};return {applications:Array.isArray(st.applications)?st.applications:[],finalized:!!st.finalized,teams:st.teams||null,teamOrders:st.teamOrders&&typeof st.teamOrders==='object'?st.teamOrders:{},logs:Array.isArray(st.logs)?st.logs.slice(0,120):[],updatedAt:st.updatedAt||new Date().toISOString()};}
-function logWar(msg){warState.logs=[`[${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}] ${msg}`,...(warState.logs||[])].slice(0,120);}
-async function loadMembers(){const r=await sb.from('asia_event_members').select('nickname,password,level').order('nickname',{ascending:true}); if(r.error) throw new Error(r.error.message); warMembers=(r.data||[]).map(x=>({name:String(x.nickname||'').trim(),pw:String(x.password||'').trim(),level:Number(x.level||0)})).filter(x=>x.name);}
-async function saveWar(){warState.updatedAt=new Date().toISOString(); const r=await sb.from(WAR_TABLE).upsert({id:1,state:warState,updated_at:new Date().toISOString()},{onConflict:'id'}).select('id'); if(r.error) throw new Error(r.error.message);}
-async function loadWar(){let r=await sb.from(WAR_TABLE).select('state').eq('id',1).maybeSingle(); if(r.error) throw new Error(r.error.message); if(!r.data){warState=defaultWarState();}else warState=normalizeWarState(r.data.state);}
-async function bootWar(){try{await loadMembers(); await loadWar(); renderWar(); if(refreshTimer) clearInterval(refreshTimer); refreshTimer=setInterval(async()=>{try{await loadMembers(); await loadWar(); renderWar();}catch(e){}},2500);}catch(e){alert('데이터 불러오기 실패: '+(e.message||e));}}
-function sortedApplicants(){const map=new Map(warMembers.map(m=>[m.name,m])); return (warState.applications||[]).map(a=>({name:a.name,level:Number(a.level??map.get(a.name)?.level??0),at:a.at})).sort((a,b)=>b.level-a.level||new Date(a.at)-new Date(b.at));}
-function getLines(){const arr=sortedApplicants().slice(0,16); return [arr.slice(0,4),arr.slice(4,8),arr.slice(8,12),arr.slice(12,16)];}
-function renderWar(){renderLogin(); const apps=sortedApplicants(); document.getElementById('fullBanner').classList.toggle('on',apps.length>=16); document.getElementById('lockedBanner').classList.toggle('on',warState.finalized); const applyBtn=document.getElementById('applyBtn'); if(applyBtn) applyBtn.disabled=!warMe||warState.finalized||apps.some(a=>a.name===warMe.name)||apps.length>=16; const lines=getLines(); document.getElementById('lineGrid').innerHTML=lines.map((line,i)=>`<div class="lineCard"><div class="lineTitle"><span>${i+1}라인</span><span>${line.length}/4</span></div>${[0,1,2,3].map(j=>{const p=line[j]; return p?`<div class="slot"><span class="name">${esc(p.name)}</span></div>`:`<div class="slot empty">빈 자리</div>`}).join('')}</div>`).join(''); renderTeams(); document.getElementById('warLog').innerHTML=(warState.logs||[]).map(x=>`<div>${esc(x)}</div>`).join('')||'<div class="muted">아직 기록이 없습니다.</div>';}
-let lastLoginMemberSignature='';
-function renderLogin(){
-  const box=document.getElementById('loginBox');
+
+/* ===== 첫 화면 / 아시아리그 조추첨 기능 ===== */
+const LEAGUE_ADMIN_PASSWORD='0473';
+const LEAGUE_GROUPS=['A','B','C','D','E'];
+const DEFAULT_LEAGUE_TEAMS=[
+  {captain:'노을',member1:'제로',member2:'브칠',member3:'미또'},
+  {captain:'상호',member1:'미신트',member2:'로딩',member3:'줄리엣'},
+  {captain:'구리',member1:'키라',member2:'라곤',member3:'네오'},
+  {captain:'시크릿',member1:'헬츠',member2:'로버',member3:'짱이'},
+  {captain:'음',member1:'흠',member2:'이뚜',member3:'둘리'}
+];
+let leagueState=JSON.parse(localStorage.getItem('asia_league_draw_state')||'{"teams":[],"assigned":{},"rotation":0}');
+if(!Array.isArray(leagueState.teams) || leagueState.teams.length<5){
+  leagueState.teams=DEFAULT_LEAGUE_TEAMS.map(t=>({...t}));
+  leagueState.assigned=leagueState.assigned||{};
+  leagueState.rotation=leagueState.rotation||0;
+  localStorage.setItem('asia_league_draw_state',JSON.stringify(leagueState));
+}
+let leagueCurrentTarget=null;
+let leagueSpinning=false;
+
+function setMobileLandingMode(){
+  const vp=document.getElementById('viewportMeta');
+  if(vp) vp.setAttribute('content','width=device-width, initial-scale=1.0');
+  document.body.classList.remove('pcMode');
+}
+function setPcPageMode(){
+  const vp=document.getElementById('viewportMeta');
+  if(vp) vp.setAttribute('content','width=1280, initial-scale=1.0');
+  document.body.classList.add('pcMode');
+}
+function saveLeagueState(){localStorage.setItem('asia_league_draw_state',JSON.stringify(leagueState));}
+function setPageViewport(mode){
+  const vp=document.querySelector('meta[name="viewport"]');
+  if(!vp) return;
+  if(mode==='pc'){
+    vp.setAttribute('content','width=1280, initial-scale=1.0');
+    document.body.classList.remove('landingMode');
+    document.body.classList.add('pcMode');
+  }else{
+    vp.setAttribute('content','width=device-width, initial-scale=1.0, viewport-fit=cover');
+    document.body.classList.remove('pcMode');
+    document.body.classList.add('landingMode');
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>setPageViewport('landing'));
+
+
+/* ===== 모바일/브라우저 뒤로가기: 내부 페이지 전환 기록 ===== */
+let asiaCurrentPage = 'landing';
+let asiaHistoryReady = false;
+let asiaHandlingPopState = false;
+
+function asiaEnsureHistory(){
+  if(asiaHistoryReady) return;
+  try{
+    history.replaceState({asiaPage: asiaCurrentPage}, '', location.href);
+    asiaHistoryReady = true;
+  }catch(e){}
+}
+
+function asiaPushPage(page){
+  asiaEnsureHistory();
+  if(asiaHandlingPopState) return;
+  if(asiaCurrentPage === page) return;
+  try{ history.pushState({asiaPage: page}, '', location.href); }catch(e){}
+}
+
+function asiaOpenPageFromHistory(page){
+  asiaHandlingPopState = true;
+  if(page === 'league') showLeaguePage();
+  else if(page === 'auction') showAuctionPage();
+  else if(page === 'event') showEventPage();
+  else if(page === 'test') showTestPage();
+  else showLandingPage();
+  asiaHandlingPopState = false;
+}
+
+window.addEventListener('popstate', function(e){
+  const page = e.state && e.state.asiaPage ? e.state.asiaPage : 'landing';
+  modalRoot.innerHTML = '';
+  asiaOpenPageFromHistory(page);
+});
+function showLandingPage(){
+  asiaPushPage('landing');
+  asiaCurrentPage='landing';
+  setPageViewport('landing');
+  document.getElementById('landingPage').style.display='flex';
+  document.getElementById('leaguePage').style.display='none';
+  document.getElementById('app').style.display='none';
+  document.getElementById('eventPage').style.display='none';
+  document.getElementById('testPage').style.display='none';
+}
+function showLeaguePage(){
+  asiaPushPage('league');
+  asiaCurrentPage='league';
+  setPageViewport('pc');
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('leaguePage').style.display='block';
+  document.getElementById('app').style.display='none';
+  document.getElementById('eventPage').style.display='none';
+  document.getElementById('testPage').style.display='none';
+  renderLeagueGroups();
+}
+function showAuctionPage(){
+  asiaPushPage('auction');
+  asiaCurrentPage='auction';
+  setPageViewport('pc');
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('leaguePage').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('eventPage').style.display='none';
+  document.getElementById('testPage').style.display='none';
+}
+function showEventPage(){
+  asiaPushPage('event');
+  asiaCurrentPage='event';
+  setPageViewport('pc');
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('leaguePage').style.display='none';
+  document.getElementById('app').style.display='none';
+  document.getElementById('eventPage').style.display='block';
+  document.getElementById('testPage').style.display='none';
+  eventBoot();
+}
+function showTestPage(){
+  asiaPushPage('test');
+  asiaCurrentPage='test';
+  setPageViewport('pc');
+  document.getElementById('landingPage').style.display='none';
+  document.getElementById('leaguePage').style.display='none';
+  document.getElementById('app').style.display='none';
+  document.getElementById('eventPage').style.display='none';
+  document.getElementById('testPage').style.display='block';
+  renderTestLog();
+}
+function leagueEscape(v){return String(v??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function renderLeagueGroups(){
+  LEAGUE_GROUPS.forEach(g=>{
+    const t=leagueState.assigned?.[g];
+    const mem=document.getElementById('leagueMembers_'+g);
+    const name=document.getElementById('leagueTeam_'+g);
+    if(!mem||!name) return;
+    if(t){
+      mem.textContent=[t.captain,t.member1,t.member2,t.member3].filter(Boolean).join(' ');
+      name.textContent=`${t.captain||'XX'}팀`;
+    }else{
+      mem.textContent='미정';
+      name.textContent='( 팀 )';
+    }
+  });
+}
+function leagueAskPw(title='운영진 비밀번호'){
+  const pw=prompt(title+'\n비밀번호를 입력하세요.');
+  return pw===LEAGUE_ADMIN_PASSWORD;
+}
+function openLeagueDraw(){
+  modalRoot.innerHTML=`<div class="modalBg"><div class="leagueModal">
+    <div class="sectionHead">
+      <h2>아시아리그 조추첨</h2>
+      <div class="topBtns">
+        <button class="danger" onclick="resetLeagueDraw()">리셋</button>
+        <button class="ghost" onclick="closeLeagueDraw()">닫기</button>
+      </div>
+    </div>
+    <div class="leagueModalLayout">
+      <div>
+        <div class="leagueWheelWrap">
+          <div class="leagueWheelPointer"></div>
+          <canvas id="leagueWheelCanvas" class="leagueWheelCanvas"></canvas>
+          <div class="leagueWheelHub">TEAM<br>DRAW</div>
+        </div>
+        <div id="leagueDrawResult" class="leagueResultBox">조를 선택하고 돌려주세요</div>
+        <div class="assignBtns">
+          ${LEAGUE_GROUPS.map(g=>`<button id="drawBtn_${g}" onclick="spinLeagueGroup('${g}')">${g}조 돌리기</button>`).join('')}
+        </div>
+        <div class="leagueAssignedList" id="leagueAssignedList"></div>
+      </div>
+      <div>
+        <div class="sectionHead">
+          <h2>운영진 패널</h2>
+          <button class="gold" onclick="saveLeagueTeams()">저장</button>
+        </div>
+        <p class="muted" style="margin-top:0">주장과 팀원 3명을 입력한 뒤 [저장]을 누르면 XX팀 목록이 저장됩니다. 조추첨은 나중에 돌려도 됩니다.</p>
+        <div class="leagueInputGrid">
+          ${[0,1,2,3,4].map(i=>{
+            const t=leagueState.teams?.[i]||{};
+            return `<div class="leagueInputTeam">
+              <h3>${i+1}번 팀</h3>
+              <input id="lg_cap_${i}" placeholder="주장" value="${leagueEscape(t.captain||'')}">
+              <input id="lg_m1_${i}" placeholder="팀원" value="${leagueEscape(t.member1||'')}">
+              <input id="lg_m2_${i}" placeholder="팀원" value="${leagueEscape(t.member2||'')}">
+              <input id="lg_m3_${i}" placeholder="팀원" value="${leagueEscape(t.member3||'')}">
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="ok" onclick="completeLeagueDraw()">완료 후 닫기</button>
+          <button class="ghost" onclick="drawLeagueWheel()">돌림판 새로고침</button>
+        </div>
+      </div>
+    </div>
+  </div></div>`;
+  setTimeout(()=>{drawLeagueWheel(); renderLeagueDrawStatus();},0);
+}
+function closeLeagueDraw(){if(leagueSpinning) return; modalRoot.innerHTML=''; renderLeagueGroups();}
+function saveLeagueTeams(){
+  if(!leagueAskPw('운영진 패널')) return;
+  leagueState.teams=[0,1,2,3,4].map(i=>({
+    captain:document.getElementById('lg_cap_'+i)?.value.trim()||`XX${i+1}`,
+    member1:document.getElementById('lg_m1_'+i)?.value.trim()||'',
+    member2:document.getElementById('lg_m2_'+i)?.value.trim()||'',
+    member3:document.getElementById('lg_m3_'+i)?.value.trim()||''
+  }));
+  leagueState.assigned=leagueState.assigned||{};
+  saveLeagueState();
+  drawLeagueWheel();
+  renderLeagueDrawStatus();
+  alert('팀 입력이 저장되었습니다.');
+}
+function remainingLeagueTeams(){
+  const used=new Set(Object.values(leagueState.assigned||{}).map(t=>t?.captain));
+  return (leagueState.teams||[]).filter(t=>t && t.captain && !used.has(t.captain));
+}
+function drawLeagueWheel(){
+  const canvas=document.getElementById('leagueWheelCanvas'); if(!canvas) return;
+  const teams=remainingLeagueTeams();
+  const dpr=window.devicePixelRatio||1, size=320;
+  canvas.width=size*dpr; canvas.height=size*dpr; canvas.style.width=size+'px'; canvas.style.height=size+'px';
+  const ctx=canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,size,size);
+  const cx=size/2, cy=size/2, r=size/2-8;
+  const list=teams.length?teams:[{captain:'대기중'}];
+  const seg=Math.PI*2/list.length;
+  const colors=['#ef4444','#f59e0b','#22c55e','#38bdf8','#a855f7'];
+  ctx.save(); ctx.translate(cx,cy); ctx.rotate(-Math.PI/2);
+  list.forEach((t,i)=>{
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,r,i*seg,(i+1)*seg); ctx.closePath();
+    ctx.fillStyle=colors[i%colors.length]; ctx.fill(); ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.stroke();
+    ctx.save(); ctx.rotate(i*seg+seg/2); ctx.textAlign='right'; ctx.textBaseline='middle'; ctx.fillStyle='white'; ctx.font='900 18px Arial';
+    ctx.fillText(`${t.captain}팀`,r-16,0); ctx.restore();
+  });
+  ctx.restore();
+  canvas.style.transform=`rotate(${leagueState.rotation||0}deg)`;
+}
+function renderLeagueDrawStatus(){
+  LEAGUE_GROUPS.forEach(g=>{
+    const btn=document.getElementById('drawBtn_'+g);
+    if(btn){
+      const done=!!leagueState.assigned?.[g];
+      btn.classList.toggle('assigned',done);
+      btn.textContent=done?`${g}조 완료`:`${g}조 돌리기`;
+      btn.disabled=done || leagueSpinning;
+    }
+  });
+  const box=document.getElementById('leagueAssignedList');
+  if(box) box.innerHTML=LEAGUE_GROUPS.map(g=>{
+    const t=leagueState.assigned?.[g];
+    return `<div class="leagueAssignedItem">${g}조<br>${t?leagueEscape(t.captain+'팀'):'미정'}</div>`;
+  }).join('');
+}
+function spinLeagueGroup(g){
+  if(leagueSpinning) return;
+  const teams=remainingLeagueTeams();
+  if(!teams.length) return alert('남은 팀이 없습니다.');
+  if(leagueState.assigned?.[g]) return alert(g+'조는 이미 배정되었습니다.');
+  leagueCurrentTarget=g;
+  leagueSpinning=true;
+  playWheelSpinSound();
+  renderLeagueDrawStatus();
+  const picked=Math.floor(Math.random()*teams.length);
+  const seg=360/teams.length;
+  const center=picked*seg+seg/2;
+  const current=((leagueState.rotation||0)%360+360)%360;
+  const target=(360-center+360)%360;
+  let delta=(target-current+360)%360;
+  delta+=360*(6+Math.floor(Math.random()*3));
+  leagueState.rotation=(leagueState.rotation||0)+delta;
+  const canvas=document.getElementById('leagueWheelCanvas');
+  const result=document.getElementById('leagueDrawResult');
+  if(result) result.textContent=`${g}조 추첨 중...`;
+  if(canvas) canvas.style.transform=`rotate(${leagueState.rotation}deg)`;
+  setTimeout(()=>{
+    const team=teams[picked];
+    leagueState.assigned=leagueState.assigned||{};
+    leagueState.assigned[g]=team;
+    saveLeagueState();
+    stopWheelSpinSound();
+    playWheelResultSound();
+    if(result) result.textContent=`${g}조 : ${team.captain}팀`;
+    leagueSpinning=false;
+    drawLeagueWheel();
+    renderLeagueDrawStatus();
+  },4700);
+}
+function resetLeagueDraw(){
+  if(!leagueAskPw('리셋')) return;
+  if(!confirm('조추첨 입력/배정 내용을 모두 리셋할까요?')) return;
+  leagueState={teams:DEFAULT_LEAGUE_TEAMS.map(t=>({...t})),assigned:{},rotation:0};
+  saveLeagueState();
+  renderLeagueGroups();
+  openLeagueDraw();
+}
+function completeLeagueDraw(){
+  renderLeagueGroups();
+  saveLeagueState();
+  modalRoot.innerHTML='';
+  alert('조추첨 결과가 메인 대진표에 반영되었습니다.');
+}
+document.addEventListener('DOMContentLoaded',()=>{setMobileLandingMode();renderLeagueGroups();});
+
+
+/* ===== 일반Æ 테스트표 돌림판 기능 / Supabase 로그 저장 ===== */
+const ASIA_TEST_MAPS = [
+  {name:'차이나 골목길 대질주', time:'2:02:99', angle:0, img:'https://i.ibb.co/ym78gsCy/image.jpg'},
+  {name:'포레스트 오싹한 공중다리', time:'2:03:49', angle:36, img:'https://i.ibb.co/JFpryTwn/image.jpg'},
+  {name:'사막 놀라운 공룡 유적지', time:'1:37:79', angle:72, img:'https://i.ibb.co/8nC66pW8/image.jpg'},
+  {name:'차이나 청명한 하늘의 서호', time:'1:46:49', angle:108, img:'https://i.ibb.co/mkFyR7v/image.jpg'},
+  {name:'빌리지 운명의 다리', time:'1:57:99', angle:144, img:'https://i.ibb.co/tPCbk4Hy/image.jpg'},
+  {name:'노르테유 전투 비행장', time:'1:46:29', angle:180, img:'https://i.ibb.co/Y416TKjh/image.jpg'},
+  {name:'올림포스 하늘의 신전', time:'2:05:79', angle:216, img:'https://i.ibb.co/XfgJXSH1/image.jpg'},
+  {name:'노르테유 스카이웨이', time:'1:53:99', angle:252, img:'https://i.ibb.co/vCdYbNdL/image.jpg'},
+  {name:'네모 산타의 비밀공간', time:'1:33:99', angle:288, img:'https://i.ibb.co/1YVmx0VV/image.jpg'},
+  {name:'황금문명 오르에트 황금 좌표', time:'1:34:49', angle:324, img:'https://i.ibb.co/twNMCLVB/image.jpg'}
+];
+
+let testWheelRotation = 0;
+let testWheelSpinning = false;
+const ASIA_TEST_LOG_TABLE = 'asia_test_log';
+
+function get30MinAgoISO(){
+  return new Date(Date.now() - 30 * 60 * 1000).toISOString();
+}
+function getTestOrderText(n){
+  if(n === 1) return '1번';
+  if(n === 2) return '2번';
+  if(n === 3) return '3번';
+  return n + '번';
+}
+function normalizeDeg(deg){
+  return ((deg % 360) + 360) % 360;
+}
+function getMapByNeedleAngle(angle){
+  const a = normalizeDeg(angle);
+  let best = 0;
+  let bestDiff = 999;
+  ASIA_TEST_MAPS.forEach((m, i)=>{
+    const diff = Math.abs(((a - m.angle + 540) % 360) - 180);
+    if(diff < bestDiff){bestDiff = diff; best = i;}
+  });
+  return ASIA_TEST_MAPS[best];
+}
+
+async function cleanupOldAsiaTestLogs(){
+  try{
+    await sb
+      .from(ASIA_TEST_LOG_TABLE)
+      .delete()
+      .lt('created_at', get30MinAgoISO());
+  }catch(e){
+    console.warn('오래된 테스트 로그 삭제 실패', e);
+  }
+}
+
+async function getUserRecentLogs(userId){
+  const { data, error } = await sb
+    .from(ASIA_TEST_LOG_TABLE)
+    .select('*')
+    .eq('user_id', userId)
+    .gte('created_at', get30MinAgoISO())
+    .order('created_at', { ascending:true });
+
+  if(error) throw error;
+  return data || [];
+}
+
+async function saveAsiaTestLog(userId, spinCount, map){
+  const { error } = await sb
+    .from(ASIA_TEST_LOG_TABLE)
+    .insert({
+      user_id: userId,
+      spin_count: spinCount,
+      map_name: map.name,
+      map_time: map.time
+    });
+
+  if(error) throw error;
+}
+
+function renderSelectedRows(logs){
+  return [0,1,2].map(i=>{
+    const l = logs[i];
+    if(!l) return `<div class="testSelectedRow empty">${i+1}번<br>대기중</div>`;
+
+    const mapInfo = ASIA_TEST_MAPS.find(m => m.name === l.map_name) || (String(l.map_name).includes('황금문명') ? ASIA_TEST_MAPS[9] : {});
+    const img = mapInfo.img || '';
+    const name = escapeHtml(l.map_name || '');
+
+    return `<div class="testMapCard">
+      <img src="${img}" alt="${name}" crossorigin="anonymous">
+    </div>`;
+  }).join('');
+}
+
+async function renderTestSelectedList(userId){
+  const box = document.getElementById('testSelectedList');
   if(!box) return;
 
-  if(warMe){
-    const applied=sortedApplicants().some(a=>a.name===warMe.name);
-    box.innerHTML=`<div class="status"><div class="stat">로그인<b>${esc(warMe.name)}</b></div><div class="stat">상태<b>${applied?'지원완료':'미지원'}</b></div><div class="stat">참가<b>${sortedApplicants().length}/16</b></div></div>`;
+  if(!userId){
+    box.innerHTML = renderSelectedRows([]);
     return;
   }
 
-  const active=document.activeElement;
-  const isTyping=active && box.contains(active);
-  const sig=warMembers.map(m=>m.name).join('|');
-
-  // 드롭다운 선택/비밀번호 입력 중에는 자동 새로고침으로 로그인칸을 다시 그리지 않습니다.
-  // 이 부분 때문에 기존에는 비밀번호 칸으로 넘어갈 때 입력값이 리셋되는 현상이 있었습니다.
-  if(isTyping && box.dataset.rendered==='1' && lastLoginMemberSignature===sig) return;
-
-  const prevName=document.getElementById('warLoginName')?.value || '';
-  const prevPw=document.getElementById('warLoginPw')?.value || '';
-  lastLoginMemberSignature=sig;
-  box.dataset.rendered='1';
-  box.innerHTML=`<div class="login"><select id="warLoginName">${warMembers.map(m=>`<option value="${esc(m.name)}" ${m.name===prevName?'selected':''}>${esc(m.name)}</option>`).join('')}</select><input id="warLoginPw" type="password" placeholder="비밀번호" value="${esc(prevPw)}" onkeydown="if(event.key==='Enter') loginWar()"></div><button class="ok" style="width:100%;margin-top:8px" onclick="loginWar()">로그인</button>`;
-}
-async function loginWar(){const name=document.getElementById('warLoginName')?.value; const pw=document.getElementById('warLoginPw')?.value; const m=warMembers.find(x=>x.name===name&&x.pw===pw); if(!m) return alert('닉네임 또는 비밀번호가 맞지 않습니다.'); warMe={name:m.name,level:m.level}; localStorage.setItem('asia_war_me',JSON.stringify(warMe)); renderWar();}
-function logoutWar(){localStorage.removeItem('asia_war_me'); warMe=null; renderWar();}
-async function applyWar(){if(!warMe) return alert('로그인 후 지원할 수 있습니다.'); await loadMembers(); await loadWar(); const apps=sortedApplicants(); if(warState.finalized) return alert('운영진 확정 완료 상태라 지원할 수 없습니다.'); if(apps.some(a=>a.name===warMe.name)) return alert('이미 지원했습니다.'); if(apps.length>=16) return alert('현재 FULL 상태입니다.'); const m=warMembers.find(x=>x.name===warMe.name); warState.applications=[...(warState.applications||[]),{name:warMe.name,level:Number(m?.level||warMe.level||0),at:new Date().toISOString()}]; warState.teams=null; logWar(`${warMe.name}님이 지원했습니다.`); await saveWar(); renderWar();}
-function orderLabel(teamLetter,p){
-  const o=warState.teamOrders?.[teamLetter];
-  if(!o||!o.confirmed) return `${p.line}라인`;
-  if(o.game1?.[0]===p.name) return '1경기';
-  if(o.game2?.[0]===p.name) return '2경기';
-  if(o.game1?.[1]===p.name || o.game2?.[1]===p.name) return '?';
-  return `${p.line}라인`;
-}
-function renderTeams(){
-  const letters=['A','B','C','D']; const teams=warState.teams||{};
-  const hasTeams=letters.every(l=>Array.isArray(teams[l])&&teams[l].length===4);
-  const btn=document.getElementById('orderOpenBtn'); if(btn) btn.style.display=hasTeams?'inline-flex':'none';
-  document.getElementById('teamGrid').innerHTML=letters.map(l=>{const arr=teams[l]||[]; const order=warState.teamOrders?.[l]||{}; const confirmed=!!order.confirmed; const color=String(order.color||'').trim(); const badges=`${color?`<span class="teamColorBadge">${esc(color)}</span>`:''}${confirmed?'<span class="confirmedBadge">확정</span>':''}`; return `<div class="teamCard ${l.toLowerCase()}"><div class="teamHead"><h3>${l}조</h3><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${badges}</div></div>${arr.length?arr.map(p=>`<div class="teamMember"><span>${esc(p.name)}</span><span>${esc(orderLabel(l,p))}</span></div>`).join(''):'<div class="slot empty">미추첨</div>'}</div>`}).join('');
-  renderOrderLoginBox(false);
+  try{
+    const logs = await getUserRecentLogs(userId);
+    box.innerHTML = renderSelectedRows(logs);
+  }catch(e){
+    box.innerHTML = `<div class="testSelectedRow empty">선택된 맵을 불러오지 못했습니다.</div>`;
+  }
 }
 
-let orderLoginOpen=false;
-function toggleOrderLogin(){orderLoginOpen=!orderLoginOpen; renderOrderLoginBox(true);}
-function oneLinePlayers(){const teams=warState.teams||{}; return ['A','B','C','D'].flatMap(l=>(teams[l]||[]).filter(p=>Number(p.line)===1).map(p=>({team:l,name:p.name})));}
-function renderOrderLoginBox(force){
-  const box=document.getElementById('orderLoginBox'); if(!box) return;
-  const teams=warState.teams||{}; const hasTeams=['A','B','C','D'].every(l=>Array.isArray(teams[l])&&teams[l].length===4);
-  if(!hasTeams){box.style.display='none'; return;}
-  if(!orderLoginOpen){box.style.display='none'; return;}
-  box.style.display='block';
-  const active=document.activeElement;
-  if(active && box.contains(active) && box.dataset.rendered==='1' && !force) return;
-  const prev=document.getElementById('orderLoginName')?.value||'';
-  const pw=document.getElementById('orderLoginPw')?.value||'';
-  const players=oneLinePlayers();
-  box.dataset.rendered='1';
-  box.innerHTML=`<div class="orderHint">1라인 선수만 출전순서를 정할 수 있습니다. 본인 팀 4명 중 1경기 2명, 2경기 2명을 선택합니다.</div><div class="orderLogin" style="margin-top:8px"><select id="orderLoginName">${players.map(p=>`<option value="${esc(p.name)}" ${p.name===prev?'selected':''}>${esc(p.name)} (${p.team}조)</option>`).join('')}</select><input id="orderLoginPw" type="password" placeholder="비밀번호" value="${esc(pw)}" onkeydown="if(event.key==='Enter') loginOrderPlayer()"><button class="ok" onclick="loginOrderPlayer()">확인</button></div>`;
+async function spinTestWheel(){
+  if(testWheelSpinning) return;
+
+  const idInput = document.getElementById('testUserId');
+  const userId = (idInput?.value || '').trim();
+
+  if(!userId){
+    alert('본인 아이디를 먼저 입력해야 돌림판을 돌릴 수 있습니다.');
+    idInput?.focus();
+    return;
+  }
+
+  let recentLogs = [];
+  try{
+    await cleanupOldAsiaTestLogs();
+    recentLogs = await getUserRecentLogs(userId);
+  }catch(e){
+    alert('Supabase 로그 조회 중 오류가 발생했습니다.\n' + (e.message || e));
+    return;
+  }
+
+  if(recentLogs.length >= 3){
+    alert('한 아이디당 30분 안에는 최대 3번까지만 돌릴 수 있습니다.\n30분 뒤 다시 이용해주세요.');
+    return;
+  }
+
+  testWheelSpinning = true;
+  const btn = document.getElementById('testSpinBtn');
+  if(btn) btn.disabled = true;
+
+// 최근 30분 안에 해당 아이디가 이미 뽑은 맵은 제외합니다.
+const usedMapNames = new Set(recentLogs.map(l => l.map_name));
+
+const availableMaps = ASIA_TEST_MAPS.filter(m => !usedMapNames.has(m.name));
+
+if(availableMaps.length <= 0){
+  alert('선택 가능한 맵이 없습니다.');
+  testWheelSpinning = false;
+  if(btn) btn.disabled = false;
+  return;
 }
-function memberByName(name){return warMembers.find(m=>m.name===name);}
-async function loginOrderPlayer(){
-  const name=document.getElementById('orderLoginName')?.value; const pw=document.getElementById('orderLoginPw')?.value;
-  await loadMembers(); await loadWar();
-  const m=memberByName(name);
-  if(!m || m.pw!==pw) return alert('닉네임 또는 비밀번호가 맞지 않습니다.');
-  const teamLetter=['A','B','C','D'].find(l=>(warState.teams?.[l]||[]).some(p=>p.name===name&&Number(p.line)===1));
-  if(!teamLetter) return alert('1라인 선수만 출전순서를 정할 수 있습니다.');
-  openOrderModal(teamLetter,name);
+
+// 중복 제외된 맵 중에서 목표 맵을 먼저 뽑습니다.
+const map = availableMaps[Math.floor(Math.random() * availableMaps.length)];
+
+// 실제 ASIA_TEST_MAPS 배열에서 몇 번째 맵인지 찾습니다.
+const picked = ASIA_TEST_MAPS.findIndex(m => m.name === map.name);
+
+// 화살표가 실제로 그 맵 방향에 멈추도록 회전값을 맞춥니다.
+const targetAngle = ASIA_TEST_MAPS[picked].angle;
+const current = normalizeDeg(testWheelRotation);
+
+let delta = (targetAngle - current + 360) % 360;
+delta += 360 * (6 + Math.floor(Math.random() * 3));
+
+testWheelRotation += delta;
+
+const needle = document.getElementById('testNeedle');
+const result = document.getElementById('testResultName');
+
+  if(result) result.textContent = '돌리는 중...';
+  if(needle) needle.style.transform = `translate(-50%,-100%) rotate(${testWheelRotation}deg)`;
+
+  try{ playWheelSpinSound(); }catch(e){}
+
+  setTimeout(async ()=>{
+    try{ stopWheelSpinSound(); playWheelResultSound(); }catch(e){}
+
+    // 최종 화살표 각도를 기준으로 맵을 다시 계산하여, 화면 방향과 결과가 어긋나지 않게 합니다.
+    const map = getMapByNeedleAngle(testWheelRotation);
+    const spinCount = recentLogs.length + 1;
+
+    try{
+      await saveAsiaTestLog(userId, spinCount, map);
+    }catch(e){
+      alert('Supabase 로그 저장 중 오류가 발생했습니다.\n' + (e.message || e));
+      testWheelSpinning = false;
+      if(btn) btn.disabled = false;
+      return;
+    }
+
+    if(result) result.textContent = `${map.name} / ${map.time}`;
+
+    await renderTestSelectedList(userId);
+    await renderTestLog();
+
+    testWheelSpinning = false;
+    if(btn) btn.disabled = false;
+
+    if(spinCount >= 3){
+      // 3번째 맵이 화면에 먼저 반영된 뒤 팝업이 뜨도록 짧게 지연합니다.
+      setTimeout(()=>showTestScreenshotPopup(), 150);
+    }
+  }, 4700);
 }
-function openOrderModal(teamLetter,loginName){
-  const team=warState.teams?.[teamLetter]||[];
-  const o=warState.teamOrders?.[teamLetter]||{game1:['',''],game2:['',''],editsLeft:2,confirmed:false};
-  const opt=(val)=>team.map(p=>`<option value="${esc(p.name)}" ${p.name===val?'selected':''}>${esc(p.name)}</option>`).join('');
-  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:520px"><h2>${teamLetter}조 출전순서 정하기</h2><p class="muted">로그인 선수 : ${esc(loginName)} / 확정 후 수정 가능 횟수 : ${o.editsLeft??2}회</p>
-    <div class="orderGrid"><b>컬러</b><input id="ord_color" placeholder="예: 핑크" value="${esc(o.color||'')}"></div>
-    <div class="orderGrid"><b>1경기</b><select class="orderSelect" id="ord_g1_1">${opt(o.game1?.[0]||'')}</select></div>
-    <div class="orderGrid"><b>1경기</b><select class="orderSelect" id="ord_g1_2">${opt(o.game1?.[1]||'')}</select></div>
-    <div class="orderGrid"><b>2경기</b><select class="orderSelect" id="ord_g2_1">${opt(o.game2?.[0]||'')}</select></div>
-    <div class="orderGrid"><b>2경기</b><select class="orderSelect" id="ord_g2_2">${opt(o.game2?.[1]||'')}</select></div>
-    <div class="orderHint">확정 후 공개되는 정보는 각 경기 첫 번째 선택 선수만 공개됩니다. 두 번째 선택 선수는 ?로 표시됩니다.</div>
-    <div class="modalBtns"><button class="gold" onclick="confirmOrder('${teamLetter}')">확정</button><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div></div></div>`;
+
+function showTestScreenshotPopup(){
+  modalRoot.innerHTML = `<div class="modalBg"><div class="modal" style="width:420px;text-align:center">
+    <h2 style="margin:0 0 12px;color:#facc15">테스트 완료</h2>
+    <div style="background:#081525;border:1px solid var(--line);border-radius:14px;padding:16px;color:#dbeafe;font-weight:900;line-height:1.55">
+      스크린샷을 하여 문의방에 올려주세요.
+    </div>
+    <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px">
+      <button class="gold" onclick="captureTestPanelOnly()">스크린샷 하기</button>
+      <button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button>
+    </div>
+  </div></div>`;
 }
-async function confirmOrder(teamLetter){
-  await loadWar();
-  const vals=[document.getElementById('ord_g1_1')?.value,document.getElementById('ord_g1_2')?.value,document.getElementById('ord_g2_1')?.value,document.getElementById('ord_g2_2')?.value].filter(Boolean);
-  const color=String(document.getElementById('ord_color')?.value||'').trim();
-  if(!color) return alert('컬러명을 입력해주세요. 예: 핑크');
-  if(new Set(vals).size!==4) return alert('같은 선수를 중복 선택할 수 없습니다. 4명을 모두 다르게 선택해주세요.');
-  const old=warState.teamOrders?.[teamLetter];
-  const editsLeft=old?.confirmed ? Number(old.editsLeft??0) : 2;
-  if(old?.confirmed && editsLeft<=0) return alert('더 이상 수정할 수 없습니다.');
-  const msg=old?.confirmed ? `${editsLeft-1}번 더 수정할 수 있습니다. 확정짓겠습니까?` : '2번 더 수정할 수 있습니다. 확정짓겠습니까?';
-  if(!confirm(msg)) return;
-  warState.teamOrders=warState.teamOrders||{};
-  warState.teamOrders[teamLetter]={game1:[vals[0],vals[1]],game2:[vals[2],vals[3]],color,confirmed:true,editsLeft:old?.confirmed?editsLeft-1:2,updatedAt:new Date().toISOString()};
-  logWar(`${teamLetter}조가 출전순서를 확정했습니다.`);
-  await saveWar();
-  modalRoot.innerHTML=''; renderWar(); alert(`${teamLetter}조 출전순서 확정 완료`);
+
+async function captureTestPanelOnly(){
+  const target = document.querySelector('.testPanel');
+  if(!target){
+    alert('스크린샷 영역을 찾을 수 없습니다.');
+    return;
+  }
+  if(typeof html2canvas === 'undefined'){
+    alert('스크린샷 기능을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+  const canvas = await html2canvas(target, {
+    backgroundColor: '#05070b',
+    scale: 2,
+    useCORS: true
+  });
+  const link = document.createElement('a');
+  link.download = 'asia-test-result.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
 }
-function requireAdmin(){const pw=prompt('운영진 비밀번호를 입력하세요.'); return pw===ADMIN_PW;}
-async function confirmFinal(){if(!requireAdmin()) return; await loadWar(); if(warState.finalized) return alert('이미 확정되었습니다.'); if(!confirm('운영진 확정하기를 진행할까요?\n확정 후에는 더 이상 지원할 수 없습니다.')) return; warState.finalized=true; logWar('운영진이 참가선수를 확정했습니다.'); await saveWar(); renderWar(); alert('확정 완료');}
-function openAdminPanel(){if(!requireAdmin()) return; modalRoot.innerHTML=`<div class="modalBg"><div class="modal"><h2>운영진 패널</h2><div class="adminBox"><button class="ok" onclick="confirmFinalFromModal()">운영진 확정하기</button><button class="danger" onclick="resetWarAll()">리셋</button><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><p class="muted">리셋을 누르면 지원자, 확정상태, 팀추첨 결과, 로그가 모두 초기화됩니다.</p></div></div>`;}
-async function confirmFinalFromModal(){modalRoot.innerHTML=''; await confirmFinal();}
-async function resetWarAll(){if(!confirm('아시아 내전 데이터를 모두 리셋할까요?')) return; warState=defaultWarState(); await saveWar(); modalRoot.innerHTML=''; renderWar(); alert('리셋 완료');}
-function openTeamDraw(){if(!requireAdmin()) return; modalRoot.innerHTML=`<div class="modalBg"><div class="modal"><h2>팀 추첨</h2><p class="muted">팀 추첨을 하시겠습니까?</p><div class="modalBtns"><button class="gold" onclick="drawTeams()">예</button><button class="ghost" onclick="modalRoot.innerHTML=''">아니오</button></div></div></div>`;}
-function shuffle(arr){const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a;}
-async function drawTeams(){await loadWar(); const lines=getLines(); if(lines.some(x=>x.length<4)) return alert('팀 추첨은 16명이 모두 찼을 때 진행할 수 있습니다.'); const sLines=lines.map(line=>shuffle(line.map((p,idx)=>({name:p.name,level:p.level,line:lines.indexOf(line)+1})))); const letters=['A','B','C','D']; const teams={A:[],B:[],C:[],D:[]}; for(let li=0;li<4;li++){for(let ti=0;ti<4;ti++){teams[letters[ti]].push(sLines[li][ti]);}} warState.teams=teams; warState.teamOrders={}; logWar('운영진이 팀 추첨을 진행했습니다.'); await saveWar(); modalRoot.innerHTML=''; renderWar(); alert('팀 추첨 완료');}
-function showWarPage(){document.body.classList.add('pcMode'); document.querySelector('meta[name="viewport"]').setAttribute('content','width=1280, initial-scale=1.0'); document.getElementById('landingPage').style.display='none'; document.getElementById('warPage').style.display='block'; bootWar();}
-function showLandingPage(){document.body.classList.remove('pcMode'); document.querySelector('meta[name="viewport"]').setAttribute('content','width=device-width, initial-scale=1.0, viewport-fit=cover'); document.getElementById('landingPage').style.display='flex'; document.getElementById('warPage').style.display='none'; modalRoot.innerHTML=''; if(refreshTimer) clearInterval(refreshTimer);}
-function notReady(name){alert(name+' 페이지는 기존 index.html 함수와 연결해서 사용하시면 됩니다. 현재 파일은 아시아 내전 기능 중심 버전입니다.');}
+
+async function renderTestLog(){
+  const box = document.getElementById('testLog');
+  if(!box) return;
+
+  try{
+    const { data, error } = await sb
+      .from(ASIA_TEST_LOG_TABLE)
+      .select('*')
+      .order('created_at', { ascending:false })
+      .limit(100);
+
+    if(error) throw error;
+
+    box.innerHTML = data && data.length
+      ? data.map(l => {
+          const date = new Date(l.created_at).toLocaleString('ko-KR');
+          return `<div>[${date}] ${escapeHtml(l.user_id)}님이 돌림판을 ${escapeHtml(l.spin_count)}번 돌렸습니다. (${escapeHtml(l.map_name)})</div>`;
+        }).join('')
+      : '<div>아직 LOG가 없습니다.</div>';
+  }catch(e){
+    box.innerHTML = `<div>LOG를 불러오지 못했습니다. ${escapeHtml(e.message || e)}</div>`;
+  }
+
+  const idInput = document.getElementById('testUserId');
+  const userId = (idInput?.value || '').trim();
+  await renderTestSelectedList(userId);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const input = document.getElementById('testUserId');
+  if(input){
+    input.addEventListener('input',()=>renderTestSelectedList(input.value.trim()));
+  }
+});
+
+
+
+/* ===== 아시아 EVENT 4인 O.X 게임 ===== */
+const EVENT_ADMIN_PASSWORD='0523';
+const EVENT_MEMBERS=[{"name":"경문","pw":"6646"},{"name":"기사","pw":"1234"},{"name":"네오","pw":"3434"},{"name":"노을(구노을)","pw":"7126"},{"name":"대원","pw":"1237"},{"name":"도레미","pw":"1238"},{"name":"동이","pw":"2345"},{"name":"둘리","pw":"3125"},{"name":"라곤","pw":"9911"},{"name":"라오","pw":"3129"},{"name":"레니","pw":"2347"},{"name":"로딩해","pw":"7127"},{"name":"리아","pw":"3123"},{"name":"미또","pw":"7128"},{"name":"미신트","pw":"8465"},{"name":"바밥","pw":"1239"},{"name":"백뭉이","pw":"8745"},{"name":"뽀등어","pw":"6514"},{"name":"브칠","pw":"8811"},{"name":"블랙","pw":"4747"},{"name":"상호(구로키)","pw":"2349"},{"name":"선셋(신노을)","pw":"3526"},{"name":"섯군","pw":"3127"},{"name":"소율","pw":"6445"},{"name":"소현","pw":"2351"},{"name":"수민","pw":"9849"},{"name":"승환","pw":"5123"},{"name":"승호","pw":"4380"},{"name":"시아","pw":"6123"},{"name":"애플","pw":"5535"},{"name":"용산","pw":"2184"},{"name":"유녕","pw":"5124"},{"name":"유진","pw":"4443"},{"name":"윤주모","pw":"7123"},{"name":"음","pw":"5555"},{"name":"이뚜","pw":"6125"},{"name":"이펙트","pw":"6549"},{"name":"자욱","pw":"3126"},{"name":"장어","pw":"6126"},{"name":"제로","pw":"4441"},{"name":"준클","pw":"8846"},{"name":"지건빵","pw":"9871"},{"name":"지헌","pw":"2636"},{"name":"짱아 (구짱아)","pw":"5125"},{"name":"짱이","pw":"2587"},{"name":"천유","pw":"6644"},{"name":"쿠타","pw":"6129"},{"name":"쿨쿨린이","pw":"4575"},{"name":"파라곤(토르)","pw":"9875"},{"name":"파솔라","pw":"9874"},{"name":"평정","pw":"9885"},{"name":"플로버","pw":"5425"},{"name":"피뚭(피셜)","pw":"9873"},{"name":"황새","pw":"5443"},{"name":"헬츠","pw":"5129"},{"name":"휘헌","pw":"4126"},{"name":"흠(하영)","pw":"4466"},{"name":"히스","pw":"5487"},{"name":"구리","pw":"3737"}];
+const EVENT_TABLE='asia_event_card_game';
+const RPS_ITEMS=[{key:'O',label:'O',emoji:'⭕'},{key:'X',label:'X',emoji:'❌'}];
+const OX_SEAT_SOUND_URL='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EB%9D%B5%EB%8F%99.mp3';
+const OX_PICK_SOUND_URL='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EC%9E%90%EB%A6%AC%EC%9D%B4%EB%8F%99%EC%82%AC%EB%9E%8C.mp3';
+function playOxSound(url){try{const a=new Audio(url); a.currentTime=0; const p=a.play(); if(p&&p.catch) p.catch(()=>{});}catch(e){}}
+let eventState=null;
+let eventLoaded=false;
+let eventMembers=[...EVENT_MEMBERS];
+let eventMe=JSON.parse(localStorage.getItem('asia_event_me')||'null');
+let eventRevealing=false;
+
+function defaultEventState(){return {scores:{},chances:{},seats:[null,null,null,null],history:[],logs:[],updatedAt:new Date().toISOString()};}
+function normalizeEventState(st){
+  const base=defaultEventState();
+  st=st&&typeof st==='object'?st:{};
+  st.scores=st.scores&&typeof st.scores==='object'?st.scores:{};
+  st.chances=st.chances&&typeof st.chances==='object'?st.chances:{};
+  st.seats=Array.isArray(st.seats)?st.seats.slice(0,4):[null,null,null,null];
+  while(st.seats.length<4) st.seats.push(null);
+  st.seats=st.seats.map(x=>x&&x.name?{name:String(x.name),choice:x.choice||null,choiceAt:x.choiceAt||null}:null);
+  st.history=Array.isArray(st.history)?st.history.slice(0,30):[];
+  st.logs=Array.isArray(st.logs)?st.logs.slice(0,120):[];
+  st.updatedAt=st.updatedAt||base.updatedAt;
+  return st;
+}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+async function eventLoadMembers(){
+  try{
+    const r=await sb.from('asia_event_members').select('nickname,password').order('nickname',{ascending:true});
+    if(!r.error && r.data && r.data.length){
+      eventMembers=r.data.map(m=>({name:String(m.nickname||'').trim(),pw:String(m.password||'').trim()})).filter(m=>m.name);
+    }
+  }catch(e){eventMembers=[...EVENT_MEMBERS];}
+}
+function eventMemberOptions(){return eventMembers.map(m=>`<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)}</option>`).join('');}
+function eventLog(msg){eventState.logs=[`[${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}] ${msg}`,...(eventState.logs||[])].slice(0,120);}
+async function eventSave(){eventState.updatedAt=new Date().toISOString(); const r=await sb.from(EVENT_TABLE).upsert({id:1,state:eventState,updated_at:new Date().toISOString()},{onConflict:'id'}).select('id'); if(r.error) throw new Error(r.error.message);}
+async function eventLoad(){const r=await sb.from(EVENT_TABLE).select('state').eq('id',1).maybeSingle(); if(r.error) throw new Error(r.error.message); if(!r.data){eventState=defaultEventState(); await eventSave();} else eventState=normalizeEventState(r.data.state);}
+async function eventBoot(){
+  try{ if(!eventLoaded){await eventLoadMembers(); await eventLoad(); eventLoaded=true;} renderEvent(); }
+  catch(e){document.getElementById('eventUserBox').innerHTML=`<div class="errorBox">이벤트 데이터를 불러오지 못했습니다.\n${escapeHtml(e.message||e)}</div>`;}
+}
+function rpsItem(key){return RPS_ITEMS.find(x=>x.key===key)||null;}
+function rpsCompare(a,b){if(a===b) return 'draw'; const x=rpsItem(a); return x&&x.beats===b?'win':'lose';}
+function currentSeatIndex(){return eventState?.seats?.findIndex(s=>s&&eventMe&&s.name===eventMe.name) ?? -1;}
+function occupiedNames(){return new Set((eventState?.seats||[]).filter(Boolean).map(s=>s.name));}
+async function refreshEventBeforeAction(){await eventLoad(); eventState=normalizeEventState(eventState);}
+
+async function eventLogin(){
+  await eventLoadMembers();
+  const name=document.getElementById('eventLoginName')?.value;
+  const pw=document.getElementById('eventLoginPw')?.value;
+  const ok=eventMembers.find(m=>m.name===name && m.pw===pw);
+  if(!ok) return alert('맴버 또는 비밀번호가 맞지 않습니다.');
+  eventMe={name}; localStorage.setItem('asia_event_me',JSON.stringify(eventMe)); renderEvent();
+}
+function eventLogout(){localStorage.removeItem('asia_event_me'); eventMe=null; renderEvent();}
+async function joinRpsSeat(){
+  if(!eventMe) return alert('로그인 후 참여할 수 있습니다.');
+  await refreshEventBeforeAction();
+  const name=eventMe.name;
+  if(occupiedNames().has(name)) return alert('이미 자리를 잡았습니다.');
+  if(Number(eventState.chances?.[name]||0)<=0) return alert('남은 기회가 없습니다. 운영진에게 기회를 받아야 합니다.');
+  const idx=eventState.seats.findIndex(s=>!s);
+  if(idx<0) return alert('현재 4자리가 모두 찼습니다.');
+  eventState.seats[idx]={name,choice:null,choiceAt:null};
+  if(eventState.scores[name]==null) eventState.scores[name]=0;
+  if(eventState.chances[name]==null) eventState.chances[name]=0;
+  eventLog(`${idx+1}번 ${name} 선수가 입장했습니다.`);
+  playOxSound(OX_SEAT_SOUND_URL);
+  await eventSave(); renderEvent();
+}
+async function leaveRpsSeat(){
+  if(!eventMe) return;
+  await refreshEventBeforeAction();
+  const idx=currentSeatIndex();
+  if(idx<0) return alert('현재 참여 중인 자리가 없습니다.');
+  eventLog(`${idx+1}번 ${eventMe.name} 선수가 자리를 나갔습니다.`);
+  eventState.seats[idx]=null;
+  await eventSave(); renderEvent();
+}
+async function pickRpsChoice(key){
+  if(!eventMe) return alert('로그인 후 선택할 수 있습니다.');
+  await refreshEventBeforeAction();
+  const idx=currentSeatIndex();
+  if(idx<0) return alert('먼저 자리를 잡아주세요.');
+  const name=eventMe.name;
+  if(Number(eventState.chances?.[name]||0)<=0) return alert('남은 기회가 없습니다.');
+  eventState.seats[idx].choice=key;
+  eventState.seats[idx].choiceAt=new Date().toISOString();
+  eventLog(`${idx+1}번 ${name} 선수는 선택했습니다.`);
+  playOxSound(OX_PICK_SOUND_URL);
+  await eventSave();
+  await checkAndResolveRound();
+  renderEvent();
+}
+function classifyRound(seats){
+  const counts={O:0,X:0};
+  seats.forEach(s=>{ if(s && s.choice) counts[s.choice]=(counts[s.choice]||0)+1; });
+  if(counts.O===4 || counts.X===4){
+    const points={}; currentSeats.forEach(s=>points[s.name]=1);
+    return {valid:true,reason:'전원 같은 선택',points,message:'전원 같은 선택으로 모두 +1점'};
+  }
+  const points={};
+  if(counts.O===2 && counts.X===2){
+    seats.forEach(s=>{points[s.name]=1;});
+    return {valid:true,reason:'2:2 동률',points,message:'2:2 동률로 전원 +1점'};
+  }
+  const minority=counts.O<counts.X?'O':'X';
+  seats.forEach(s=>{points[s.name]=s.choice===minority?3:0;});
+  return {valid:true,reason:`${minority} 소수 선택`,points,message:`${minority}를 선택한 선수 +3점`};
+}
+async function checkAndResolveRound(){
+  eventState=normalizeEventState(eventState);
+  const seats=eventState.seats;
+  if(!seats.every(s=>s&&s.choice)) return;
+
+  const snapshot=seats.map((s,i)=>({seat:i+1,name:s.name,choice:s.choice,label:rpsItem(s.choice).label,emoji:rpsItem(s.choice).emoji}));
+  const result=classifyRound(seats);
+  const hist={at:new Date().toISOString(),players:snapshot,result:result.message||result.reason,points:result.points||{},valid:result.valid!==false};
+
+  await showOxRevealProgress(hist);
+
+  eventState=normalizeEventState(eventState);
+  eventState.history=[hist,...(eventState.history||[])].slice(0,30);
+
+  if(result.valid===false){
+    eventLog(`4명 선택 공개: ${result.reason}. 기회 차감 없이 다시 선택합니다.`);
+    eventState.seats=eventState.seats.map(s=>s?{name:s.name,choice:null,choiceAt:null}:null);
+    await eventSave();
+    return;
+  }
+
+  const currentSeats=eventState.seats;
+  currentSeats.forEach(s=>{
+    const add=Number(result.points?.[s.name]||0);
+    eventState.scores[s.name]=Number(eventState.scores?.[s.name]||0)+add;
+    eventState.chances[s.name]=Math.max(0,Number(eventState.chances?.[s.name]||0)-1);
+  });
+
+  const pointText=currentSeats.map(s=>`${s.name} +${Number(result.points?.[s.name]||0)}점`).join(' / ');
+  eventLog(`결과 공개: ${result.message}. ${pointText}`);
+  eventState.seats=[null,null,null,null];
+  eventLog('한 판이 종료되어 4명 자리가 모두 초기화되었습니다. 다음 판은 다시 자리를 잡아야 합니다.');
+  await eventSave();
+}
+function oxPlayerClass(hist,p){
+  const add=Number((hist.points||{})[p.name]||0);
+  if(add>=3) return 'win';
+  if(add===1) return 'draw';
+  return 'lose';
+}
+function buildOxRevealCards(hist,opened){
+  const pts=hist.points||{};
+  return hist.players.map(p=>`<div class="oxRevealCard ${opened?'opened '+oxPlayerClass(hist,p):'waiting'}"><div class="oxRevealName">${p.seat}번 ${escapeHtml(p.name)}</div><div class="oxRevealEmoji">${opened?p.emoji:'🂠'}</div>${opened?`<div>${escapeHtml(p.label)}</div><div class="oxRevealPoint">+${Number(pts[p.name]||0)}점</div>`:''}</div>`).join('');
+}
+function showOxRevealProgress(hist){
+  return new Promise(resolve=>{
+    modalRoot.innerHTML=`<div class="modalBg"><div class="oxRevealModal"><div class="oxRevealTitle">곧 공개됩니다...</div><div class="oxRevealSub">4명 모두 선택 완료 · O.X 결과 분석중</div><div class="oxGaugeOuter"><div id="oxGaugeFill" class="oxGaugeFill"></div></div><div id="oxGaugePercent" class="oxGaugePercent">0%</div><div id="oxRevealCards" class="oxRevealCards">${buildOxRevealCards(hist,false)}</div><div id="oxRevealResult" class="oxRevealResult" style="display:none"></div></div></div>`;
+    let pct=0;
+    const fill=document.getElementById('oxGaugeFill');
+    const percent=document.getElementById('oxGaugePercent');
+    const cards=document.getElementById('oxRevealCards');
+    const resultBox=document.getElementById('oxRevealResult');
+    const timer=setInterval(()=>{
+      pct=Math.min(100,pct+2);
+      if(fill) fill.style.width=pct+'%';
+      if(percent) percent.textContent=pct+'%';
+      if(pct>=100){
+        clearInterval(timer);
+        if(cards) cards.innerHTML=buildOxRevealCards(hist,true);
+        if(resultBox){ resultBox.style.display='block'; resultBox.textContent='💥 결과 공개 !! '+hist.result; }
+        setTimeout(()=>{ modalRoot.innerHTML=''; resolve(); },4000);
+      }
+    },100);
+  });
+}
+function showRoundPopup(hist){
+  showOxRevealProgress(hist);
+}
+function renderSeat(s,i){
+  if(!s) return `<div class="rpsSeat empty"><div class="rpsSeatNo">${i+1}번</div><div>빈 자리</div><button class="gold" onclick="joinRpsSeat()">자리잡기</button></div>`;
+  const me=eventMe&&eventMe.name===s.name;
+  const open=false;
+  const item=s.choice?rpsItem(s.choice):null;
+  return `<div class="rpsSeat ${me?'me':''}"><div class="rpsSeatNo">${i+1}번</div><div class="rpsSeatName">${escapeHtml(s.name)}</div>${item&&open?`<div class="rpsChoiceOpen">${item.emoji}<span>${escapeHtml(item.label)}</span></div>`:item?`<div class="rpsChoiceHidden">선택했습니다.</div>`:`<div class="rpsChoiceHidden" style="color:#9fb4cd;border-color:var(--line);background:#0b1728">선택 대기중</div>`}${me?`<button class="ghost" style="margin-top:10px" onclick="leaveRpsSeat()">자리나가기</button>`:''}</div>`;
+}
+function renderRpsGame(){
+  const box=document.getElementById('rpsGameBox'); if(!box) return;
+  const idx=currentSeatIndex();
+  const mySeat=idx>=0?eventState.seats[idx]:null;
+  const disabled=!eventMe || idx<0 || Number(eventState.chances?.[eventMe.name]||0)<=0;
+  box.innerHTML=`<div class="rpsRoom"><div class="rpsSeatGrid">${eventState.seats.map((s,i)=>renderSeat(s,i)).join('')}</div><div class="rpsPickArea"><div class="rpsPickTitle">O / X 선택</div><div class="rpsButtons">${RPS_ITEMS.map(item=>`<button class="rpsBtn ${mySeat?.choice===item.key?'selected':''}" onclick="pickRpsChoice('${item.key}')" ${disabled?'disabled':''}><span class="emoji">${item.emoji}</span><span>${item.label}</span></button>`).join('')}</div><div class="rpsStatusBox">4명이 모두 자리를 잡고 O/X를 선택해야 게임이 진행됩니다.<br>한 판 종료 후에는 4명 모두 다시 자리를 잡아야 합니다.<br>현재 참여 인원: ${(eventState.seats||[]).filter(Boolean).length}/4명 / 선택 완료: ${(eventState.seats||[]).filter(s=>s&&s.choice).length}/4명</div></div><div class="rpsRules4"><div class="rpsRuleBox"><b>기회 지급 변경</b><br>친선 승리 시 +3기회<br>친선 패배 시 +2기회</div><div class="rpsRuleBox"><b>진행 규칙</b><br>4명 모두 선택하면 전체 공개됩니다.<br>O/O/O/X처럼 3:1이면 적게 고른 1명만 +3점입니다.<br>O/O/X/X처럼 2:2이면 전원 +1점입니다.<br>전원 같은 선택도 전원 +1점입니다.</div></div><div class="rpsHistory"><h3>지나간 경기</h3><div class="rpsHistoryList">${renderHistory()}</div></div></div>`;
+}
+function renderHistory(){
+  const h=eventState.history||[];
+  if(!h.length) return '<div class="eventHint">아직 지나간 경기가 없습니다.</div>';
+  return h.map(x=>{
+    const pts=x.points||{};
+    const playerHtml=x.players.map(p=>{
+      const add=Number(pts[p.name]||0);
+      const cls=add>=3?'win':add===1?'draw':'lose';
+      return `<div class="rpsHistoryPlayer ${cls}"><div>${p.seat}번<br>${escapeHtml(p.name)}</div><div class="rpsHistoryEmoji">${p.emoji}</div><div>${escapeHtml(p.label)}</div><div style="margin-top:4px;color:#facc15">+${add}점</div></div>`;
+    }).join('');
+    return `<div class="rpsHistoryCard"><div class="rpsHistoryTitle">${new Date(x.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})} / ${escapeHtml(x.result)}</div><div class="rpsHistoryPlayers">${playerHtml}</div></div>`;
+  }).join('');
+}
+function renderEvent(){
+  if(!eventState) eventState=defaultEventState(); eventState=normalizeEventState(eventState);
+  const userBox=document.getElementById('eventUserBox'); const side=document.getElementById('eventSide'); if(!userBox||!side) return;
+  const myName=eventMe?.name; const myChance=Number(eventState.chances?.[myName]||0); const myScore=Number(eventState.scores?.[myName]||0); const mySeat=currentSeatIndex();
+  userBox.innerHTML=eventMe?`<div class="eventStatus"><div class="eventStat">로그인<b>${escapeHtml(myName)}</b></div><div class="eventStat">남은 기회<b>${myChance}</b></div><div class="eventStat">점수 / 자리<b>${myScore}점 / ${mySeat>=0?mySeat+1+'번':'대기'}</b></div></div><button class="ghost" onclick="eventLogout()">로그아웃</button>`:`<div class="eventLogin"><select id="eventLoginName">${eventMemberOptions()}</select><input id="eventLoginPw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter') eventLogin()"><button class="gold" onclick="eventLogin()">로그인</button></div>`;
+  renderRpsGame();
+  const ranks=Object.entries(eventState.scores||{}).sort((a,b)=>Number(b[1])-Number(a[1])||a[0].localeCompare(b[0],'ko'));
+  const rows=(ranks.length?ranks:eventMembers.slice(0,10).map(m=>[m.name,0]));
+  side.innerHTML=`<table class="scoreTable"><thead><tr><th>순위</th><th>맴버</th><th>점수</th><th>기회</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r[0])}</td><td>${Number(r[1]||0)}</td><td>${Number(eventState.chances?.[r[0]]||0)}</td></tr>`).join('')}</tbody></table><h2 style="margin:14px 0 0">로그</h2><div class="eventLog">${(eventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 로그가 없습니다.</div>'}</div><div class="eventHint">컴퓨터 없이 유저 4명이 진행하는 O.X 게임입니다.<br>4명이 모두 선택해야 공개되며, 한 명이라도 비어 있으면 진행되지 않습니다.<br>4명이 모두 선택해 공개된 경기는 기회가 차감됩니다.<br>한 판이 끝나면 자리는 자동 초기화됩니다.</div>`;
+}
+async function openEventAdmin(){
+  const pw=prompt('운영진 비밀번호를 입력하세요.'); if(pw!==EVENT_ADMIN_PASSWORD) return alert('운영진 비밀번호가 맞지 않습니다.');
+  await eventLoadMembers(); await eventLoad();
+  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:720px"><div class="sectionHead"><h2>아시아EVENT 운영진 패널</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><div class="eventAdmin"><select id="eventAdminMember">${eventMemberOptions()}</select><button class="gold" onclick="eventGiveChance(3)">친선 승리 +3기회</button><button class="ok" onclick="eventGiveChance(2)">친선 패배 +2기회</button><button class="danger" onclick="eventResetSeats()">자리 초기화</button><button class="ghost" onclick="openEventAddMemberBox()">맴버추가하기</button><div class="eventAdminWide"><button class="ghost" onclick="eventRefreshAdmin()">새로고침</button><button class="danger" onclick="eventFullReset()">점수/기회까지 전체초기화</button><button class="ghost" onclick="modalRoot.innerHTML=''">완료</button></div></div><div id="eventAddMemberBox" style="display:none;margin-top:12px;border:1px solid var(--line);background:#081525;border-radius:14px;padding:12px"><h3 style="margin:0 0 8px;color:#facc15">맴버 추가하기</h3><div class="eventAdminWide"><input id="eventNewMemberName" placeholder="맴버명"><input id="eventNewMemberPw" placeholder="비번 4자리" maxlength="4" inputmode="numeric"><button class="gold" onclick="eventAddMember()">추가하기</button></div></div><p class="eventHint">친선 승리 +3기회, 친선 패배 +2기회로 지급됩니다.</p></div></div>`;
+}
+async function eventRefreshAdmin(){await eventLoadMembers(); await eventLoad(); renderEvent(); alert('새로고침 완료');}
+function openEventAddMemberBox(){const box=document.getElementById('eventAddMemberBox'); if(box) box.style.display=box.style.display==='none'?'block':'none';}
+async function eventAddMember(){
+  const name=(document.getElementById('eventNewMemberName')?.value||'').trim(); const pw=(document.getElementById('eventNewMemberPw')?.value||'').trim();
+  if(!name) return alert('맴버명을 입력해주세요.'); if(!/^\d{4}$/.test(pw)) return alert('비밀번호는 숫자 4자리로 입력해주세요.');
+  await eventLoadMembers(); if(eventMembers.some(m=>m.name===name)) return alert('이미 존재하는 맴버명입니다.');
+  const r=await sb.from('asia_event_members').insert({nickname:name,password:pw,score:0,chances:0}).select('id'); if(r.error) return alert('맴버 추가 실패: '+r.error.message);
+  eventMembers.push({name,pw}); eventMembers.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  if(!eventState.scores) eventState.scores={}; if(!eventState.chances) eventState.chances={};
+  eventState.scores[name]=0; eventState.chances[name]=0; eventLog(`운영진이 새 맴버 ${name}님을 추가했습니다.`); await eventSave(); alert(`${name}님이 추가되었습니다.`); openEventAdmin(); renderEvent();
+}
+async function eventGiveChance(n){await eventLoad(); eventState=normalizeEventState(eventState); const name=document.getElementById('eventAdminMember')?.value; if(!name) return; eventState.chances[name]=Number(eventState.chances?.[name]||0)+n; if(eventState.scores?.[name]==null) eventState.scores[name]=0; eventLog(`운영진이 ${name}님에게 +${n}기회를 지급`); await eventSave(); renderEvent(); alert(`${name}님에게 +${n}기회를 지급했습니다.`);}
+async function eventResetSeats(){if(!confirm('현재 자리와 선택만 초기화할까요? 점수와 기회는 유지됩니다.')) return; await eventLoad(); eventState=normalizeEventState(eventState); eventState.seats=[null,null,null,null]; eventLog('운영진이 현재 자리를 초기화했습니다.'); await eventSave(); renderEvent(); alert('자리 초기화 완료');}
+async function eventFullReset(){if(!confirm('점수, 기회, 자리, 로그까지 모두 초기화할까요?')) return; eventState=defaultEventState(); eventLog('운영진이 전체초기화를 진행했습니다.'); await eventSave(); renderEvent(); alert('전체초기화 완료');}
+
+const SUPABASE_URL = 'https://xyibdanmecakevhtdajl.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_uvYqwDymxodcSdpT1zAWyg_PeVHh_ZO';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const CAPTAINS=[
+  {name:'노을',password:'1235'},
+  {name:'음',password:'5123'},
+  {name:'상호',password:'2635'},
+  {name:'구리',password:'7463'},
+  {name:'시크릿',password:'6352'}
+];
+const PLAYERS=['둘리','로딩','제로','라곤','네오','줄리엣','키라','로버','흠','미신트','짱이','이뚜','헬츠','브칠','미또'];
+
+const MAP_LIST=['고가','남산','해변','싱가폴서킷','용의 운하','차이나 라사','쥐공무','차관문','코리아서킷','두바이','도야수','부산','서울','월드리오다운힐','쥐공결','문힐시티질주','메카닉','도검용의길','브로디','노전비','익스트림','에펠탑','뉴욕','서호','신화신들의세계','역로비','동마성','시청광장','궤도전차','공룡유적지','용광로','거인','상해서킷','스카이웨이','팬드래건캐슬','오딘','제우스시티','이탈리아','순찰로','소용돌이','정유공장','병마용','만리장성','해로비','님프','직잭','브라질','사빙공','대은지','황산','해숨보','붐힐터널','갈빙','비밀장치위협','네모산타','좌표','차골대','감시탑','협곡','팩두공','상어섬','포오공','대관령','쥐공대','랠리','헬기점프','바닷길','송수관','해골성','신전','스카이라인','동이문','노익','팩미5','공마초','설산','역직잭','문숨지','제련소','부빙'];
+let wheelMaps=[...MAP_LIST], wheelRotation=0, wheelSpinning=false, wheelLastResult='';
+
+
+const ADMIN_PASSWORD='0473';
+const START_COINS=1000;
+const BID_STEP=10;
+const ROUND_SECONDS=30;
+const PROCESSING_STUCK_MS=3000;
+const TEAM_SIZE=3;
+const SOUND_NEXT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EB%9D%B5%EB%8F%99.mp3';
+const SOUND_COUNT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/5%EC%B9%B4%EC%9A%B4%ED%8A%B8.mp3';
+const SOUND_WHEEL_SPIN='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EB%8F%8C%EB%A6%BC%ED%8C%90%EC%86%8C%EB%A6%AC.mp3';
+const SOUND_WHEEL_RESULT='https://github.com/jangseok895-glitch/asia-ox-sound/raw/refs/heads/main/%EC%A0%95%EB%8B%B5.mp3';
+
+let me=JSON.parse(localStorage.getItem('auction_me')||'null');
+let visitorId=localStorage.getItem('auction_visitor_id');
+if(!visitorId){visitorId=crypto.randomUUID();localStorage.setItem('auction_visitor_id',visitorId)}
+
+let state={id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS};
+let captains=[],bids=[],logs=[],teams=[],visitorCount=0,lastError='',finishing=false,lastFinishedKey='',processingSeenAt=0,lastSeenRoundKey='';
+let lastRoundKeyForNextSound='', lastRoundKeyForCountSound='', finishRoundPromise=null, finishStartedAt=0;
+let adminAuthorized=false; // 새로고침/다른 브라우저에 권한이 남지 않도록 저장하지 않습니다.
+let audioUnlocked=false;
+const audioNext=new Audio(SOUND_NEXT);
+const audioCount=new Audio(SOUND_COUNT);
+const audioWheelSpin=new Audio(SOUND_WHEEL_SPIN);
+const audioWheelResult=new Audio(SOUND_WHEEL_RESULT);
+audioWheelSpin.loop=true;
+audioNext.preload='auto'; audioCount.preload='auto'; audioWheelSpin.preload='auto'; audioWheelResult.preload='auto';
+const app=document.getElementById('app'), modalRoot=document.getElementById('modalRoot');
+const $=s=>document.querySelector(s);
+const nowIso=()=>new Date().toISOString();
+const money=n=>Number(n||0).toLocaleString('ko-KR');
+const isEditing=()=>['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName);
+let lastRenderedSyncKey='';
+let pendingRender=false;
+let lastUserInputAt=0;
+function getSyncKey(){
+  return `${state?.status||''}_${state?.current_index??''}_${state?.round_started_at||''}_${teams.length}_${bids.length}_${captains.map(c=>`${c.name}:${c.coins}:${c.online}:${c.session_id||''}`).join('|')}`;
+}
+function isFormActive(){
+  const el=document.activeElement;
+  if(!el) return false;
+  if(!['INPUT','SELECT','TEXTAREA'].includes(el.tagName)) return false;
+  return true;
+}
+function renderSafe(force=false){
+  // 중요: 로그인 드롭다운/비밀번호/입찰금 입력 중에는 DOM 전체를 다시 그리지 않습니다.
+  // 250ms 자동 렌더링이 select/input을 갈아끼우면 드롭다운이 닫히고 비밀번호 숫자가 사라집니다.
+  if(!force && isFormActive()){
+    pendingRender=true;
+    lastUserInputAt=Date.now();
+    return;
+  }
+  pendingRender=false;
+  lastRenderedSyncKey=getSyncKey();
+  render();
+}
+function flushPendingRenderSoon(){
+  setTimeout(()=>{
+    if(pendingRender && !isFormActive()) renderSafe(true);
+  },80);
+}
+window.addEventListener('focusout', flushPendingRenderSoon, true);
+window.addEventListener('change', flushPendingRenderSoon, true);
+
+function toast(m){alert(m)}
+function unlockAudio(){
+  if(audioUnlocked) return;
+  audioUnlocked=true;
+  [audioNext,audioCount,audioWheelSpin,audioWheelResult].forEach(a=>{try{a.volume=0.85; const p=a.play(); if(p&&p.then)p.then(()=>{a.pause();a.currentTime=0}).catch(()=>{});}catch(e){}});
+}
+function playSound(kind){
+  if(!audioUnlocked) return;
+  try{
+    const a=kind==='count'?audioCount:audioNext;
+    a.pause(); a.currentTime=0;
+    const p=a.play(); if(p&&p.catch)p.catch(()=>{});
+  }catch(e){}
+}
+function playWheelSpinSound(){
+  try{
+    audioWheelResult.pause(); audioWheelResult.currentTime=0;
+    audioWheelSpin.pause(); audioWheelSpin.currentTime=0;
+    const p=audioWheelSpin.play(); if(p&&p.catch)p.catch(()=>{});
+  }catch(e){}
+}
+function stopWheelSpinSound(){
+  try{audioWheelSpin.pause(); audioWheelSpin.currentTime=0;}catch(e){}
+}
+function playWheelResultSound(){
+  try{
+    audioWheelResult.pause(); audioWheelResult.currentTime=0;
+    const p=audioWheelResult.play(); if(p&&p.catch)p.catch(()=>{});
+  }catch(e){}
+}
+document.addEventListener('click', unlockAudio, {once:true});
+document.addEventListener('keydown', unlockAudio, {once:true});
+function escapeHtml(v){return String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
+function q(p,w){return p.then(r=>{if(r.error)throw new Error(`${w}: ${r.error.message}`);return r.data})}
+function showErr(where,e){console.error(where,e);lastError=`${where}: ${e.message||e}`;render()}
+function cleanMsg(m){return String(m||'').replace(/^\[(경매|접속)\]\s*/,'')}
+function isAuctionMsg(m){return String(m||'').startsWith('[경매]') || /(경매 시작|입찰|낙찰|유찰|리셋|정지|재개|랜덤 배정|경매 종료)/.test(String(m||''))}
+function formatAuctionLogMessage(message){
+  const safe=escapeHtml(cleanMsg(message));
+  return safe.replace(/(\d{1,3}(?:,\d{3})*|\d+)(?=\s*(?:coin|입찰|낙찰))/g,'<span class="logCoin">$1</span>');
+}
+function uniqueLogs(arr){
+  const seen=new Set(), out=[];
+  for(const l of arr){
+    if(!isAuctionMsg(l.message)) continue;
+    const key=cleanMsg(l.message);
+    if(seen.has(key)) continue;
+    seen.add(key);
+    out.push(l);
+  }
+  return out.slice(0,70);
+}
+async function addAuctionLog(message){
+  const full=`[경매] ${message}`;
+  try{
+    const since=new Date(Date.now()-5000).toISOString();
+    const recent=await q(sb.from('auction_logs').select('id').eq('message',full).gte('created_at',since).limit(1),'로그 중복 확인');
+    if(recent.length) return;
+    await q(sb.from('auction_logs').insert({message:full}),'경매 로그 저장');
+  }catch(e){console.warn(e)}
+}
+async function visitorHeartbeat(){
+  try{await sb.from('auction_visitors').upsert({id:visitorId,last_seen:nowIso()},{onConflict:'id'})}catch(e){}
+}
+async function loadVisitorCount(){
+  try{
+    const cutoff=new Date(Date.now()-25000).toISOString();
+    const r=await sb.from('auction_visitors').select('id',{count:'exact',head:true}).gte('last_seen',cutoff);
+    if(!r.error) visitorCount=r.count||0;
+  }catch(e){visitorCount=0}
+}
+async function ensureData(){
+  try{
+    let st=await q(sb.from('auction_state').select('*').eq('id',1).maybeSingle(),'상태 확인');
+    if(!st) await q(sb.from('auction_state').insert({id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS}),'상태 생성');
+    const cs=await q(sb.from('auction_captains').select('*'),'주장 확인');
+    if(!cs||cs.length<5){
+      for(const c of CAPTAINS){
+        await q(sb.from('auction_captains').upsert({name:c.name,coins:START_COINS,online:false,session_id:null},{onConflict:'name'}),`${c.name} 생성`);
+      }
+    }
+  }catch(e){showErr('초기 데이터 준비 실패',e)}
+}
+async function loadAll(skipRender=false){
+  try{
+    const [st,cs,bd,lg,tm]=await Promise.all([
+      q(sb.from('auction_state').select('*').eq('id',1).single(),'상태 불러오기'),
+      q(sb.from('auction_captains').select('*').order('id'),'주장 불러오기'),
+      q(sb.from('auction_bids').select('*').order('amount',{ascending:false}).order('created_at',{ascending:true}),'입찰 불러오기'),
+      q(sb.from('auction_logs').select('*').order('id',{ascending:false}).limit(150),'경매 로그 불러오기'),
+      q(sb.from('auction_teams').select('*').order('sold_order'),'팀 불러오기')
+    ]);
+    const prevRoundKey = state ? `${state.status}_${state.current_index}_${state.round_started_at||''}` : '';
+    state=st||state; captains=cs||[]; bids=bd||[]; logs=lg||[]; teams=tm||[];
+    // 모든 화면은 DB의 주장 session_id를 기준으로 로그인 유효성을 맞춥니다.
+    // 공장초기화로 session_id가 null이 되면 접속 중인 모든 주장이 자동 로그아웃됩니다.
+    if(me){
+      const currentCap=captains.find(c=>c.name===me.name);
+      if(currentCap && currentCap.session_id !== me.sessionId){
+        localStorage.removeItem('auction_me');
+        me=null;
+      }
+    }
+    const newRoundKey = `${state.status}_${state.current_index}_${state.round_started_at||''}`;
+    if(state.status==='running' && state.round_started_at && newRoundKey!==prevRoundKey && newRoundKey!==lastRoundKeyForNextSound){
+      lastRoundKeyForNextSound=newRoundKey;
+      lastRoundKeyForCountSound='';
+      playSound('next');
+    }
+    await loadVisitorCount(); lastError='';
+    if(!skipRender) renderSafe();
+  }catch(e){showErr('데이터 불러오기 실패',e)}
+}
+
+function rawSoldTeams(){
+  return teams.filter(t=>t.captain_name && Number(t.price)>0);
+}
+function soldTeams(){
+  const map=new Map();
+  for(const t of rawSoldTeams()){
+    const old=map.get(t.player_name);
+    if(!old || Number(t.sold_order||0)<Number(old.sold_order||0)) map.set(t.player_name,t);
+  }
+  return [...map.values()].sort((a,b)=>Number(a.sold_order||0)-Number(b.sold_order||0));
+}
+function soldPlayers(){return new Set(soldTeams().map(t=>t.player_name))}
+function captainTeamCount(name){return soldTeams().filter(t=>t.captain_name===name).length}
+function allTeamsFull(){return CAPTAINS.every(c=>captainTeamCount(c.name)>=TEAM_SIZE)}
+function nextUnsoldIndex(afterIndex){
+  const sold=soldPlayers();
+  for(let step=1;step<=PLAYERS.length;step++){
+    const idx=(afterIndex+step+PLAYERS.length)%PLAYERS.length;
+    if(!sold.has(PLAYERS[idx])) return idx;
+  }
+  return -1;
+}
+function currentPlayer(){
+  // 중요: 현재 출품품목은 반드시 auction_state.current_index만 기준으로 표시합니다.
+  // 각 접속자의 teams 로딩 시점이 다르면 soldPlayers() 기준으로 건너뛰면서 사람마다 다른 품목이 보일 수 있습니다.
+  const idx=Number(state.current_index||0);
+  return PLAYERS[idx] || PLAYERS[0];
+}
+function clampRemaining(v){
+  const n=Number(v);
+  if(!Number.isFinite(n)) return ROUND_SECONDS;
+  return Math.max(0, Math.min(ROUND_SECONDS, n));
+}
+function remainingSeconds(){
+  if(state.status==='paused') return clampRemaining(state.paused_remaining);
+  if(state.status!=='running') return clampRemaining(state.paused_remaining);
+  if(!state.round_started_at) return ROUND_SECONDS;
+  const started=new Date(state.round_started_at).getTime();
+  if(!Number.isFinite(started)) return ROUND_SECONDS;
+  return Math.max(0, Math.min(ROUND_SECONDS, ROUND_SECONDS-Math.floor((Date.now()-started)/1000)));
+}
+function highestBid(){
+  const p=currentPlayer();
+  return bids.filter(b=>b.player_name===p).sort((a,b)=>Number(b.amount)-Number(a.amount)||new Date(a.created_at)-new Date(b.created_at))[0]||null;
+}
+function myCaptain(){return captains.find(c=>c.name===me?.name)}
+function canBid(){
+  const c=myCaptain();
+  return !!(me&&c&&state.status==='running'&&!soldPlayers().has(currentPlayer())&&Number(c.coins)>=BID_STEP&&captainTeamCount(c.name)<TEAM_SIZE);
+}
+
+async function login(){
+  const name=$('#loginName').value,pw=$('#loginPw').value;
+  const ok=CAPTAINS.find(c=>c.name===name&&c.password===pw);
+  if(!ok) return toast('주장 선택 또는 비밀번호가 맞지 않습니다.');
+  try{
+    const sessionId=crypto.randomUUID();
+    await q(sb.from('auction_captains').update({online:true,session_id:sessionId,last_seen:nowIso()}).eq('name',name),'로그인');
+    me={name,sessionId};
+    localStorage.setItem('auction_me',JSON.stringify(me));
+    await loadAll();
+  }catch(e){showErr('로그인 실패',e)}
+}
+async function logout(){
+  try{
+    if(me) await q(sb.from('auction_captains').update({online:false,session_id:null}).eq('name',me.name).eq('session_id',me.sessionId),'로그아웃');
+  }catch(e){}
+  localStorage.removeItem('auction_me'); me=null; await loadAll();
+}
+async function heartbeat(){
+  if(!me) return;
+  const cap=captains.find(c=>c.name===me.name);
+  // 공장초기화 또는 다른 곳 재로그인으로 session_id가 바뀌거나 null이 되면 즉시 로그아웃 처리합니다.
+  if(cap && cap.session_id !== me.sessionId){
+    localStorage.removeItem('auction_me'); me=null;
+    await loadAll(); return;
+  }
+  try{await sb.from('auction_captains').update({online:true,last_seen:nowIso()}).eq('name',me.name).eq('session_id',me.sessionId)}catch(e){}
+}
+
+function askAdminPassword(){
+  return new Promise(resolve=>{
+    modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:420px">
+      <div class="sectionHead"><h2>운영진 비밀번호</h2><button class="ghost" onclick="closeAdminPassword(false)">닫기</button></div>
+      <p class="muted" style="margin:0">운영진 비밀번호를 입력하세요.</p>
+      <div class="adminPwBox">
+        <input id="adminPwInput" type="password" placeholder="비밀번호" autocomplete="off" onkeydown="if(event.key==='Enter') closeAdminPassword(true)">
+        <button class="gold" onclick="closeAdminPassword(true)">확인</button>
+        <button class="ghost" onclick="closeAdminPassword(false)">취소</button>
+      </div>
+    </div></div>`;
+    window._adminPwResolve=resolve;
+    setTimeout(()=>document.getElementById('adminPwInput')?.focus(),0);
+  });
+}
+function closeAdminPassword(ok){
+  const pw=document.getElementById('adminPwInput')?.value||'';
+  modalRoot.innerHTML='';
+  const resolve=window._adminPwResolve;
+  window._adminPwResolve=null;
+  if(!resolve) return;
+  if(!ok) return resolve(false);
+  if(pw!==ADMIN_PASSWORD){toast('운영진 비밀번호가 맞지 않습니다.');return resolve(false)}
+  adminAuthorized=true;
+  // 진행처리 권한은 현재 열린 브라우저 세션에만 유지합니다.
+  return resolve(true);
+}
+async function promptStart(){ if(await askAdminPassword()) await startAuction(); }
+async function authorizeAdminOnly(){ if(await askAdminPassword()){ toast('이 브라우저가 라운드 종료를 처리합니다.'); renderSafe(true); } }
+function openAdmin(){
+  // 운영진 패널 입장 자체는 비밀번호 없이 열립니다.
+  // 실제 버튼을 누를 때마다 비밀번호를 확인합니다.
+  modalRoot.innerHTML=`<div class="modalBg"><div class="modal">
+    <div class="sectionHead"><h2>운영진 패널</h2><span class="tinyBadge">라운드 처리: ${adminAuthorized?'운영진 브라우저':'비활성'}</span><button class="ghost" onclick="closeAdmin()">닫기</button></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="gold" onclick="promptStart()">경매 시작</button>
+      <button class="ok" onclick="authorizeAdminOnly()">이 브라우저로 진행처리</button>
+      <button class="danger" onclick="resetAll()">모든리셋</button>
+      <button class="danger" onclick="factoryResetAll()" title="모든 주장 로그인까지 강제 해제">공장초기화</button>
+      <button class="warn" onclick="pauseAuction()">정지</button>
+      <button class="ok" onclick="resumeAuction()">재개</button>
+    </div>
+    <div class="adminGrid">${captains.map(c=>`<div><label>${c.name}</label><input id="coin_${c.name}" type="number" value="${c.coins}"><button onclick="editCoin('${c.name}')">수정</button></div>`).join('')}</div>
+  </div></div>`;
+}
+function closeAdmin(){modalRoot.innerHTML=''}
+
+async function startAuction(){
+  try{
+    await loadAll(true);
+    if(allTeamsFull()) return await endAuction();
+    let idx=state.current_index||0;
+    if(soldPlayers().has(PLAYERS[idx])) idx=nextUnsoldIndex(idx-1);
+    if(idx<0) return await endAuction();
+    await q(sb.from('auction_state').update({status:'running',current_index:idx,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'경매 시작');
+    await addAuctionLog('경매 시작');
+    await loadAll();
+  }catch(e){showErr('경매 시작 실패',e)}
+}
+async function placeBid(){
+  const cap=myCaptain(); if(!cap) return;
+  const hi=highestBid(); const next=hi?Number(hi.amount)+BID_STEP:BID_STEP;
+  if(!canBid()) return toast('입찰할 수 없습니다.');
+  if(Number(cap.coins)<next) return toast('보유 coin 이 부족합니다.');
+  if(hi?.captain_name===cap.name) return toast('이미 본인이 최고 입찰자입니다.');
+  try{
+    await q(sb.from('auction_bids').insert({player_name:currentPlayer(),captain_name:cap.name,amount:next}),'입찰 저장');
+    await q(sb.from('auction_state').update({round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'시간 초기화');
+    await addAuctionLog(`${cap.name}님 ${next} 입찰`);
+    await loadAll();
+  }catch(e){showErr('입찰 실패',e)}
+}
+async function customBid(){
+  const cap=myCaptain(); const raw=Number($('#customBid').value); const val=Math.floor(raw/10)*10;
+  const hi=highestBid(); const min=hi?Number(hi.amount)+BID_STEP:BID_STEP;
+  if(!val||val<min) return toast(`최소 ${min} coin 이상 입찰해야 합니다.`);
+  if(!canBid()) return toast('입찰할 수 없습니다.');
+  if(Number(cap.coins)<val) return toast('보유 coin 이 부족합니다.');
+  if(hi?.captain_name===cap.name) return toast('이미 본인이 최고 입찰자입니다.');
+  try{
+    await q(sb.from('auction_bids').insert({player_name:currentPlayer(),captain_name:cap.name,amount:val}),'입찰 저장');
+    await q(sb.from('auction_state').update({round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'시간 초기화');
+    await addAuctionLog(`${cap.name}님 ${val} 입찰`);
+    const input=$('#customBid'); if(input) input.value='';
+    await loadAll();
+  }catch(e){showErr('입찰 실패',e)}
+}
+function groupNameByCaptain(name){return ['A조','B조','C조','D조','E조'][CAPTAINS.findIndex(c=>c.name===name)]||'미정'}
+
+async function getFreshSoldTeams(){
+  const rows=await q(sb.from('auction_teams').select('*').not('captain_name','is',null).gt('price',0).order('sold_order'), '팀 최신 확인');
+  const map=new Map();
+  for(const t of rows||[]){
+    const old=map.get(t.player_name);
+    if(!old || Number(t.sold_order||0)<Number(old.sold_order||0)) map.set(t.player_name,t);
+  }
+  return [...map.values()];
+}
+function nextUnsoldIndexFrom(afterIndex, freshSold){
+  const sold=new Set((freshSold||soldTeams()).map(t=>t.player_name));
+  for(let step=1;step<=PLAYERS.length;step++){
+    const idx=(afterIndex+step+PLAYERS.length)%PLAYERS.length;
+    if(!sold.has(PLAYERS[idx])) return idx;
+  }
+  return -1;
+}
+function captainTeamCountFrom(name, freshSold){
+  return (freshSold||soldTeams()).filter(t=>t.captain_name===name).length;
+}
+function allTeamsFullFrom(freshSold){
+  return CAPTAINS.every(c=>captainTeamCountFrom(c.name,freshSold)>=TEAM_SIZE);
+}
+function nextSoldOrderFrom(freshSold){
+  const nums=(freshSold||[]).map(t=>Number(t.sold_order||0)).filter(n=>Number.isFinite(n));
+  const max=nums.length?Math.max(...nums):0;
+  return max+1; // sold_order는 int4라 Date.now() 같은 큰 숫자를 넣으면 오류가 납니다.
+}
+
+async function completeRoundAndMove(localIndex, reason='normal'){
+  let logMessage='';
+  let player=PLAYERS[localIndex];
+  let freshSold=await getFreshSoldTeams();
+
+  if(!player){
+    await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
+    return;
+  }
+
+  // 이미 낙찰 처리된 선수라면 중복 처리하지 않고 다음 미낙찰 선수로만 이동합니다.
+  if(freshSold.some(t=>t.player_name===player)){
+    const ni=nextUnsoldIndexFrom(localIndex, freshSold);
+    if(ni<0 || allTeamsFullFrom(freshSold)){
+      await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
+    }else{
+      await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
+    }
+    return;
+  }
+
+  const fresh=await q(
+    sb.from('auction_bids')
+      .select('*')
+      .eq('player_name',player)
+      .order('amount',{ascending:false})
+      .order('created_at',{ascending:true})
+      .limit(1),
+    '최고 입찰 확인'
+  );
+  const hi=fresh[0];
+
+  if(hi){
+    const price=Number(hi.amount);
+    const cap=await q(sb.from('auction_captains').select('*').eq('name',hi.captain_name).single(), '낙찰 주장 확인');
+
+    freshSold=await getFreshSoldTeams();
+    const alreadySold=freshSold.some(t=>t.player_name===player);
+    const winnerFull=captainTeamCountFrom(hi.captain_name,freshSold)>=TEAM_SIZE;
+    const coinEnough=Number(cap?.coins||0)>=price;
+
+    if(!alreadySold && !winnerFull && coinEnough){
+      const order=nextSoldOrderFrom(freshSold);
+      await q(
+        sb.from('auction_teams')
+          .insert({captain_name:hi.captain_name,player_name:player,price,group_name:groupNameByCaptain(hi.captain_name),sold_order:order})
+          .select('id'),
+        '낙찰 저장'
+      );
+      await q(sb.from('auction_captains').update({coins:Math.max(0,Number(cap.coins)-price)}).eq('name',hi.captain_name),'코인 차감');
+      freshSold=[...freshSold,{captain_name:hi.captain_name,player_name:player,price,group_name:groupNameByCaptain(hi.captain_name),sold_order:order}];
+      logMessage=`${player} 낙찰: ${hi.captain_name}님 ${price} 낙찰`;
+    }else{
+      logMessage=`${player} 유찰`;
+    }
+  }else{
+    logMessage=`${player} 유찰`;
+  }
+
+  // 상태 전환을 먼저 해서 모든 접속자가 같은 current_index를 보게 합니다.
+  if(allTeamsFullFrom(freshSold)){
+    await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
+  }else{
+    const ni=nextUnsoldIndexFrom(localIndex, freshSold);
+    if(ni<0){
+      await q(sb.from('auction_state').update({status:'ended',round_started_at:null,paused_remaining:0}).eq('id',1),'종료');
+    }else{
+      await q(sb.from('auction_state').update({status:'running',current_index:ni,round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'다음 선수');
+    }
+  }
+  if(logMessage) addAuctionLog(logMessage);
+}
+
+async function finishRound(){
+  // 중요: 모든 접속자가 라운드 종료를 실행하면 화면이 갈라집니다.
+  // 운영진 비밀번호를 입력한 브라우저 1곳만 낙찰/유찰/다음 선수 이동을 처리합니다.
+  if(!adminAuthorized) return;
+  if(state.status!=='running'||remainingSeconds()>0) return;
+  if(finishing) return;
+
+  const localIndex=Number(state.current_index||0);
+  const localStartedAt=state.round_started_at;
+  const finishKey=`${localIndex}_${localStartedAt}`;
+  if(lastFinishedKey===finishKey) return;
+
+  finishing=true;
+  lastFinishedKey=finishKey;
+  renderSafe();
+
+  try{
+    // 0초를 여러 접속자가 동시에 감지해도 이 조건을 통과한 1명만 라운드를 종료합니다.
+    const lockStartedAt=nowIso();
+    const lock=await q(
+      sb.from('auction_state')
+        .update({status:'processing',round_started_at:lockStartedAt,paused_remaining:0})
+        .eq('id',1)
+        .eq('status','running')
+        .eq('current_index',localIndex)
+        .eq('round_started_at',localStartedAt)
+        .select('id'),
+      '라운드 잠금'
+    );
+    if(!lock.length){ return; }
+
+    await completeRoundAndMove(localIndex, 'finish');
+    processingSeenAt=0;
+    lastError='';
+    await loadAll();
+  }catch(e){
+    console.warn('라운드 종료 실패 - 같은 선수로 재시도 상태 복구', e);
+    // 실패했을 때 다음 선수로 강제로 넘기면 사람마다 화면이 갈라질 수 있습니다.
+    // 따라서 같은 출품품목을 5초 남은 running 상태로 되돌려 모두 같은 화면으로 맞춥니다.
+    try{
+      await sb.from('auction_state')
+        .update({status:'running',current_index:localIndex,round_started_at:new Date(Date.now()-(ROUND_SECONDS-5)*1000).toISOString(),paused_remaining:5})
+        .eq('id',1);
+      lastError='';
+      await loadAll();
+    }catch(e2){
+      showErr('라운드 복구 실패',e2);
+    }
+  }finally{
+    finishing=false;
+    finishRoundPromise=null;
+    finishStartedAt=0;
+  }
+}
+
+async function endAuction(){
+  await q(sb.from('auction_state').update({status:'ended',round_started_at:null}).eq('id',1),'종료');
+  await addAuctionLog('경매 종료');
+}
+async function resetAll(){
+  if(!await askAdminPassword()) return;
+  if(!confirm('정말 모든 경매를 초기화할까요?\n※ 로그인된 주장들은 로그아웃되지 않습니다.')) return;
+  try{
+    await Promise.all([
+      q(sb.from('auction_bids').delete().neq('id',0),'입찰 삭제'),
+      q(sb.from('auction_logs').delete().neq('id',0),'로그 삭제'),
+      q(sb.from('auction_teams').delete().neq('id',0),'팀 삭제')
+    ]);
+    for(const c of CAPTAINS){
+      await q(sb.from('auction_captains').update({coins:START_COINS}).eq('name',c.name),'주장 coin 초기화');
+    }
+    await q(sb.from('auction_state').update({current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS}).eq('id',1),'상태 초기화');
+    lastFinishedKey=''; processingSeenAt=0; finishRoundPromise=null; finishStartedAt=0; finishing=false;
+    await addAuctionLog('운영진 전체 리셋');
+    closeAdmin(); await loadAll();
+  }catch(e){showErr('리셋 실패',e)}
+}
+async function factoryResetAll(){
+  if(!await askAdminPassword()) return;
+  if(!confirm('정말 공장초기화를 할까요?\n\n※ 경매 데이터가 초기화되고, 로그인된 모든 주장이 강제 로그아웃됩니다.\n※ 모두 새로고침 후 다시 로그인해야 합니다.')) return;
+  try{
+    await Promise.all([
+      q(sb.from('auction_bids').delete().neq('id',0),'입찰 삭제'),
+      q(sb.from('auction_logs').delete().neq('id',0),'로그 삭제'),
+      q(sb.from('auction_teams').delete().neq('id',0),'팀 삭제')
+    ]);
+    for(const c of CAPTAINS){
+      await q(
+        sb.from('auction_captains')
+          .update({coins:START_COINS,online:false,session_id:null,last_seen:null})
+          .eq('name',c.name),
+        '주장 공장초기화'
+      );
+    }
+    await q(sb.from('auction_state').update({current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS}).eq('id',1),'상태 초기화');
+    localStorage.removeItem('auction_me'); me=null;
+    lastFinishedKey=''; processingSeenAt=0; finishRoundPromise=null; finishStartedAt=0; finishing=false;
+    adminAuthorized=false;
+    await addAuctionLog('운영진 공장초기화');
+    closeAdmin(); await loadAll();
+  }catch(e){showErr('공장초기화 실패',e)}
+}
+
+async function pauseAuction(){
+  if(!await askAdminPassword()) return;
+  await q(sb.from('auction_state').update({status:'paused',paused_remaining:remainingSeconds(),round_started_at:null}).eq('id',1),'정지');
+  await addAuctionLog('경매 정지'); await loadAll();
+}
+async function resumeAuction(){
+  if(!await askAdminPassword()) return;
+  const ni=soldPlayers().has(PLAYERS[state.current_index])?nextUnsoldIndex(state.current_index-1):state.current_index;
+  const remain=clampRemaining(state.paused_remaining);
+  const passed=ROUND_SECONDS-remain;
+  await q(sb.from('auction_state').update({status:'running',current_index:ni>=0?ni:0,round_started_at:new Date(Date.now()-passed*1000).toISOString(),paused_remaining:remain}).eq('id',1),'재개');
+  await addAuctionLog('경매 재개'); await loadAll();
+}
+async function editCoin(name){
+  if(!await askAdminPassword()) return;
+  const v=Number(document.getElementById('coin_'+name).value);
+  if(Number.isNaN(v)||v<0) return;
+  await q(sb.from('auction_captains').update({coins:v}).eq('name',name),'코인 수정');
+  await loadAll();
+}
+
+
+function shuffleArray(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function drawMapWheel(){
+  const canvas=document.getElementById('mapWheelCanvas');
+  if(!canvas) return;
+  const dpr=window.devicePixelRatio||1;
+  const size=360;
+  canvas.width=size*dpr; canvas.height=size*dpr;
+  canvas.style.width=size+'px'; canvas.style.height=size+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,size,size);
+  const cx=size/2, cy=size/2, r=size/2-8;
+  const n=wheelMaps.length;
+  const seg=(Math.PI*2)/n;
+  const colors=['#2563eb','#7c3aed','#0891b2','#16a34a','#ea580c','#dc2626','#0f766e','#9333ea'];
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(-Math.PI/2);
+  for(let i=0;i<n;i++){
+    const start=i*seg, end=start+seg;
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,r,start,end);
+    ctx.closePath();
+    ctx.fillStyle=colors[i%colors.length];
+    ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.18)';
+    ctx.lineWidth=1;
+    ctx.stroke();
+    ctx.save();
+    ctx.rotate(start+seg/2);
+    ctx.textAlign='right';
+    ctx.textBaseline='middle';
+    ctx.fillStyle='white';
+    ctx.font='900 10px Arial, sans-serif';
+    const name=wheelMaps[i];
+    const short=name.length>7?name.slice(0,7)+'…':name;
+    ctx.fillText(short,r-14,0);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+function openMapWheel(){
+  modalRoot.innerHTML=`<div class="modalBg"><div class="mapWheelModal">
+    <div class="sectionHead"><h2>🗺️ 맵 돌림판</h2><button class="ghost" onclick="closeMapWheel()">닫기</button></div>
+    <div class="mapWheelLayout">
+      <div class="wheelWrap">
+        <div class="wheelPointer"></div>
+        <canvas id="mapWheelCanvas" class="wheelCanvas"></canvas>
+        <div class="wheelHub">MAP<br>SPIN</div>
+      </div>
+      <div>
+        <div class="mapWheelResult"><div class="label">선택된 맵</div><div id="mapWheelResultName" class="name">돌림판 대기중</div></div>
+        <div class="mapWheelButtons">
+          <button class="gold" onclick="spinMapWheel()" id="spinMapBtn">돌리기</button>
+          <button class="ghost" onclick="shuffleMapWheel()" id="shuffleMapBtn">랜덤섞기</button>
+        </div>
+        <div class="mapWheelHint">맨 위 노란 화살표에 걸린 칸이 최종 맵으로 결정됩니다. 돌림판은 계속 다시 돌릴 수 있습니다.</div>
+        <div class="mapWheelList" id="mapWheelList"></div>
+      </div>
+    </div>
+  </div></div>`;
+  setTimeout(()=>{drawMapWheel(); renderMapWheelList(); applyWheelRotation(false);},0);
+}
+function closeMapWheel(){ if(wheelSpinning) return; stopWheelSpinSound(); modalRoot.innerHTML=''; }
+function renderMapWheelList(){
+  const box=document.getElementById('mapWheelList');
+  if(!box) return;
+  box.innerHTML=wheelMaps.map(m=>`<span class="mapChip">${escapeHtml(m)}</span>`).join('');
+}
+function applyWheelRotation(animated=true){
+  const canvas=document.getElementById('mapWheelCanvas');
+  if(!canvas) return;
+  canvas.style.transition=animated?'transform 5.2s cubic-bezier(.08,.78,.12,1)':'none';
+  canvas.style.transform=`rotate(${wheelRotation}deg)`;
+}
+function setMapWheelButtons(disabled){
+  const spin=document.getElementById('spinMapBtn'), shuf=document.getElementById('shuffleMapBtn');
+  if(spin) spin.disabled=disabled;
+  if(shuf) shuf.disabled=disabled;
+}
+function spinMapWheel(){
+  if(wheelSpinning || !wheelMaps.length) return;
+  wheelSpinning=true; setMapWheelButtons(true);
+  playWheelSpinSound();
+  const n=wheelMaps.length;
+  const seg=360/n;
+  const picked=Math.floor(Math.random()*n);
+  const centerDeg=picked*seg + seg/2;
+  const current=((wheelRotation%360)+360)%360;
+  const targetMod=(360-centerDeg+360)%360;
+  let delta=(targetMod-current+360)%360;
+  delta += 360*(7+Math.floor(Math.random()*3));
+  wheelRotation += delta;
+  const resultEl=document.getElementById('mapWheelResultName');
+  if(resultEl) resultEl.textContent='돌리는 중...';
+  applyWheelRotation(true);
+  setTimeout(()=>{
+    stopWheelSpinSound();
+    playWheelResultSound();
+    wheelLastResult=wheelMaps[picked];
+    const el=document.getElementById('mapWheelResultName');
+    if(el) el.textContent=wheelLastResult;
+    wheelSpinning=false; setMapWheelButtons(false);
+  },5300);
+}
+function shuffleMapWheel(){
+  if(wheelSpinning) return;
+  wheelMaps=shuffleArray(wheelMaps);
+  wheelRotation=0;
+  wheelLastResult='';
+  drawMapWheel(); renderMapWheelList(); applyWheelRotation(false);
+  const el=document.getElementById('mapWheelResultName');
+  if(el) el.textContent='랜덤섞기 완료';
+}
+
+function renderAuthBox(){
+  const cap=myCaptain();
+  return `<div class="card">
+    <div class="sectionHead"><h2>주장 로그인</h2><span class="tinyBadge">현재 접속자수 : ${visitorCount}</span></div>
+    ${me&&cap?`<div class="topBtns"><span class="badge">접속: ${me.name}</span><span class="badge">내 coin: ${money(cap.coins)} coin</span><button class="ghost" onclick="logout()">로그아웃</button></div>`:
+    `<div class="loginRow"><div><label>주장 선택</label><select id="loginName">${CAPTAINS.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select></div><div><label>패스워드</label><input id="loginPw" type="password" placeholder="패스워드"></div><button onclick="login()">로그인</button><span class="muted">미로그인도 관람 가능 / 입찰은 로그인 필요</span></div>`}
+  </div>`;
+}
+function render(){
+  const hi=highestBid(), player=currentPlayer(), rem=remainingSeconds(), sold=soldPlayers(), online=captains.filter(c=>c.online).length, auction=uniqueLogs(logs);
+  app.innerHTML=`<div class="wrap">
+    ${lastError?`<div class="errorBox">${escapeHtml(lastError)}</div>`:''}
+    <div class="top">
+      <div class="title"><h1>🏁 아시아리그 팀원 경매</h1><p>로그인 없이 관람 가능 · 주장 로그인 후 입찰 가능 · 최소 입찰 10 coin · 제한시간 30초</p></div>
+      <div class="topBtns"><button class="ghost" onclick="showLandingPage()">처음으로</button><button class="gold" onclick="promptStart()">경매 시작</button><button class="ghost" onclick="openMapWheel()">맵돌리기</button>
+      <button class="ok" onclick="authorizeAdminOnly()">이 브라우저로 진행처리</button><button class="ghost" onclick="openAdmin()">운영진 패널</button>${adminAuthorized?`<span class="badge">운영진 진행처리 ON</span>`:''}${me?`<span class="badge">로그인: ${me.name}</span>`:`<span class="badge">미로그인</span>`}</div>
+    </div>
+    ${renderAuthBox()}
+    <div class="mainGrid">
+      <div>
+        <div class="card">
+          <div class="sectionHead"><h2>주장 접속 현황</h2><span class="tinyBadge">현재 접속중인 주장 수 : ${online}</span></div>
+          <div class="captains">${captains.map(c=>`<div class="captain ${c.online?'on':''}"><b>${c.name}</b><div class="coin">${money(c.coins)}</div><div class="small">${c.online?'🟢 접속중':'⚪ 오프라인'}</div></div>`).join('')}</div>
+        </div>
+
+        <div class="card" style="margin-top:10px">
+          <h2 style="margin-bottom:10px">현재 경매</h2>
+          ${state.status==='waiting'?`<p class="muted" style="font-weight:900">대기중입니다. 위쪽 경매 시작 버튼 → 운영진 비밀번호 입력 시 시작됩니다.</p>`:
+          state.status==='ended'?`<p class="muted" style="font-weight:900;color:#34d399">경매가 종료되었습니다.</p>`:
+          (state.status==='processing'||finishing||rem<=0)?`<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">처리중</div><div class="highest">${adminAuthorized?'낙찰/유찰 처리 후 다음 선수로 이동 중입니다.':'운영진 브라우저에서 다음 선수 이동을 처리 중입니다.'}</div></div></div>`:
+          `<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">${rem}초</div><div class="highest">현재 최고 입찰: ${hi?`<span class="highestName">${hi.captain_name}</span> / <span class="highestAmount">${money(hi.amount)}</span> coin`:'아직 없음'}</div>${me?`<div class="bidBox"><input id="customBid" type="number" step="10" placeholder="직접 입찰 금액"><button class="gold" onclick="customBid()" ${!canBid()?'disabled':''}>입찰하기</button><button onclick="placeBid()" ${!canBid()?'disabled':''}>+10 자동입찰</button></div>`:`<p class="muted">관람 중입니다. 입찰하려면 상단에서 주장 로그인하세요.</p>`}</div></div>`}
+        </div>
+
+        <div class="card" style="margin-top:10px">
+          <div class="sectionHead"><h2>경매 로그</h2><span class="tinyBadge">입찰/낙찰/유찰 전용</span></div>
+          <div class="log">${auction.length?auction.map(l=>`<div>${new Date(l.created_at).toLocaleTimeString('ko-KR')} · ${formatAuctionLogMessage(l.message)}</div>`).join(''):'<div>아직 경매 로그가 없습니다.</div>'}</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2 style="margin-bottom:10px">경매 출품 선수 목록</h2>
+          <div class="playersGrid">${PLAYERS.map((p,i)=>{const isSold=sold.has(p), isNow=p===player&&(state.status==='running'||state.status==='processing');return `<div class="playerItem ${isSold?'sold':isNow?'now':''}"><span class="num">${i+1}</span>${p}</div>`}).join('')}</div>
+        </div>
+
+        <div class="card" style="margin-top:10px">
+          <h2 style="margin-bottom:10px">팀 배정 결과</h2>
+          <div class="teams">${CAPTAINS.map(c=>`<div class="team"><h3>${c.name}</h3>${soldTeams().filter(t=>t.captain_name===c.name).map(t=>`<div class="member"><span>${t.player_name}</span><b>${money(t.price)}</b></div>`).join('')||'<p class="muted">아직 없음</p>'}</div>`).join('')}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+async function recoverProcessingIfStuck(force=false){
+  // 처리중 복구도 운영진 브라우저만 실행합니다. 관람자/주장 브라우저는 보기만 합니다.
+  if(!adminAuthorized) { processingSeenAt=0; return; }
+  if(state.status!=='processing') { processingSeenAt=0; return; }
+  if(!processingSeenAt) processingSeenAt=Date.now();
+
+  const started=new Date(state.round_started_at||0).getTime();
+  const oldEnoughByDb=Number.isFinite(started) && Date.now()-started>PROCESSING_STUCK_MS;
+  if(!force && !oldEnoughByDb && Date.now()-processingSeenAt < PROCESSING_STUCK_MS) return;
+
+  try{
+    // 중요: processing 복구에서 낙찰/유찰 처리를 하지 않습니다.
+    // 여러 접속자가 동시에 completeRoundAndMove를 실행하면 선수 건너뜀/화면 불일치가 생깁니다.
+    // processing이 오래 걸리면 같은 선수 5초 남은 상태로 되돌려 한 명만 다시 정상 종료하게 합니다.
+    const idx=Number(state.current_index||0);
+    const restore=await q(
+      sb.from('auction_state')
+        .update({status:'running',current_index:idx,round_started_at:new Date(Date.now()-(ROUND_SECONDS-5)*1000).toISOString(),paused_remaining:5})
+        .eq('id',1)
+        .eq('status','processing')
+        .select('id'),
+      '처리중 복구'
+    );
+    processingSeenAt=0;
+    lastError='';
+    await loadAll();
+  }catch(e){
+    console.warn('processing 복구 실패', e);
+  }
+}
+
+
+
+/* ===== 아시아 내전 기능 ===== */
+const AW_TABLE='asia_civil_war_state';
+const AW_ADMIN_PW='0523';
+let awMembers=[], awState=null, awMe=JSON.parse(localStorage.getItem('asia_war_me')||'null');
+let awTimer=null, awLastLoginSig='';
+function awEsc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function awDefaultState(){return {applications:[],finalized:false,teams:null,teamOrders:{},logs:[],updatedAt:new Date().toISOString()};}
+function awNorm(st){st=st&&typeof st==='object'?st:{};return {applications:Array.isArray(st.applications)?st.applications:[],finalized:!!st.finalized,teams:st.teams||null,teamOrders:st.teamOrders&&typeof st.teamOrders==='object'?st.teamOrders:{},logs:Array.isArray(st.logs)?st.logs.slice(0,120):[],updatedAt:st.updatedAt||new Date().toISOString()};}
+function awLog(msg){awState.logs=[`[${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}] ${msg}`,...(awState.logs||[])].slice(0,120);}
+async function awLoadMembers(){const r=await sb.from('asia_event_members').select('nickname,password,level').order('nickname',{ascending:true}); if(r.error) throw new Error(r.error.message); awMembers=(r.data||[]).map(x=>({name:String(x.nickname||'').trim(),pw:String(x.password||'').trim(),level:Number(x.level||0)})).filter(x=>x.name);}
+async function awSave(){awState.updatedAt=new Date().toISOString(); const r=await sb.from(AW_TABLE).upsert({id:1,state:awState,updated_at:new Date().toISOString()},{onConflict:'id'}).select('id'); if(r.error) throw new Error(r.error.message);}
+async function awLoad(){const r=await sb.from(AW_TABLE).select('state').eq('id',1).maybeSingle(); if(r.error) throw new Error(r.error.message); awState=r.data?awNorm(r.data.state):awDefaultState();}
+async function awBoot(){try{await awLoadMembers(); await awLoad(); awRender(); if(awTimer) clearInterval(awTimer); awTimer=setInterval(async()=>{try{await awLoadMembers(); await awLoad(); awRender();}catch(e){}},2500);}catch(e){alert('데이터 불러오기 실패: '+(e.message||e));}}
+function awApplicants(){const map=new Map(awMembers.map(m=>[m.name,m])); return (awState.applications||[]).map(a=>({name:a.name,level:Number(a.level??map.get(a.name)?.level??0),at:a.at})).sort((a,b)=>b.level-a.level||new Date(a.at)-new Date(b.at));}
+function awLines(){const arr=awApplicants().slice(0,16); return [arr.slice(0,4),arr.slice(4,8),arr.slice(8,12),arr.slice(12,16)];}
+function awRender(){if(!document.getElementById('warPage')) return; awRenderLogin(); const apps=awApplicants(); document.getElementById('awFullBanner').classList.toggle('on',apps.length>=16); document.getElementById('awLockedBanner').classList.toggle('on',awState.finalized); const btn=document.getElementById('awApplyBtn'); if(btn) btn.disabled=!awMe||awState.finalized||apps.some(a=>a.name===awMe.name)||apps.length>=16; const lines=awLines(); document.getElementById('awLineGrid').innerHTML=lines.map((line,i)=>`<div class="awLineCard"><div class="awLineTitle"><span>${i+1}라인</span><span>${line.length}/4</span></div>${[0,1,2,3].map(j=>{const p=line[j];return p?`<div class="awSlot"><span class="awName">${awEsc(p.name)}</span></div>`:`<div class="awSlot empty">빈 자리</div>`}).join('')}</div>`).join(''); awRenderTeams(); document.getElementById('awLog').innerHTML=(awState.logs||[]).map(x=>`<div>${awEsc(x)}</div>`).join('')||'<div class="muted">아직 기록이 없습니다.</div>';}
+function awRenderLogin(){const box=document.getElementById('awLoginBox'); if(!box) return; if(awMe){const applied=awApplicants().some(a=>a.name===awMe.name); box.innerHTML=`<div class="awStatus"><div class="awStat">로그인<b>${awEsc(awMe.name)}</b></div><div class="awStat">상태<b>${applied?'지원완료':'미지원'}</b></div><div class="awStat">참가<b>${awApplicants().length}/16</b></div></div>`; return;} const active=document.activeElement, typing=active&&box.contains(active), sig=awMembers.map(m=>m.name).join('|'); if(typing&&box.dataset.rendered==='1'&&awLastLoginSig===sig) return; awLastLoginSig=sig; box.dataset.rendered='1'; const oldSel=document.getElementById('awLoginName')?.value||''; const oldPw=document.getElementById('awLoginPw')?.value||''; box.innerHTML=`<div class="awLogin"><select id="awLoginName"><option value="">아이디 선택</option>${awMembers.map(m=>`<option value="${awEsc(m.name)}" ${oldSel===m.name?'selected':''}>${awEsc(m.name)}</option>`).join('')}</select><input id="awLoginPw" type="password" placeholder="비밀번호" value="${awEsc(oldPw)}"></div><button class="ok" style="width:100%;margin-top:8px" onclick="awLogin()">로그인</button>`;}
+function awRenderTeams(){const grid=document.getElementById('awTeamGrid'); const btn=document.getElementById('awOrderOpenBtn'); if(!grid) return; const teams=awState.teams; if(btn) btn.style.display=teams?'inline-flex':'none'; if(!teams){grid.innerHTML='<div class="muted">팀 추첨 전입니다.</div>'; return;} const labels=['A','B','C','D']; grid.innerHTML=labels.map(g=>{const team=teams[g]||[]; const ord=awState.teamOrders?.[g]; const confirmed=ord?.confirmed; const color=ord?.color||''; return `<div class="awTeamCard ${g.toLowerCase()}"><div class="awTeamHead"><h3>${g}조</h3><div>${color?`<span class="awTeamColorBadge">${awEsc(color)}</span>`:''}${confirmed?` <span class="awConfirmedBadge">확정</span>`:''}</div></div>${team.map(p=>`<div class="awTeamMember"><span>${awEsc(p.name)}</span><span>${awEsc(awPublicRole(g,p.name,p.line))}</span></div>`).join('')}</div>`}).join('');}
+function awPublicRole(g,name,line){const ord=awState.teamOrders?.[g]; if(!ord||!ord.confirmed) return `${line}라인`; if(ord.g1a===name) return '1경기'; if(ord.g2a===name) return '2경기'; if(ord.g1b===name||ord.g2b===name) return '?'; return `${line}라인`;}
+async function awLogin(){const n=document.getElementById('awLoginName')?.value; const p=document.getElementById('awLoginPw')?.value; const m=awMembers.find(x=>x.name===n); if(!m) return alert('아이디를 선택해주세요.'); if(String(m.pw)!==String(p||'')) return alert('비밀번호가 맞지 않습니다.'); awMe={name:m.name}; localStorage.setItem('asia_war_me',JSON.stringify(awMe)); awRender();}
+function awLogout(){awMe=null; localStorage.removeItem('asia_war_me'); awRender();}
+async function awApply(){try{if(!awMe) return alert('먼저 로그인해주세요.'); await awLoadMembers(); await awLoad(); if(awState.finalized) return alert('운영진 확정 완료로 지원할 수 없습니다.'); const apps=awApplicants(); if(apps.some(a=>a.name===awMe.name)) return alert('이미 지원했습니다.'); if(apps.length>=16) return alert('FULL 상태입니다.'); const m=awMembers.find(x=>x.name===awMe.name); if(!m) return alert('회원 정보를 찾을 수 없습니다.'); awState.applications.push({name:m.name,level:m.level,at:new Date().toISOString()}); awLog(`${m.name}님이 지원했습니다.`); await awSave(); awRender();}catch(e){alert('지원 실패: '+(e.message||e));}}
+function awAskPw(msg='운영진 비밀번호'){return prompt(msg+'\n비밀번호를 입력하세요.')===AW_ADMIN_PW;}
+function awShuffle(arr){arr=[...arr]; for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr;}
+async function awOpenTeamDraw(){try{if(!awAskPw('팀 추첨')) return; await awLoad(); if(!awState.finalized) return alert('먼저 운영진 확정하기를 해주세요.'); if(awApplicants().length<16) return alert('16명이 모두 차야 팀 추첨이 가능합니다.'); if(!confirm('팀 추첨을 하시겠습니까?')) return; const lines=awLines().map((line,idx)=>awShuffle(line.map(p=>({name:p.name,line:idx+1})))); const teams={A:[],B:[],C:[],D:[]}; ['A','B','C','D'].forEach((g,i)=>{for(let l=0;l<4;l++) teams[g].push(lines[l][i]);}); awState.teams=teams; awState.teamOrders={}; awLog('운영진이 팀 추첨을 진행했습니다.'); await awSave(); awRender();}catch(e){alert('팀 추첨 실패: '+(e.message||e));}}
+function awOpenAdminPanel(){document.getElementById('modalRoot').innerHTML=`<div class="awModalBg"><div class="awModal"><h2>운영진 패널</h2><input id="awAdminPw" type="password" placeholder="운영진 비밀번호"><div class="awAdminBox"><button class="gold" onclick="awFinalize()">운영진 확정하기</button><button class="danger" onclick="awResetAll()">전체 리셋</button><button class="ghost" onclick="document.getElementById('modalRoot').innerHTML=''">닫기</button></div></div></div>`;}
+async function awFinalize(){try{if(document.getElementById('awAdminPw')?.value!==AW_ADMIN_PW) return alert('비밀번호가 맞지 않습니다.'); await awLoad(); awState.finalized=true; awLog('운영진이 참가선수를 확정했습니다.'); await awSave(); document.getElementById('modalRoot').innerHTML=''; awRender();}catch(e){alert('확정 실패: '+(e.message||e));}}
+async function awResetAll(){try{if(document.getElementById('awAdminPw')?.value!==AW_ADMIN_PW) return alert('비밀번호가 맞지 않습니다.'); if(!confirm('모든 지원자, 팀 추첨, 출전순서를 리셋할까요?')) return; awState=awDefaultState(); awLog('운영진이 모든 내용을 리셋했습니다.'); await awSave(); document.getElementById('modalRoot').innerHTML=''; awRender();}catch(e){alert('리셋 실패: '+(e.message||e));}}
+function awToggleOrderLogin(){const box=document.getElementById('awOrderLoginBox'); if(!box) return; if(box.style.display==='none'){awRenderOrderLogin(); box.style.display='block';}else box.style.display='none';}
+function awRenderOrderLogin(){const team1=(awState.teams?['A','B','C','D'].flatMap(g=>(awState.teams[g]||[]).filter(p=>p.line===1).map(p=>({group:g,name:p.name}))):[]); document.getElementById('awOrderLoginBox').innerHTML=`<div class="awOrderHint">1라인 선수만 로그인하여 본인 팀의 출전순서를 정할 수 있습니다.</div><div class="awOrderLogin" style="margin-top:8px"><select id="awOrderName"><option value="">1라인 선수 선택</option>${team1.map(p=>`<option value="${awEsc(p.group)}|${awEsc(p.name)}">${awEsc(p.group)}조 ${awEsc(p.name)}</option>`).join('')}</select><input id="awOrderPw" type="password" placeholder="비밀번호"><button class="ok" onclick="awOrderLogin()">확인</button></div>`;}
+function awOrderLogin(){const v=document.getElementById('awOrderName')?.value||''; const pw=document.getElementById('awOrderPw')?.value||''; if(!v) return alert('아이디를 선택해주세요.'); const [g,n]=v.split('|'); const m=awMembers.find(x=>x.name===n); if(!m||String(m.pw)!==String(pw)) return alert('비밀번호가 맞지 않습니다.'); awOpenOrderModal(g,n);}
+function awOpenOrderModal(g,n){const team=awState.teams?.[g]||[]; const ord=awState.teamOrders?.[g]||{}; const opts='<option value="">선택가능</option>'+team.map(p=>`<option value="${awEsc(p.name)}">${awEsc(p.name)}</option>`).join(''); document.getElementById('modalRoot').innerHTML=`<div class="awModalBg"><div class="awModal"><h2>${g}조 출전순서 정하기</h2><div class="awOrderHint">${awEsc(n)}님 로그인 완료 · 같은 선수는 다른 칸에서 중복 선택할 수 없습니다.</div><div class="awOrderGrid"><b>캐릭컬러지정</b><input id="awColor" placeholder="예: 핑크" value="${awEsc(ord.color||'')}"></div><div class="awOrderGrid"><b>1경기 공개</b><select class="awOrderSelect" id="awG1A">${opts}</select></div><div class="awOrderGrid"><b>1경기 비공개</b><select class="awOrderSelect" id="awG1B">${opts}</select></div><div class="awOrderGrid"><b>2경기 공개</b><select class="awOrderSelect" id="awG2A">${opts}</select></div><div class="awOrderGrid"><b>2경기 비공개</b><select class="awOrderSelect" id="awG2B">${opts}</select></div><div class="awModalBtns"><button class="ok" onclick="awConfirmOrder('${g}')">확정</button><button class="ghost" onclick="document.getElementById('modalRoot').innerHTML=''">닫기</button></div></div></div>`; ['G1A','G1B','G2A','G2B'].forEach(k=>{const el=document.getElementById('aw'+k); if(el) el.value=ord[k.toLowerCase()]||'';}); document.querySelectorAll('.awOrderSelect').forEach(s=>s.addEventListener('change',awUpdateOrderOptions)); awUpdateOrderOptions();}
+function awUpdateOrderOptions(){const ids=['awG1A','awG1B','awG2A','awG2B']; const vals=ids.map(id=>document.getElementById(id)?.value).filter(Boolean); ids.forEach(id=>{const sel=document.getElementById(id); if(!sel) return; [...sel.options].forEach(o=>{o.disabled=o.value && o.value!==sel.value && vals.includes(o.value);});});}
+async function awConfirmOrder(g){try{const color=document.getElementById('awColor')?.value.trim()||''; const vals={g1a:document.getElementById('awG1A')?.value||'',g1b:document.getElementById('awG1B')?.value||'',g2a:document.getElementById('awG2A')?.value||'',g2b:document.getElementById('awG2B')?.value||''}; if(!color) return alert('캐릭컬러지정을 입력해주세요.'); if(Object.values(vals).some(v=>!v)) return alert('4칸 모두 선택해주세요.'); if(new Set(Object.values(vals)).size<4) return alert('같은 선수를 중복 선택할 수 없습니다.'); const prev=awState.teamOrders?.[g]; const used=Number(prev?.used||0); if(prev?.confirmed && used>=3) return alert('수정 가능 횟수를 모두 사용했습니다.'); const left=prev?.confirmed ? Math.max(0,2-used) : 2; if(!confirm(`${left}번 더 수정할수 있습니다. 확정짓겠습니까?`)) return; await awLoad(); awState.teamOrders=awState.teamOrders||{}; awState.teamOrders[g]={...vals,color,confirmed:true,used:used+1,updatedAt:new Date().toISOString()}; awLog(`${g}조 출전순서가 확정되었습니다.`); await awSave(); document.getElementById('modalRoot').innerHTML=''; awRender();}catch(e){alert('출전순서 저장 실패: '+(e.message||e));}}
+function showWarPage(){try{asiaPushPage&&asiaPushPage('war');}catch(e){} asiaCurrentPage='war'; setPageViewport('pc'); ['landingPage','leaguePage','app','eventPage','testPage'].forEach(id=>{const el=document.getElementById(id); if(el) el.style.display='none';}); document.getElementById('warPage').style.display='block'; awBoot();}
+(function(){const oldLanding=window.showLandingPage; window.showLandingPage=function(){if(oldLanding) oldLanding(); const w=document.getElementById('warPage'); if(w) w.style.display='none';}; const oldLeague=window.showLeaguePage; window.showLeaguePage=function(){if(oldLeague) oldLeague(); const w=document.getElementById('warPage'); if(w) w.style.display='none';}; const oldAuction=window.showAuctionPage; window.showAuctionPage=function(){if(oldAuction) oldAuction(); const w=document.getElementById('warPage'); if(w) w.style.display='none';}; const oldEvent=window.showEventPage; window.showEventPage=function(){if(oldEvent) oldEvent(); const w=document.getElementById('warPage'); if(w) w.style.display='none';}; const oldTest=window.showTestPage; window.showTestPage=function(){if(oldTest) oldTest(); const w=document.getElementById('warPage'); if(w) w.style.display='none';};})();
+
+async function boot(){
+  try{
+    render();
+    await visitorHeartbeat();
+    await ensureData();
+    await loadAll();
+    if(adminAuthorized && state.status==='processing') recoverProcessingIfStuck(true);
+    sb.channel('auction-live').on('postgres_changes',{event:'*',schema:'public'},()=>loadAll()).subscribe();
+    sb.channel('asia-event-live').on('postgres_changes',{event:'*',schema:'public',table:EVENT_TABLE},async()=>{ if(document.getElementById('eventPage')?.style.display!=='none'){ try{ await eventLoad(); renderEvent(); }catch(e){} } }).subscribe();
+    setInterval(()=>loadAll().catch(()=>{}),3000);
+  setInterval(()=>{
+    try{
+      if(finishRoundPromise && finishStartedAt && Date.now()-finishStartedAt>9000){
+        finishRoundPromise=null; finishStartedAt=0; finishing=false;
+        if(adminAuthorized) recoverProcessingIfStuck();
+      }
+      const rem=remainingSeconds();
+      if(state.status==='running'){
+        const roundKey=`${state.current_index}_${state.round_started_at||''}`;
+        if(rem===6 && lastRoundKeyForCountSound!==roundKey){
+          lastRoundKeyForCountSound=roundKey;
+          playSound('count');
+        }
+        if(rem<=0){
+          renderSafe();
+          if(adminAuthorized){
+            if(!finishRoundPromise){
+              finishStartedAt=Date.now();
+              finishRoundPromise=finishRound().finally(()=>{finishRoundPromise=null; finishStartedAt=0;});
+            }
+          }
+        }else{
+          processingSeenAt=0;
+          renderSafe();
+        }
+      }else if(state.status==='processing'){
+        if(adminAuthorized) recoverProcessingIfStuck();
+        renderSafe();
+      }else{
+        processingSeenAt=0;
+        renderSafe();
+      }
+    }catch(e){console.error(e)}
+  },250);
+    setInterval(()=>{
+      visitorHeartbeat();
+      if(me) heartbeat();
+      loadVisitorCount().then(()=>{ if(!finishing) renderSafe(); }).catch(()=>{});
+    },4000);
+  }catch(e){
+    console.error('boot failed',e);
+    lastError='초기 로딩 실패: '+(e.message||e);
+    render();
+  }
+}
+boot();
 </script>
 </body>
 </html>
