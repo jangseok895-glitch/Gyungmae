@@ -65,7 +65,7 @@
       <div>
         <div class="panel">
           <h2>참가선수</h2>
-          <p class="muted" style="margin-top:0">LEVEL 높은 순서대로 1라인부터 자동 배정됩니다. 각 라인은 최대 4명입니다.</p>
+          <p class="muted" style="margin-top:0">실력 기준에 따라 1라인부터 자동 배정됩니다. 각 라인은 최대 4명입니다.</p>
           <div class="lineGrid" id="lineGrid"></div>
         </div>
         <div class="panel" style="margin-top:14px">
@@ -98,12 +98,36 @@ async function loadWar(){let r=await sb.from(WAR_TABLE).select('state').eq('id',
 async function bootWar(){try{await loadMembers(); await loadWar(); renderWar(); if(refreshTimer) clearInterval(refreshTimer); refreshTimer=setInterval(async()=>{try{await loadMembers(); await loadWar(); renderWar();}catch(e){}},2500);}catch(e){alert('데이터 불러오기 실패: '+(e.message||e));}}
 function sortedApplicants(){const map=new Map(warMembers.map(m=>[m.name,m])); return (warState.applications||[]).map(a=>({name:a.name,level:Number(a.level??map.get(a.name)?.level??0),at:a.at})).sort((a,b)=>b.level-a.level||new Date(a.at)-new Date(b.at));}
 function getLines(){const arr=sortedApplicants().slice(0,16); return [arr.slice(0,4),arr.slice(4,8),arr.slice(8,12),arr.slice(12,16)];}
-function renderWar(){renderLogin(); const apps=sortedApplicants(); document.getElementById('fullBanner').classList.toggle('on',apps.length>=16); document.getElementById('lockedBanner').classList.toggle('on',warState.finalized); const applyBtn=document.getElementById('applyBtn'); if(applyBtn) applyBtn.disabled=!warMe||warState.finalized||apps.some(a=>a.name===warMe.name)||apps.length>=16; const lines=getLines(); document.getElementById('lineGrid').innerHTML=lines.map((line,i)=>`<div class="lineCard"><div class="lineTitle"><span>${i+1}라인</span><span>${line.length}/4</span></div>${[0,1,2,3].map(j=>{const p=line[j]; return p?`<div class="slot"><span class="name">${esc(p.name)}</span><span class="lv">LEVEL ${p.level}</span></div>`:`<div class="slot empty">빈 자리</div>`}).join('')}</div>`).join(''); renderTeams(); document.getElementById('warLog').innerHTML=(warState.logs||[]).map(x=>`<div>${esc(x)}</div>`).join('')||'<div class="muted">아직 기록이 없습니다.</div>';}
-function renderLogin(){const box=document.getElementById('loginBox'); if(!box) return; if(warMe){const mem=warMembers.find(m=>m.name===warMe.name); box.innerHTML=`<div class="status"><div class="stat">로그인<b>${esc(warMe.name)}</b></div><div class="stat">LEVEL<b>${mem?.level??warMe.level??0}</b></div><div class="stat">상태<b>${sortedApplicants().some(a=>a.name===warMe.name)?'지원완료':'미지원'}</b></div></div>`; return;} box.innerHTML=`<div class="login"><select id="warLoginName">${warMembers.map(m=>`<option value="${esc(m.name)}">${esc(m.name)} / LEVEL ${m.level}</option>`).join('')}</select><input id="warLoginPw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter') loginWar()"></div><button class="ok" style="width:100%;margin-top:8px" onclick="loginWar()">로그인</button>`;}
+function renderWar(){renderLogin(); const apps=sortedApplicants(); document.getElementById('fullBanner').classList.toggle('on',apps.length>=16); document.getElementById('lockedBanner').classList.toggle('on',warState.finalized); const applyBtn=document.getElementById('applyBtn'); if(applyBtn) applyBtn.disabled=!warMe||warState.finalized||apps.some(a=>a.name===warMe.name)||apps.length>=16; const lines=getLines(); document.getElementById('lineGrid').innerHTML=lines.map((line,i)=>`<div class="lineCard"><div class="lineTitle"><span>${i+1}라인</span><span>${line.length}/4</span></div>${[0,1,2,3].map(j=>{const p=line[j]; return p?`<div class="slot"><span class="name">${esc(p.name)}</span></div>`:`<div class="slot empty">빈 자리</div>`}).join('')}</div>`).join(''); renderTeams(); document.getElementById('warLog').innerHTML=(warState.logs||[]).map(x=>`<div>${esc(x)}</div>`).join('')||'<div class="muted">아직 기록이 없습니다.</div>';}
+let lastLoginMemberSignature='';
+function renderLogin(){
+  const box=document.getElementById('loginBox');
+  if(!box) return;
+
+  if(warMe){
+    const applied=sortedApplicants().some(a=>a.name===warMe.name);
+    box.innerHTML=`<div class="status"><div class="stat">로그인<b>${esc(warMe.name)}</b></div><div class="stat">상태<b>${applied?'지원완료':'미지원'}</b></div><div class="stat">참가<b>${sortedApplicants().length}/16</b></div></div>`;
+    return;
+  }
+
+  const active=document.activeElement;
+  const isTyping=active && box.contains(active);
+  const sig=warMembers.map(m=>m.name).join('|');
+
+  // 드롭다운 선택/비밀번호 입력 중에는 자동 새로고침으로 로그인칸을 다시 그리지 않습니다.
+  // 이 부분 때문에 기존에는 비밀번호 칸으로 넘어갈 때 입력값이 리셋되는 현상이 있었습니다.
+  if(isTyping && box.dataset.rendered==='1' && lastLoginMemberSignature===sig) return;
+
+  const prevName=document.getElementById('warLoginName')?.value || '';
+  const prevPw=document.getElementById('warLoginPw')?.value || '';
+  lastLoginMemberSignature=sig;
+  box.dataset.rendered='1';
+  box.innerHTML=`<div class="login"><select id="warLoginName">${warMembers.map(m=>`<option value="${esc(m.name)}" ${m.name===prevName?'selected':''}>${esc(m.name)}</option>`).join('')}</select><input id="warLoginPw" type="password" placeholder="비밀번호" value="${esc(prevPw)}" onkeydown="if(event.key==='Enter') loginWar()"></div><button class="ok" style="width:100%;margin-top:8px" onclick="loginWar()">로그인</button>`;
+}
 async function loginWar(){const name=document.getElementById('warLoginName')?.value; const pw=document.getElementById('warLoginPw')?.value; const m=warMembers.find(x=>x.name===name&&x.pw===pw); if(!m) return alert('닉네임 또는 비밀번호가 맞지 않습니다.'); warMe={name:m.name,level:m.level}; localStorage.setItem('asia_war_me',JSON.stringify(warMe)); renderWar();}
 function logoutWar(){localStorage.removeItem('asia_war_me'); warMe=null; renderWar();}
 async function applyWar(){if(!warMe) return alert('로그인 후 지원할 수 있습니다.'); await loadMembers(); await loadWar(); const apps=sortedApplicants(); if(warState.finalized) return alert('운영진 확정 완료 상태라 지원할 수 없습니다.'); if(apps.some(a=>a.name===warMe.name)) return alert('이미 지원했습니다.'); if(apps.length>=16) return alert('현재 FULL 상태입니다.'); const m=warMembers.find(x=>x.name===warMe.name); warState.applications=[...(warState.applications||[]),{name:warMe.name,level:Number(m?.level||warMe.level||0),at:new Date().toISOString()}]; warState.teams=null; logWar(`${warMe.name}님이 지원했습니다.`); await saveWar(); renderWar();}
-function renderTeams(){const letters=['A','B','C','D']; const teams=warState.teams||{}; document.getElementById('teamGrid').innerHTML=letters.map(l=>{const arr=teams[l]||[]; return `<div class="teamCard ${l.toLowerCase()}"><h3>${l}조</h3>${arr.length?arr.map(p=>`<div class="teamMember"><span>${esc(p.name)}</span><span class="lv">${p.line}라인</span></div>`).join(''):'<div class="slot empty">미추첨</div>'}</div>`}).join('');}
+function renderTeams(){const letters=['A','B','C','D']; const teams=warState.teams||{}; document.getElementById('teamGrid').innerHTML=letters.map(l=>{const arr=teams[l]||[]; return `<div class="teamCard ${l.toLowerCase()}"><h3>${l}조</h3>${arr.length?arr.map(p=>`<div class="teamMember"><span>${esc(p.name)}</span><span>${p.line}라인</span></div>`).join(''):'<div class="slot empty">미추첨</div>'}</div>`}).join('');}
 function requireAdmin(){const pw=prompt('운영진 비밀번호를 입력하세요.'); return pw===ADMIN_PW;}
 async function confirmFinal(){if(!requireAdmin()) return; await loadWar(); if(warState.finalized) return alert('이미 확정되었습니다.'); if(!confirm('운영진 확정하기를 진행할까요?\n확정 후에는 더 이상 지원할 수 없습니다.')) return; warState.finalized=true; logWar('운영진이 참가선수를 확정했습니다.'); await saveWar(); renderWar(); alert('확정 완료');}
 function openAdminPanel(){if(!requireAdmin()) return; modalRoot.innerHTML=`<div class="modalBg"><div class="modal"><h2>운영진 패널</h2><div class="adminBox"><button class="ok" onclick="confirmFinalFromModal()">운영진 확정하기</button><button class="danger" onclick="resetWarAll()">리셋</button><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><p class="muted">리셋을 누르면 지원자, 확정상태, 팀추첨 결과, 로그가 모두 초기화됩니다.</p></div></div>`;}
