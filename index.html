@@ -2177,19 +2177,57 @@ async function awLoad(){const r=await sb.from(AW_TABLE).select('state').eq('id',
 async function awBoot(){try{await awLoadMembers(); await awLoad(); awRender(); if(awTimer) clearInterval(awTimer); awTimer=setInterval(async()=>{try{await awLoadMembers(); await awLoad(); awRender();}catch(e){}},2500);}catch(e){alert('데이터 불러오기 실패: '+(e.message||e));}}
 function awApplicants(){const map=new Map(awMembers.map(m=>[m.name,m])); return (awState.applications||[]).map(a=>({name:a.name,level:Number(a.level??map.get(a.name)?.level??0),at:a.at})).sort((a,b)=>b.level-a.level||new Date(a.at)-new Date(b.at));}
 function awLines(){const arr=awApplicants().slice(0,16); return [arr.slice(0,4),arr.slice(4,8),arr.slice(8,12),arr.slice(12,16)];}
-function awRender(){if(!document.getElementById('warPage')) return; awRenderLogin(); const apps=awApplicants(); document.getElementById('awFullBanner').classList.toggle('on',apps.length>=16); document.getElementById('awLockedBanner').classList.toggle('on',awState.finalized); const btn=document.getElementById('awApplyBtn'); if(btn) btn.disabled=!awMe||awState.finalized||apps.some(a=>a.name===awMe.name)||apps.length>=16; const lines=awLines(); document.getElementById('awLineGrid').innerHTML=lines.map((line,i)=>`<div class="awLineCard"><div class="awLineTitle"><span>${i+1}라인</span><span>${line.length}/4</span></div>${[0,1,2,3].map(j=>{const p=line[j];return p?`<div class="awSlot"><span class="awName">${awEsc(p.name)}</span></div>`:`<div class="awSlot empty">빈 자리</div>`}).join('')}</div>`).join(''); awRenderTeams(); document.getElementById('awLog').innerHTML=(awState.logs||[]).map(x=>`<div>${awEsc(x)}</div>`).join('')||'<div class="muted">아직 기록이 없습니다.</div>';}
+function awRender(){if(!document.getElementById('warPage')) return; awRenderLogin(); const apps=awApplicants(); const isApplied=!!(awMe&&apps.some(a=>a.name===awMe.name)); document.getElementById('awFullBanner').classList.toggle('on',apps.length>=16); document.getElementById('awLockedBanner').classList.toggle('on',awState.finalized); const btn=document.getElementById('awApplyBtn'); if(btn){btn.disabled=!awMe||awState.finalized||(!isApplied&&apps.length>=16); btn.textContent=isApplied?'지원취소하기':'지원하기'; btn.className=isApplied?'danger':'gold';} const lines=awLines(); document.getElementById('awLineGrid').innerHTML=lines.map((line,i)=>`<div class="awLineCard"><div class="awLineTitle"><span>${i+1}라인</span><span>${line.length}/4</span></div>${[0,1,2,3].map(j=>{const p=line[j];return p?`<div class="awSlot"><span class="awName">${awEsc(p.name)}</span></div>`:`<div class="awSlot empty">빈 자리</div>`}).join('')}</div>`).join(''); awRenderTeams(); document.getElementById('awLog').innerHTML=(awState.logs||[]).map(x=>`<div>${awEsc(x)}</div>`).join('')||'<div class="muted">아직 기록이 없습니다.</div>';}
 function awRenderLogin(){const box=document.getElementById('awLoginBox'); if(!box) return; if(awMe){const applied=awApplicants().some(a=>a.name===awMe.name); box.innerHTML=`<div class="awStatus"><div class="awStat">로그인<b>${awEsc(awMe.name)}</b></div><div class="awStat">상태<b>${applied?'지원완료':'미지원'}</b></div><div class="awStat">참가<b>${awApplicants().length}/16</b></div></div>`; return;} const active=document.activeElement, typing=active&&box.contains(active), sig=awMembers.map(m=>m.name).join('|'); if(typing&&box.dataset.rendered==='1'&&awLastLoginSig===sig) return; awLastLoginSig=sig; box.dataset.rendered='1'; const oldSel=document.getElementById('awLoginName')?.value||''; const oldPw=document.getElementById('awLoginPw')?.value||''; box.innerHTML=`<div class="awLogin"><select id="awLoginName"><option value="">아이디 선택</option>${awMembers.map(m=>`<option value="${awEsc(m.name)}" ${oldSel===m.name?'selected':''}>${awEsc(m.name)}</option>`).join('')}</select><input id="awLoginPw" type="password" placeholder="비밀번호" value="${awEsc(oldPw)}"></div><button class="ok" style="width:100%;margin-top:8px" onclick="awLogin()">로그인</button>`;}
 function awRenderTeams(){const grid=document.getElementById('awTeamGrid'); const btn=document.getElementById('awOrderOpenBtn'); if(!grid) return; const teams=awState.teams; if(btn) btn.style.display=teams?'inline-flex':'none'; if(!teams){grid.innerHTML='<div class="muted">팀 추첨 전입니다.</div>'; return;} const labels=['A','B','C','D']; grid.innerHTML=labels.map(g=>{const team=teams[g]||[]; const ord=awState.teamOrders?.[g]; const confirmed=ord?.confirmed; const color=ord?.color||''; return `<div class="awTeamCard ${g.toLowerCase()}"><div class="awTeamHead"><h3>${g}조</h3><div>${color?`<span class="awTeamColorBadge">${awEsc(color)}</span>`:''}${confirmed?` <span class="awConfirmedBadge">확정</span>`:''}</div></div>${team.map(p=>`<div class="awTeamMember"><span>${awEsc(p.name)}</span><span>${awEsc(awPublicRole(g,p.name,p.line))}</span></div>`).join('')}</div>`}).join('');}
 function awPublicRole(g,name,line){const ord=awState.teamOrders?.[g]; if(!ord||!ord.confirmed) return `${line}라인`; if(ord.g1a===name) return '1경기'; if(ord.g2a===name) return '2경기'; if(ord.g1b===name||ord.g2b===name) return '?'; return `${line}라인`;}
 async function awLogin(){const n=document.getElementById('awLoginName')?.value; const p=document.getElementById('awLoginPw')?.value; const m=awMembers.find(x=>x.name===n); if(!m) return alert('아이디를 선택해주세요.'); if(String(m.pw)!==String(p||'')) return alert('비밀번호가 맞지 않습니다.'); awMe={name:m.name}; localStorage.setItem('asia_war_me',JSON.stringify(awMe)); awRender();}
 function awLogout(){awMe=null; localStorage.removeItem('asia_war_me'); awRender();}
-async function awApply(){try{if(!awMe) return alert('먼저 로그인해주세요.'); await awLoadMembers(); await awLoad(); if(awState.finalized) return alert('운영진 확정 완료로 지원할 수 없습니다.'); const apps=awApplicants(); if(apps.some(a=>a.name===awMe.name)) return alert('이미 지원했습니다.'); if(apps.length>=16) return alert('FULL 상태입니다.'); const m=awMembers.find(x=>x.name===awMe.name); if(!m) return alert('회원 정보를 찾을 수 없습니다.'); awState.applications.push({name:m.name,level:m.level,at:new Date().toISOString()}); awLog(`${m.name}님이 지원했습니다.`); await awSave(); awRender();}catch(e){alert('지원 실패: '+(e.message||e));}}
+async function awApply(){try{if(!awMe) return alert('먼저 로그인해주세요.'); await awLoadMembers(); await awLoad(); if(awState.finalized) return alert('운영진 확정 완료로 지원/취소할 수 없습니다.'); const apps=awApplicants(); const already=apps.some(a=>a.name===awMe.name); if(already){ if(!confirm('지원취소하시겠습니까?')) return; awState.applications=(awState.applications||[]).filter(a=>a.name!==awMe.name); awLog(`${awMe.name}님이 지원을 취소했습니다.`); await awSave(); awRender(); return; } if(apps.length>=16) return alert('FULL 상태입니다.'); const m=awMembers.find(x=>x.name===awMe.name); if(!m) return alert('회원 정보를 찾을 수 없습니다.'); awState.applications.push({name:m.name,level:m.level,at:new Date().toISOString()}); awLog(`${m.name}님이 지원했습니다.`); await awSave(); awRender();}catch(e){alert('지원/취소 실패: '+(e.message||e));}}
 function awAskPw(msg='운영진 비밀번호'){return prompt(msg+'\n비밀번호를 입력하세요.')===AW_ADMIN_PW;}
 function awShuffle(arr){arr=[...arr]; for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr;}
 async function awOpenTeamDraw(){try{if(!awAskPw('팀 추첨')) return; await awLoad(); if(!awState.finalized) return alert('먼저 운영진 확정하기를 해주세요.'); if(awApplicants().length<16) return alert('16명이 모두 차야 팀 추첨이 가능합니다.'); if(!confirm('팀 추첨을 하시겠습니까?')) return; const lines=awLines().map((line,idx)=>awShuffle(line.map(p=>({name:p.name,line:idx+1})))); const teams={A:[],B:[],C:[],D:[]}; ['A','B','C','D'].forEach((g,i)=>{for(let l=0;l<4;l++) teams[g].push(lines[l][i]);}); awState.teams=teams; awState.teamOrders={}; awLog('운영진이 팀 추첨을 진행했습니다.'); await awSave(); awRender();}catch(e){alert('팀 추첨 실패: '+(e.message||e));}}
-function awOpenAdminPanel(){document.getElementById('modalRoot').innerHTML=`<div class="awModalBg"><div class="awModal"><h2>운영진 패널</h2><input id="awAdminPw" type="password" placeholder="운영진 비밀번호"><div class="awAdminBox"><button class="gold" onclick="awFinalize()">운영진 확정하기</button><button class="danger" onclick="awResetAll()">전체 리셋</button><button class="ghost" onclick="document.getElementById('modalRoot').innerHTML=''">닫기</button></div></div></div>`;}
+function awOpenAdminPanel(){
+  const apps=awApplicants();
+  document.getElementById('modalRoot').innerHTML=`<div class="awModalBg"><div class="awModal"><h2>운영진 패널</h2>
+    <input id="awAdminPw" type="password" placeholder="운영진 비밀번호">
+    <div class="awAdminBox"><button class="gold" onclick="awFinalize()">운영진 확정하기</button><button class="danger" onclick="awResetAll()">전체 리셋</button><button class="ghost" onclick="document.getElementById('modalRoot').innerHTML=''">닫기</button></div>
+    <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+      <h3 style="margin:0 0 8px;color:#facc15">지원자 강제 취소</h3>
+      <div class="awOrderHint">이미 지원한 사람을 운영진이 직접 지원취소할 수 있습니다. level 수치는 표시되지 않습니다.</div>
+      <div class="awOrderLogin" style="margin-top:8px">
+        <select id="awAdminCancelName"><option value="">지원자 선택</option>${apps.map(a=>`<option value="${awEsc(a.name)}">${awEsc(a.name)}</option>`).join('')}</select>
+        <button class="danger" onclick="awAdminCancelApplicant()">지원취소</button>
+      </div>
+    </div>
+  </div></div>`;
+}
 async function awFinalize(){try{if(document.getElementById('awAdminPw')?.value!==AW_ADMIN_PW) return alert('비밀번호가 맞지 않습니다.'); await awLoad(); awState.finalized=true; awLog('운영진이 참가선수를 확정했습니다.'); await awSave(); document.getElementById('modalRoot').innerHTML=''; awRender();}catch(e){alert('확정 실패: '+(e.message||e));}}
 async function awResetAll(){try{if(document.getElementById('awAdminPw')?.value!==AW_ADMIN_PW) return alert('비밀번호가 맞지 않습니다.'); if(!confirm('모든 지원자, 팀 추첨, 출전순서를 리셋할까요?')) return; awState=awDefaultState(); awLog('운영진이 모든 내용을 리셋했습니다.'); await awSave(); document.getElementById('modalRoot').innerHTML=''; awRender();}catch(e){alert('리셋 실패: '+(e.message||e));}}
+async function awAdminCancelApplicant(){
+  try{
+    if(document.getElementById('awAdminPw')?.value!==AW_ADMIN_PW) return alert('비밀번호가 맞지 않습니다.');
+    const name=document.getElementById('awAdminCancelName')?.value||'';
+    if(!name) return alert('지원취소할 선수를 선택해주세요.');
+    await awLoad();
+    const before=(awState.applications||[]).length;
+    const exists=(awState.applications||[]).some(a=>a.name===name);
+    if(!exists) return alert('이미 지원 목록에 없는 선수입니다.');
+    if(!confirm(`${name}님의 지원을 취소하시겠습니까?`)) return;
+    awState.applications=(awState.applications||[]).filter(a=>a.name!==name);
+    if(awState.finalized || awState.teams){
+      awState.finalized=false;
+      awState.teams=null;
+      awState.teamOrders={};
+      awLog('지원자 변경으로 확정/팀추첨/출전순서가 해제되었습니다.');
+    }
+    awLog(`운영진이 ${name}님의 지원을 취소했습니다.`);
+    await awSave();
+    awRender();
+    awOpenAdminPanel();
+  }catch(e){alert('운영진 지원취소 실패: '+(e.message||e));}
+}
+
 function awToggleOrderLogin(){const box=document.getElementById('awOrderLoginBox'); if(!box) return; if(box.style.display==='none'){awRenderOrderLogin(); box.style.display='block';}else box.style.display='none';}
 function awRenderOrderLogin(){const team1=(awState.teams?['A','B','C','D'].flatMap(g=>(awState.teams[g]||[]).filter(p=>p.line===1).map(p=>({group:g,name:p.name}))):[]); document.getElementById('awOrderLoginBox').innerHTML=`<div class="awOrderHint">1라인 선수만 로그인하여 본인 팀의 출전순서를 정할 수 있습니다.</div><div class="awOrderLogin" style="margin-top:8px"><select id="awOrderName"><option value="">1라인 선수 선택</option>${team1.map(p=>`<option value="${awEsc(p.group)}|${awEsc(p.name)}">${awEsc(p.group)}조 ${awEsc(p.name)}</option>`).join('')}</select><input id="awOrderPw" type="password" placeholder="비밀번호"><button class="ok" onclick="awOrderLogin()">확인</button></div>`;}
 function awOrderLogin(){const v=document.getElementById('awOrderName')?.value||''; const pw=document.getElementById('awOrderPw')?.value||''; if(!v) return alert('아이디를 선택해주세요.'); const [g,n]=v.split('|'); const m=awMembers.find(x=>x.name===n); if(!m||String(m.pw)!==String(pw)) return alert('비밀번호가 맞지 않습니다.'); awOpenOrderModal(g,n);}
