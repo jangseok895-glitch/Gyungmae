@@ -2365,6 +2365,51 @@ function showScoreChangePopup(info,result,matchTarget){
 async function spinScoreEvent(matchId){if(scoreSpinBusy) return; if(!eventMe) return alert('로그인 후 돌릴 수 있습니다.'); await scoreLoad(); const m=scoreEventState.matches.find(x=>x.id===matchId); if(!m) return alert('경기를 찾을 수 없습니다.'); if(!(m.members||[]).includes(eventMe.name)) return alert('선택된 4명만 돌릴 수 있습니다.'); if(m.spins&&m.spins[eventMe.name]) return alert('이미 돌렸습니다.'); scoreSpinBusy=true; let n=0; modalRoot.innerHTML=`<div class="modalBg"><div class="scoreWheelModal"><h2 style="color:#facc15;margin:0">돌림판 진행중</h2><div id="scoreWheelNum" class="scoreWheelNum">0</div><div class="muted">0~6 중 하나가 나옵니다.</div></div></div>`; const box=document.getElementById('scoreWheelNum'); const timer=setInterval(()=>{n=(n+1)%7; if(box) box.textContent=n;},80); setTimeout(async()=>{clearInterval(timer); const result=scoreWeightedPick(); const win=result===String(m.target); if(box) box.textContent=result; m.spins=m.spins||{}; m.spins[eventMe.name]={result,win,at:new Date().toISOString()}; const change=scoreAdjust(m.target,win); const before=change.before[change.target].toFixed(1), after=change.after[change.target].toFixed(1); scoreLog(`${eventMe.name}님 돌림판 결과 7:${result} · 경기 7:${m.target} ${win?'적중! 상품 대상':'실패'} · 7:${change.target} 확률 ${before}% → ${after}%`); await scoreSave(); setTimeout(()=>showScoreChangePopup(change,result,m.target),900);},2200);}
 async function scoreAdminReset(){const pw=prompt('운영진 비밀번호를 입력하세요.'); if(pw!==EVENT_ADMIN_PASSWORD) return alert('비밀번호가 맞지 않습니다.'); if(!confirm('아시아 EVENT 친선 등록/돌림판 기록과 확률을 초기화할까요?')) return; scoreEventState=scoreDefaultState(); scoreLog('운영진이 아시아 EVENT를 초기화했습니다.'); await scoreSave(); renderScoreEvent();}
 
+
+/* ===== 아시아 EVENT 운영진 패널 간소화 ===== */
+async function openEventAdmin(){
+  const pw=prompt('운영진 비밀번호를 입력하세요.');
+  if(pw!==EVENT_ADMIN_PASSWORD) return alert('운영진 비밀번호가 맞지 않습니다.');
+  await eventLoadMembers();
+  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:560px;max-width:92vw">
+    <div class="sectionHead">
+      <h2>아시아EVENT 운영진 패널</h2>
+      <button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button>
+    </div>
+    <div class="eventAdmin" style="grid-template-columns:1fr 1fr">
+      <button class="danger" onclick="scoreAdminReset()">점수 초기화</button>
+      <button class="gold" onclick="openEventAddMemberBox()">맴버 추가하기</button>
+    </div>
+    <div id="eventAddMemberBox" style="display:none;margin-top:12px;border:1px solid var(--line);background:#081525;border-radius:14px;padding:12px">
+      <h3 style="margin:0 0 8px;color:#facc15">맴버 추가하기</h3>
+      <div class="eventAdminWide">
+        <input id="eventNewMemberName" placeholder="맴버명">
+        <input id="eventNewMemberPw" placeholder="비번 4자리" maxlength="4" inputmode="numeric">
+        <button class="gold" onclick="eventAddMember()">추가하기</button>
+      </div>
+    </div>
+  </div></div>`;
+}
+
+async function eventAddMember(){
+  const name=(document.getElementById('eventNewMemberName')?.value||'').trim();
+  const pw=(document.getElementById('eventNewMemberPw')?.value||'').trim();
+  if(!name) return alert('맴버명을 입력해주세요.');
+  if(!/^\d{4}$/.test(pw)) return alert('비밀번호는 숫자 4자리로 입력해주세요.');
+  await eventLoadMembers();
+  if(eventMembers.some(m=>m.name===name)) return alert('이미 존재하는 맴버명입니다.');
+  const r=await sb.from('asia_event_members').insert({nickname:name,password:pw,score:0,chances:0}).select('id');
+  if(r.error) return alert('맴버 추가 실패: '+r.error.message);
+  await eventLoadMembers();
+  if(scoreEventState){
+    scoreLog(`운영진이 새 맴버 ${name}님을 추가했습니다.`);
+    await scoreSave();
+  }
+  alert(`${name}님이 추가되었습니다.`);
+  openEventAdmin();
+  renderScoreEvent();
+}
+
 boot();
 </script>
 </body>
