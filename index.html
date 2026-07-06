@@ -396,6 +396,12 @@ html,body{min-width:0;width:100%}
 .scoreDeleteBtn:hover{filter:brightness(1.08)}
 @media (max-width:768px){.scoreMatchHead{align-items:flex-start}.scoreDeleteBtn{padding:5px 8px;font-size:11px}}
 
+
+/* ===== 오늘의 맴버 밸런스 게임 보강 ===== */
+.scoreHeroTitle{font-size:32px}
+.scoreMatchCard .scoreSpinBox button{width:100%}
+.awSlot button.gold{background:var(--gold);color:#251a00}
+
 </style>
 </head>
 <body>
@@ -2311,166 +2317,278 @@ async function boot(){
   }
 }
 
-/* ===== 새 아시아 EVENT : 친선 스코어 맞추기 ===== */
-const SCORE_EVENT_STATE_ID = 2;
-const SCORE_EVENT_INITIAL_PROBS = {'0':17.4,'1':16.4,'2':15.4,'3':14.4,'4':13.4,'5':12.4,'6':10.6};
-let scoreEventState = null;
-let scoreEventLoaded = false;
-let scoreSpinBusy = false;
 
-function scoreDefaultState(){return {probs:{...SCORE_EVENT_INITIAL_PROBS},matches:[],logs:[],updatedAt:new Date().toISOString()};}
-function scoreNorm(st){st=st&&typeof st==='object'?st:{};return {probs:scoreNormalizeProbs(st.probs||SCORE_EVENT_INITIAL_PROBS),matches:Array.isArray(st.matches)?st.matches:[],logs:Array.isArray(st.logs)?st.logs.slice(0,180):[],updatedAt:st.updatedAt||new Date().toISOString()};}
-function scoreLog(msg){scoreEventState.logs=[`[${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}] ${msg}`,...(scoreEventState.logs||[])].slice(0,180);}
-function scoreNormalizeProbs(probs){
-  // 내부 확률은 0.1% 단위 총합 1000칸(=100.0%)으로 자동 보정합니다.
-  // 이렇게 하면 여러 번 성공/실패가 반복되어도 표시 합계가 항상 100.0%로 유지됩니다.
-  const base={...SCORE_EVENT_INITIAL_PROBS};
-  const vals=[]; let rawSum=0;
-  for(let i=0;i<=6;i++){
-    const k=String(i);
-    const v=Math.max(1, Number(probs?.[k] ?? base[k]));
-    vals.push(v); rawSum+=v;
+/* ===== 새 아시아 EVENT : 오늘의 맴버 밸런스 게임 ===== */
+const TODAY_MEMBER_STATE_ID = 3;
+let todayEventState = null;
+let todayEventLoaded = false;
+
+const FOOD_QUESTIONS = [
+  ['짜장면','짬뽕'],['탕수육 부먹','찍먹'],['치킨','피자'],['햄버거','돈가스'],['삼겹살','소고기'],
+  ['김치찌개','된장찌개'],['냉면','밀면'],['물냉면','비빔냉면'],['라면','우동'],['떡볶이','마라탕'],
+  ['순대','오뎅'],['족발','보쌈'],['갈비','불고기'],['제육볶음','오징어볶음'],['초밥','회'],
+  ['새우튀김','오징어튀김'],['돈가스','치킨까스'],['김밥','샌드위치'],['토스트','팬케이크'],['볶음밥','짬뽕밥'],
+  ['카레','하이라이스'],['파스타','리조또'],['스테이크','바비큐'],['아이스크림','빙수'],['케이크','도넛'],
+  ['초콜릿','젤리'],['콜라','사이다'],['커피','버블티'],['수박','멜론'],['복숭아','딸기'],
+  ['사과','배'],['포도','귤'],['망고','파인애플'],['치즈케이크','초코케이크'],['아메리카노','카페라떼'],
+  ['프라이드치킨','양념치킨'],['간장치킨','마늘치킨'],['후라이드감자','치즈감자'],['핫도그','핫바'],['김치볶음밥','새우볶음밥'],
+  ['비빔밥','돌솥비빔밥'],['닭갈비','찜닭'],['곱창','막창'],['양꼬치','양갈비'],['소금빵','크루아상'],
+  ['팥붕어빵','슈크림붕어빵'],['호떡','와플'],['팥빙수','망고빙수'],['샤인머스캣','체리'],['치즈볼','치즈스틱']
+];
+
+function todayKstKey(){
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9*60*60*1000);
+  return kst.toISOString().slice(0,10);
+}
+function todayDefaultState(){
+  return {dateKey:todayKstKey(),todayMembers:[],matches:[],scores:{},logs:[],updatedAt:new Date().toISOString()};
+}
+function todayNorm(st){
+  st=st&&typeof st==='object'?st:{};
+  return {
+    dateKey:st.dateKey||todayKstKey(),
+    todayMembers:Array.isArray(st.todayMembers)?st.todayMembers:[],
+    matches:Array.isArray(st.matches)?st.matches:[],
+    scores:st.scores&&typeof st.scores==='object'?st.scores:{},
+    logs:Array.isArray(st.logs)?st.logs.slice(0,200):[],
+    updatedAt:st.updatedAt||new Date().toISOString()
+  };
+}
+function todayShuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function todayQuestionSet(){
+  return todayShuffle(FOOD_QUESTIONS.map((q,i)=>({id:i,a:q[0],b:q[1]}))).slice(0,10);
+}
+function todayLog(msg){
+  todayEventState.logs=[`[${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}] ${msg}`,...(todayEventState.logs||[])].slice(0,200);
+}
+function todayEnsureDay(){
+  const key=todayKstKey();
+  if(todayEventState.dateKey!==key){
+    const names=eventMembers.map(m=>m.name).filter(Boolean);
+    todayEventState.dateKey=key;
+    todayEventState.todayMembers=todayShuffle(names).slice(0,7);
+    todayEventState.matches=[];
+    todayLog(`00시 기준 오늘의 맴버 7명이 새로 선정되었습니다.`);
   }
-  if(!rawSum || !Number.isFinite(rawSum)) return {...base};
-
-  const scaled=vals.map(v=>v*1000/rawSum);
-  const floors=scaled.map(v=>Math.max(10, Math.floor(v)));
-  let unitsSum=floors.reduce((a,b)=>a+b,0);
-
-  if(unitsSum<1000){
-    const order=scaled.map((v,i)=>({i,frac:v-Math.floor(v)})).sort((a,b)=>b.frac-a.frac);
-    let n=0;
-    while(unitsSum<1000){ floors[order[n%order.length].i]++; unitsSum++; n++; }
-  }else if(unitsSum>1000){
-    const order=scaled.map((v,i)=>({i,frac:v-Math.floor(v)})).sort((a,b)=>a.frac-b.frac);
-    let n=0, guard=0;
-    while(unitsSum>1000 && guard<5000){
-      const idx=order[n%order.length].i;
-      if(floors[idx]>10){ floors[idx]--; unitsSum--; }
-      n++; guard++;
+  if(!todayEventState.todayMembers || todayEventState.todayMembers.length<7){
+    const names=eventMembers.map(m=>m.name).filter(Boolean);
+    todayEventState.todayMembers=todayShuffle(names).slice(0,7);
+  }
+}
+async function todayLoad(){
+  const r=await sb.from(EVENT_TABLE).select('state').eq('id',TODAY_MEMBER_STATE_ID).maybeSingle();
+  if(r.error) throw new Error(r.error.message);
+  if(!r.data){todayEventState=todayDefaultState(); await todaySave();}
+  else todayEventState=todayNorm(r.data.state);
+  todayEnsureDay();
+}
+async function todaySave(){
+  todayEventState.updatedAt=new Date().toISOString();
+  const r=await sb.from(EVENT_TABLE).upsert({id:TODAY_MEMBER_STATE_ID,state:todayEventState,updated_at:new Date().toISOString()},{onConflict:'id'}).select('id');
+  if(r.error) throw new Error(r.error.message);
+}
+function todayMemberOptions(selected=''){
+  return eventMembers.map(m=>`<option value="${escapeHtml(m.name)}" ${selected===m.name?'selected':''}>${escapeHtml(m.name)}</option>`).join('');
+}
+function todayTodayMemberOptions(selected=''){
+  return (todayEventState.todayMembers||[]).map(n=>`<option value="${escapeHtml(n)}" ${selected===n?'selected':''}>${escapeHtml(n)}</option>`).join('');
+}
+async function eventBoot(){
+  try{
+    if(!todayEventLoaded){
+      await eventLoadMembers();
+      await todayLoad();
+      await todaySave();
+      todayEventLoaded=true;
+    }else{
+      await eventLoadMembers();
+      await todayLoad();
     }
+    renderTodayEvent();
+  }catch(e){
+    document.getElementById('eventUserBox').innerHTML=`<div class="errorBox">이벤트 데이터를 불러오지 못했습니다.\n${escapeHtml(e.message||e)}</div>`;
   }
-
-  const out={};
-  for(let i=0;i<=6;i++) out[String(i)]=floors[i]/10;
-  return out;
 }
-function scoreUnitsFromProbs(probs){
-  const normalized=scoreNormalizeProbs(probs);
-  return Array.from({length:7},(_,i)=>Math.round(Number(normalized[String(i)])*10));
+async function eventLogin(){
+  await eventLoadMembers();
+  const name=document.getElementById('eventLoginName')?.value;
+  const pw=document.getElementById('eventLoginPw')?.value;
+  const ok=eventMembers.find(m=>m.name===name && m.pw===pw);
+  if(!ok) return alert('맴버 또는 비밀번호가 맞지 않습니다.');
+  eventMe={name}; localStorage.setItem('asia_event_me',JSON.stringify(eventMe));
+  renderTodayEvent();
 }
-function scoreProbsFromUnits(units){
-  const out={};
-  for(let i=0;i<=6;i++) out[String(i)]=Math.max(1, Number(units[i]||10)/10);
-  return scoreNormalizeProbs(out);
-}
-function scoreDisplayProbs(source){
-  const units=scoreUnitsFromProbs(source||scoreEventState?.probs||SCORE_EVENT_INITIAL_PROBS);
-  return units.map(v=>v/10);
-}
-function scoreDistributeAdd(units, excludeIdx, amount){
-  const targets=[];
-  for(let i=0;i<=6;i++) if(i!==excludeIdx) targets.push(i);
-  targets.sort((a,b)=>units[a]-units[b]||a-b);
-  for(let n=0;n<amount;n++) units[targets[n%targets.length]]++;
-}
-function scoreDistributeRemove(units, excludeIdx, amount){
-  const targets=[];
-  for(let i=0;i<=6;i++) if(i!==excludeIdx) targets.push(i);
-  targets.sort((a,b)=>units[b]-units[a]||a-b);
-  let removed=0, guard=0;
-  while(removed<amount && guard<5000){
-    const idx=targets[guard%targets.length];
-    if(units[idx]>10){ units[idx]--; removed++; }
-    guard++;
+function eventLogout(){localStorage.removeItem('asia_event_me'); eventMe=null; renderTodayEvent();}
+function renderTodayLogin(){
+  if(eventMe){
+    const score=Number(todayEventState.scores?.[eventMe.name]||0);
+    return `<div class="eventStatus"><div class="eventStat">로그인<b>${escapeHtml(eventMe.name)}</b></div><div class="eventStat">누적점수<b>${score}점</b></div><div class="eventStat">상품조건<b>${score>=10?'햄버거 대상':'10점 달성 시'}</b></div></div><button class="ghost" onclick="eventLogout()">로그아웃</button>`;
   }
-  if(removed<amount){ units[excludeIdx]-=(amount-removed); }
+  return `<div class="eventLogin"><select id="eventLoginName">${todayMemberOptions()}</select><input id="eventLoginPw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter') eventLogin()"><button class="gold" onclick="eventLogin()">로그인</button></div>`;
 }
-async function scoreLoad(){const r=await sb.from(EVENT_TABLE).select('state').eq('id',SCORE_EVENT_STATE_ID).maybeSingle(); if(r.error) throw new Error(r.error.message); if(!r.data){scoreEventState=scoreDefaultState(); await scoreSave();}else scoreEventState=scoreNorm(r.data.state);}
-async function scoreSave(){scoreEventState.updatedAt=new Date().toISOString(); const r=await sb.from(EVENT_TABLE).upsert({id:SCORE_EVENT_STATE_ID,state:scoreEventState,updated_at:new Date().toISOString()},{onConflict:'id'}).select('id'); if(r.error) throw new Error(r.error.message);}
-async function eventBoot(){try{if(!scoreEventLoaded){await eventLoadMembers(); await scoreLoad(); scoreEventLoaded=true;} renderScoreEvent();}catch(e){document.getElementById('eventUserBox').innerHTML=`<div class="errorBox">이벤트 데이터를 불러오지 못했습니다.\n${escapeHtml(e.message||e)}</div>`;}}
-function scoreMemberOptions(selected=''){return eventMembers.map(m=>`<option value="${escapeHtml(m.name)}" ${selected===m.name?'selected':''}>${escapeHtml(m.name)}</option>`).join('');}
-async function eventLogin(){await eventLoadMembers(); const name=document.getElementById('eventLoginName')?.value; const pw=document.getElementById('eventLoginPw')?.value; const ok=eventMembers.find(m=>m.name===name && m.pw===pw); if(!ok) return alert('맴버 또는 비밀번호가 맞지 않습니다.'); eventMe={name}; localStorage.setItem('asia_event_me',JSON.stringify(eventMe)); renderScoreEvent();}
-function eventLogout(){localStorage.removeItem('asia_event_me'); eventMe=null; renderScoreEvent();}
-function renderScoreProbs(){const arr=scoreDisplayProbs(); return `<div class="scoreHero"><div class="scoreHeroTitle">당첨될 확률</div><div class="scoreProbGrid">${arr.map((v,i)=>`<div class="scoreProbItem ${i===0?'hot':''}"><div class="score">7:${i}</div><div class="prob">${v.toFixed(1)}%</div></div>`).join('')}</div></div>`;}
-function scoreMySpinCount(){if(!eventMe) return 0; return (scoreEventState.matches||[]).reduce((n,m)=>n+(m.spins&&m.spins[eventMe.name]?1:0),0);}
-function renderScoreTop(){
-  if(eventMe){return `<div class="scoreTopActions"><div class="scoreTopStatus"><div class="eventStat">로그인<b>${escapeHtml(eventMe.name)}</b></div><div class="eventStat">등록가능<b>가능</b></div><div class="eventStat">돌린횟수<b>${scoreMySpinCount()}회</b></div><button class="ghost scoreLogoutBtn" onclick="eventLogout()">로그아웃</button></div><button class="scoreRegisterBtn" onclick="openScoreRegister()">친선 등록하기</button></div>`;}
-  return `<div class="scoreTopActions"><div class="scoreEventLogin"><select id="eventLoginName">${scoreMemberOptions()}</select><input id="eventLoginPw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter') eventLogin()"><button class="gold" onclick="eventLogin()">로그인</button></div><button class="scoreRegisterBtn" onclick="openScoreRegister()">친선 등록하기</button></div>`;
+function renderTodayEvent(){
+  const title=document.querySelector('#eventPage .eventTop h1'); if(title) title.textContent='[아시아 EVENT] 오늘의 맴버';
+  const h2=document.querySelector('#eventPage .eventPanel .sectionHead h2'); if(h2) h2.textContent='오늘의 맴버와 친선경기를 하세요!';
+  const badge=document.querySelector('#eventPage .eventPanel .sectionHead .tinyBadge'); if(badge) badge.textContent='매일 00시 오늘의 맴버 7명 자동 변경';
+  const userBox=document.getElementById('eventUserBox'), main=document.getElementById('rpsGameBox'), side=document.getElementById('eventSide');
+  if(!userBox||!main||!side) return;
+  userBox.innerHTML=renderTodayLogin()+renderTodayMembersBox();
+  main.innerHTML=`<div class="scoreCompactHead"><h2 style="margin:0;color:#facc15">등록된 친선</h2><button class="ghost" onclick="todayRefresh()">새로고침</button></div><div class="scoreMatchList">${renderTodayMatches()}</div>`;
+  side.innerHTML=`<div class="scoreCompactHead"><h2 style="margin:0;color:#facc15">누적 점수</h2><button class="gold" onclick="openEventAdmin()">운영진 패널</button></div>${renderTodayRank()}<h2 style="margin:14px 0 0;color:#facc15">LOG</h2><div class="scoreEventLog">${(todayEventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 LOG가 없습니다.</div>'}</div><div class="scoreSideHint">오늘의 맴버가 먼저 풀이를 완료해야 1~3번 선수 문제풀기가 열립니다.<br>1~3번 선수가 모두 풀면 오늘의 맴버 풀이와 점수가 전체 공개됩니다.</div>`;
 }
-function renderScoreEvent(){
-  const title=document.querySelector('#eventPage .eventTop h1'); if(title) title.textContent='[아시아 EVENT] 친선 스코어 맞추기';
-  const h2=document.querySelector('#eventPage .eventPanel .sectionHead h2'); if(h2) h2.textContent='친선 등록 / 돌림판';
-  const badge=document.querySelector('#eventPage .eventPanel .sectionHead .tinyBadge'); if(badge) badge.textContent='선택된 4명만 돌리기 가능';
-  const userBox=document.getElementById('eventUserBox'); const main=document.getElementById('rpsGameBox'); const side=document.getElementById('eventSide'); if(!userBox||!main||!side) return;
-  userBox.innerHTML=renderScoreTop()+renderScoreProbs();
-  main.innerHTML=`<div class="scoreCompactHead"><h2 style="margin:0;color:#facc15">친선 목록</h2><button class="ghost" onclick="scoreRefresh()">새로고침</button></div><div class="scoreMatchList">${renderScoreMatches()}</div>`;
-  side.innerHTML=`<div class="scoreCompactHead"><h2 style="margin:0;color:#facc15">LOG</h2><button class="danger" onclick="scoreAdminReset()">초기화</button></div><div class="scoreEventLog">${(scoreEventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 LOG가 없습니다.</div>'}</div><div class="scoreSideHint">선택된 4명만 각자 1회 돌릴 수 있습니다.<br>예: 7:6 경기에서 결과가 6이면 상품 대상입니다.</div>`;
+function renderTodayMembersBox(){
+  return `<div class="scoreHero"><div class="scoreHeroTitle">오늘의 맴버!</div><div class="scoreProbGrid">${(todayEventState.todayMembers||[]).map((n,i)=>`<div class="scoreProbItem"><div class="score">${i+1}번</div><div class="prob" style="font-size:18px">${escapeHtml(n)}</div></div>`).join('')}</div></div>`;
 }
-function renderScoreMatches(){const list=scoreEventState.matches||[]; if(!list.length) return '<div class="scoreMatchCard muted">아직 등록된 친선이 없습니다.</div>'; return list.slice().reverse().map(m=>renderScoreMatch(m)).join('');}
-function renderScoreMatch(m){const target=String(m.target); const members=m.members||[]; const can=eventMe&&members.includes(eventMe.name)&&!(m.spins&&m.spins[eventMe.name]); return `<div class="scoreMatchCard"><div class="scoreMatchHead"><span>⏰ ${escapeHtml(m.hour)}시 · 결과 7:${target}</span><div style="display:flex;align-items:center;gap:7px"><span>${Object.keys(m.spins||{}).length}/4명 돌림</span><button class="danger scoreDeleteBtn" onclick="deleteScoreMatch('${m.id}')">삭제</button></div></div><div class="scoreMembers">${members.map(x=>`<span class="scoreMemberChip">${escapeHtml(x)}</span>`).join('')}</div><div class="scoreSpinRows">${members.map(name=>{const s=m.spins?.[name]; return `<div class="scoreSpinBox"><div>${escapeHtml(name)}</div>${s?`<div class="scoreSpinResult">7:${escapeHtml(s.result)}</div><div class="${s.win?'scoreSpinWin':'scoreSpinLose'}">${s.win?'🎁 적중':'실패'}</div>`:(eventMe&&eventMe.name===name?`<button class="gold" onclick="spinScoreEvent('${m.id}')" ${can?'':'disabled'}>돌리기</button>`:'<div class="muted" style="margin-top:18px">대기중</div>')}</div>`;}).join('')}</div></div>`;}
-async function deleteScoreMatch(matchId){
-  const pw=prompt('운영진 비밀번호를 입력하세요.');
-  if(pw!==EVENT_ADMIN_PASSWORD) return alert('운영진 비밀번호가 맞지 않습니다.');
-  await scoreLoad();
-  const m=(scoreEventState.matches||[]).find(x=>x.id===matchId);
-  if(!m) return alert('이미 삭제되었거나 경기를 찾을 수 없습니다.');
-  const spinCount=Object.keys(m.spins||{}).length;
-  const memberText=(m.members||[]).join(', ');
-  const msg=`${m.hour}시 친선 7:${m.target} 경기 (${memberText})${spinCount?` · 돌림 ${spinCount}명 기록 포함`:''}`;
-  if(!confirm(`${msg}
-
-이 등록 경기를 삭제하시겠습니까?`)) return;
-  scoreEventState.matches=(scoreEventState.matches||[]).filter(x=>x.id!==matchId);
-  scoreLog(`운영진이 잘못 등록된 ${msg}를 삭제했습니다.`);
-  await scoreSave();
-  renderScoreEvent();
+function renderTodayRank(){
+  const entries=Object.entries(todayEventState.scores||{}).sort((a,b)=>Number(b[1])-Number(a[1])||a[0].localeCompare(b[0],'ko'));
+  if(!entries.length) return '<div class="scoreMatchCard muted">아직 누적 점수가 없습니다.</div>';
+  return `<table class="scoreTable"><thead><tr><th>순위</th><th>맴버</th><th>점수</th><th>상태</th></tr></thead><tbody>${entries.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r[0])}</td><td>${Number(r[1]||0)}점</td><td>${Number(r[1]||0)>=10?'🍔 햄버거':'진행중'}</td></tr>`).join('')}</tbody></table>`;
 }
-
-async function scoreRefresh(){await eventLoadMembers(); await scoreLoad(); renderScoreEvent();}
-function openScoreRegister(){if(!eventMe) return alert('로그인 후 등록할 수 있습니다.'); const hourOpts=Array.from({length:25},(_,i)=>`<option value="${i}">${i}시</option>`).join(''); const scoreOpts=Array.from({length:7},(_,i)=>`<option value="${i}">${i}</option>`).join(''); modalRoot.innerHTML=`<div class="modalBg"><div class="modal"><div class="sectionHead"><h2>친선 등록하기</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><div class="scoreFriendForm"><div class="scoreLine"><b>시간</b><select id="scoreHour">${hourOpts}</select><span></span><span></span></div><b>맴버 4명 선택</b><div class="scoreMemberGrid">${[0,1,2,3].map(i=>`<select id="scoreMem${i}"><option value="">맴버 선택</option>${scoreMemberOptions(i===0?eventMe.name:'')}</select>`).join('')}</div><div class="scoreLine"><b>스코어</b><span style="font-size:24px;color:#facc15;font-weight:1000">7 :</span><select id="scoreTarget">${scoreOpts}</select><span>으로 승리</span></div><button class="gold" onclick="saveScoreRegister()">확인</button></div></div></div>`;}
-async function saveScoreRegister(){const hour=document.getElementById('scoreHour')?.value; const target=document.getElementById('scoreTarget')?.value; const members=[0,1,2,3].map(i=>document.getElementById('scoreMem'+i)?.value).filter(Boolean); if(members.length!==4) return alert('맴버 4명을 모두 선택해주세요.'); if(new Set(members).size!==4) return alert('같은 맴버를 중복 선택할 수 없습니다.'); await scoreLoad(); const match={id:crypto.randomUUID(),hour,target:String(target),members,spins:{},createdBy:eventMe?.name||'',createdAt:new Date().toISOString()}; scoreEventState.matches=[...(scoreEventState.matches||[]),match].slice(-80); scoreLog(`${eventMe?.name||'운영진'}님이 ${hour}시 친선 7:${target} 경기를 등록했습니다. (${members.join(', ')})`); await scoreSave(); modalRoot.innerHTML=''; renderScoreEvent();}
-function scoreWeightedPick(){const probs=scoreNormalizeProbs(scoreEventState.probs); const r=Math.random()*100; let acc=0; for(let i=0;i<=6;i++){acc+=probs[String(i)]; if(r<=acc) return String(i);} return '6';}
-function scoreAdjust(target, win){
-  const before=scoreDisplayProbs(scoreEventState.probs);
-  const units=scoreUnitsFromProbs(scoreEventState.probs);
-  const t=Number(target);
-  const deltaUnits=2; // 0.2%
-
-  if(win){
-    const movable=Math.min(deltaUnits, Math.max(0, units[t]-10));
-    units[t]-=movable;
-    scoreDistributeAdd(units,t,movable);
+function renderTodayMatches(){
+  const list=todayEventState.matches||[];
+  if(!list.length) return '<div class="scoreMatchCard muted">아직 운영진이 등록한 친선이 없습니다.</div>';
+  return list.slice().reverse().map(m=>renderTodayMatchCard(m)).join('');
+}
+function todayAllPlayersSolved(m){return (m.players||[]).every(p=>m.answers&&m.answers[p]);}
+function todayMemberSolved(m){return !!(m.answers&&m.answers[m.todayMember]);}
+function renderTodayMatchCard(m){
+  const players=m.players||[];
+  const memberDone=todayMemberSolved(m);
+  const allDone=todayAllPlayersSolved(m);
+  const revealed=!!m.revealed || allDone;
+  return `<div class="scoreMatchCard">
+    <div class="scoreMatchHead"><span>⏰ ${escapeHtml(m.hour)}시 · 오늘의 맴버: ${escapeHtml(m.todayMember)}</span><button class="danger scoreDeleteBtn" onclick="deleteTodayMatch('${m.id}')">삭제</button></div>
+    <div class="scoreMembers">
+      <span class="scoreMemberChip" style="border-color:#facc15;color:#facc15">${escapeHtml(m.todayMember)} ${memberDone?'· 풀이 완료':'· 풀이 대기'}</span>
+      ${players.map((p,i)=>`<span class="scoreMemberChip">${i+1}번 ${escapeHtml(p)} ${m.answers?.[p]?'· 완료':'· 대기'}</span>`).join('')}
+    </div>
+    <div class="scoreSpinRows">
+      ${renderTodayPersonBox(m,m.todayMember,true,revealed,memberDone)}
+      ${players.map(p=>renderTodayPersonBox(m,p,false,revealed,memberDone)).join('')}
+    </div>
+  </div>`;
+}
+function renderTodayPersonBox(m,name,isToday,revealed,memberDone){
+  const solved=!!m.answers?.[name];
+  const me=eventMe&&eventMe.name===name;
+  let body='';
+  if(isToday){
+    if(me && !solved) body=`<button class="gold" onclick="openTodayQuiz('${m.id}','${escapeHtml(name)}')">문제풀기</button>`;
+    else if(solved && !revealed) body=`<div class="scoreSpinWin">오늘의 맴버<br>풀이 완료</div>`;
+    else if(solved && revealed) body=`<button class="ghost" onclick="viewTodayAnswers('${m.id}','${escapeHtml(name)}')">풀이보기</button>`;
+    else body=`<div class="muted">오늘의 맴버 풀이 대기</div>`;
   }else{
-    units[t]+=deltaUnits;
-    scoreDistributeRemove(units,t,deltaUnits);
+    if(!memberDone) body=`<div class="muted">오늘의 맴버 완료 후<br>문제풀기 활성화</div>`;
+    else if(me && !solved) body=`<button class="gold" onclick="openTodayQuiz('${m.id}','${escapeHtml(name)}')">문제풀기</button>`;
+    else if(solved) body=`<button class="ghost" onclick="viewTodayAnswers('${m.id}','${escapeHtml(name)}')">풀이보기</button>`;
+    else body=`<div class="muted">문제풀이 대기</div>`;
   }
-
-  scoreEventState.probs=scoreProbsFromUnits(units);
-  const after=scoreDisplayProbs(scoreEventState.probs);
-  return {before,after,target:t,win,total:after.reduce((a,b)=>a+b,0)};
+  const scoreLine=(!isToday && revealed && solved)?`<div class="scoreSpinResult">${todayCalcScore(m,name)}점</div>`:'';
+  return `<div class="scoreSpinBox"><div>${escapeHtml(name)}</div>${scoreLine}<div style="margin-top:8px">${body}</div></div>`;
 }
-function showScoreChangePopup(info,result,matchTarget){
-  const t=info.target; const arrow=info.win?'내려갔습니다':'올라갔습니다'; const cls=info.win?'scoreDown':'scoreUp';
-  modalRoot.innerHTML=`<div class="modalBg"><div class="scoreChangeModal"><div class="scoreChangeTitle">${info.win?'🎉 성공!':'😢 실패!'}</div><div class="scoreChangeBody"><div>돌림판 결과: <b>7:${escapeHtml(result)}</b> / 등록 스코어: <b>7:${escapeHtml(matchTarget)}</b></div><div class="scoreChangeLine">7:${t} 확률<br><span>${info.before[t].toFixed(1)}%</span> → <span class="${cls}">${info.after[t].toFixed(1)}%</span></div><div>정확히 ${info.win?'맞혀서':'맞히지 못해서'} 7:${t}의 당첨 확률이 ${arrow}.</div><div style="margin-top:8px;color:#facc15">전체 당첨 확률 합계는 자동 보정되어 100.0%로 유지됩니다.</div></div><button class="gold" style="width:100%;margin-top:12px" onclick="modalRoot.innerHTML=''; scoreSpinBusy=false; renderScoreEvent();">확인</button></div></div>`;
+function todayCalcScore(m,name){
+  const base=m.answers?.[m.todayMember]||{};
+  const mine=m.answers?.[name]||{};
+  let s=0;
+  (m.questions||[]).forEach(q=>{ if(base[q.id] && mine[q.id] && base[q.id]===mine[q.id]) s++; });
+  return s;
 }
-async function spinScoreEvent(matchId){if(scoreSpinBusy) return; if(!eventMe) return alert('로그인 후 돌릴 수 있습니다.'); await scoreLoad(); const m=scoreEventState.matches.find(x=>x.id===matchId); if(!m) return alert('경기를 찾을 수 없습니다.'); if(!(m.members||[]).includes(eventMe.name)) return alert('선택된 4명만 돌릴 수 있습니다.'); if(m.spins&&m.spins[eventMe.name]) return alert('이미 돌렸습니다.'); scoreSpinBusy=true; let n=0; modalRoot.innerHTML=`<div class="modalBg"><div class="scoreWheelModal"><h2 style="color:#facc15;margin:0">돌림판 진행중</h2><div id="scoreWheelNum" class="scoreWheelNum">0</div><div class="muted">0~6 중 하나가 나옵니다.</div></div></div>`; const box=document.getElementById('scoreWheelNum'); const timer=setInterval(()=>{n=(n+1)%7; if(box) box.textContent=n;},80); setTimeout(async()=>{clearInterval(timer); const result=scoreWeightedPick(); const win=result===String(m.target); if(box) box.textContent=result; m.spins=m.spins||{}; m.spins[eventMe.name]={result,win,at:new Date().toISOString()}; const change=scoreAdjust(m.target,win); const before=change.before[change.target].toFixed(1), after=change.after[change.target].toFixed(1); scoreLog(`${eventMe.name}님 돌림판 결과 7:${result} · 경기 7:${m.target} ${win?'적중! 상품 대상':'실패'} · 7:${change.target} 확률 ${before}% → ${after}% · 전체 합계 100.0% 자동보정`); await scoreSave(); setTimeout(()=>showScoreChangePopup(change,result,m.target),900);},2200);}
-async function scoreAdminReset(){const pw=prompt('운영진 비밀번호를 입력하세요.'); if(pw!==EVENT_ADMIN_PASSWORD) return alert('비밀번호가 맞지 않습니다.'); if(!confirm('아시아 EVENT 친선 등록/돌림판 기록과 확률을 초기화할까요?')) return; scoreEventState=scoreDefaultState(); scoreLog('운영진이 아시아 EVENT를 초기화했습니다.'); await scoreSave(); renderScoreEvent();}
-
-
-/* ===== 아시아 EVENT 운영진 패널 간소화 ===== */
+async function todayRefresh(){await eventLoadMembers(); await todayLoad(); await todaySave(); renderTodayEvent();}
+function openTodayQuiz(matchId,name){
+  const m=(todayEventState.matches||[]).find(x=>x.id===matchId);
+  if(!m) return alert('경기를 찾을 수 없습니다.');
+  if(!eventMe || eventMe.name!==name) return alert('본인만 문제를 풀 수 있습니다.');
+  if(m.answers?.[name]) return alert('이미 풀이를 완료했습니다.');
+  if(name!==m.todayMember && !todayMemberSolved(m)) return alert('오늘의 맴버가 먼저 문제를 풀어야 합니다.');
+  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:720px;max-width:94vw">
+    <div class="sectionHead"><h2>${escapeHtml(name)} 문제풀기</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div>
+    <div class="eventHint">10개 문제를 모두 선택한 뒤 확인을 눌러주세요.</div>
+    <div id="todayQuizList" style="display:grid;gap:8px;margin-top:10px">${(m.questions||[]).map((q,i)=>`<div class="awSlot" style="display:grid;grid-template-columns:34px 1fr 1fr;gap:8px">
+      <b>${i+1}</b>
+      <button class="ghost" id="q_${q.id}_a" onclick="todayPick(${q.id},'a')">${escapeHtml(q.a)}</button>
+      <button class="ghost" id="q_${q.id}_b" onclick="todayPick(${q.id},'b')">${escapeHtml(q.b)}</button>
+    </div>`).join('')}</div>
+    <button class="gold" style="width:100%;margin-top:12px" onclick="submitTodayQuiz('${matchId}','${escapeHtml(name)}')">확인</button>
+  </div></div>`;
+  window.todayTempAnswers={};
+}
+function todayPick(qid,choice){
+  window.todayTempAnswers=window.todayTempAnswers||{};
+  window.todayTempAnswers[qid]=choice;
+  ['a','b'].forEach(c=>{
+    const el=document.getElementById(`q_${qid}_${c}`);
+    if(el) el.className=c===choice?'gold':'ghost';
+  });
+}
+async function submitTodayQuiz(matchId,name){
+  const m=(todayEventState.matches||[]).find(x=>x.id===matchId);
+  if(!m) return alert('경기를 찾을 수 없습니다.');
+  const ans=window.todayTempAnswers||{};
+  if((m.questions||[]).some(q=>!ans[q.id])) return alert('10개 문제를 모두 선택해주세요.');
+  await todayLoad();
+  const idx=todayEventState.matches.findIndex(x=>x.id===matchId);
+  if(idx<0) return alert('경기를 찾을 수 없습니다.');
+  const match=todayEventState.matches[idx];
+  match.answers=match.answers||{};
+  if(match.answers[name]) return alert('이미 풀이를 완료했습니다.');
+  match.answers[name]={...ans};
+  todayLog(`${name}님이 문제풀이를 완료했습니다.`);
+  if(name!==match.todayMember && todayAllPlayersSolved(match)){
+    match.revealed=true;
+    (match.players||[]).forEach(p=>{
+      const add=todayCalcScore(match,p);
+      todayEventState.scores[p]=Number(todayEventState.scores?.[p]||0)+add;
+      if(Number(todayEventState.scores[p])>=10) todayLog(`${p}님이 누적 ${todayEventState.scores[p]}점으로 햄버거 조건을 달성했습니다.`);
+    });
+    todayLog(`1~3번 선수가 모두 풀이 완료하여 전체 풀이와 점수가 공개되었습니다.`);
+  }
+  await todaySave();
+  modalRoot.innerHTML='';
+  renderTodayEvent();
+}
+function viewTodayAnswers(matchId,name){
+  const m=(todayEventState.matches||[]).find(x=>x.id===matchId);
+  if(!m || !m.answers?.[name]) return alert('풀이 기록이 없습니다.');
+  const isToday=name===m.todayMember;
+  const revealed=!!m.revealed || todayAllPlayersSolved(m);
+  if(isToday && !revealed) return alert('1~3번 선수가 모두 풀어야 오늘의 맴버 풀이가 공개됩니다.');
+  const ans=m.answers[name]||{};
+  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:720px;max-width:94vw">
+    <div class="sectionHead"><h2>${escapeHtml(name)} 풀이보기</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div>
+    <div class="eventHint">${!isToday && revealed?`오늘의 맴버와 일치: ${todayCalcScore(m,name)}점`:''}</div>
+    <div style="display:grid;gap:8px;margin-top:10px">${(m.questions||[]).map((q,i)=>{
+      const mine=ans[q.id];
+      const base=m.answers?.[m.todayMember]?.[q.id];
+      const ok=!isToday && revealed && mine===base;
+      return `<div class="awSlot" style="display:grid;grid-template-columns:34px 1fr 90px;gap:8px"><b>${i+1}</b><span>${escapeHtml(q.a)} vs ${escapeHtml(q.b)}<br><b style="color:#facc15">선택: ${escapeHtml(mine==='a'?q.a:q.b)}</b></span><span>${!isToday&&revealed?(ok?'일치':'불일치'):''}</span></div>`;
+    }).join('')}</div>
+  </div></div>`;
+}
 async function openEventAdmin(){
   const pw=prompt('운영진 비밀번호를 입력하세요.');
   if(pw!==EVENT_ADMIN_PASSWORD) return alert('운영진 비밀번호가 맞지 않습니다.');
-  await eventLoadMembers();
-  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:560px;max-width:92vw">
-    <div class="sectionHead">
-      <h2>아시아EVENT 운영진 패널</h2>
-      <button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button>
-    </div>
+  await eventLoadMembers(); await todayLoad(); await todaySave();
+  const hourOpts=Array.from({length:25},(_,i)=>`<option value="${i}">${i}시</option>`).join('');
+  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:760px;max-width:94vw">
+    <div class="sectionHead"><h2>아시아EVENT 운영진 패널</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div>
     <div class="eventAdmin" style="grid-template-columns:1fr 1fr">
-      <button class="danger" onclick="scoreAdminReset()">점수 초기화</button>
+      <button class="danger" onclick="todayAdminReset()">초기화</button>
       <button class="gold" onclick="openEventAddMemberBox()">맴버 추가하기</button>
+    </div>
+    <div style="margin-top:12px;border:1px solid var(--line);background:#081525;border-radius:14px;padding:12px">
+      <h3 style="margin:0 0 8px;color:#facc15">친선 등록</h3>
+      <div class="scoreFriendForm">
+        <div class="scoreLine"><b>시간</b><select id="todayHour">${hourOpts}</select><span></span><span></span></div>
+        <div class="scoreLine"><b>오늘의 맴버</b><select id="todayMainMember">${todayTodayMemberOptions()}</select><span></span><span></span></div>
+        <b>같이 친선한 1~3번 선수</b>
+        <div class="scoreMemberGrid">${[1,2,3].map(i=>`<select id="todayPlayer${i}"><option value="">${i}번 선수 선택</option>${todayMemberOptions()}</select>`).join('')}</div>
+        <button class="ok" onclick="todayAdminCreateMatch()">확인</button>
+      </div>
     </div>
     <div id="eventAddMemberBox" style="display:none;margin-top:12px;border:1px solid var(--line);background:#081525;border-radius:14px;padding:12px">
       <h3 style="margin:0 0 8px;color:#facc15">맴버 추가하기</h3>
@@ -2482,7 +2600,43 @@ async function openEventAdmin(){
     </div>
   </div></div>`;
 }
-
+async function todayAdminCreateMatch(){
+  const hour=document.getElementById('todayHour')?.value;
+  const todayMember=document.getElementById('todayMainMember')?.value;
+  const players=[1,2,3].map(i=>document.getElementById('todayPlayer'+i)?.value).filter(Boolean);
+  if(!todayMember) return alert('오늘의 맴버를 선택해주세요.');
+  if(players.length!==3) return alert('1~3번 선수를 모두 선택해주세요.');
+  if(new Set([todayMember,...players]).size!==4) return alert('같은 사람을 중복 선택할 수 없습니다.');
+  await todayLoad();
+  const match={id:crypto.randomUUID(),hour,todayMember,players,questions:todayQuestionSet(),answers:{},revealed:false,createdAt:new Date().toISOString()};
+  todayEventState.matches=[...(todayEventState.matches||[]),match].slice(-100);
+  [todayMember,...players].forEach(n=>{ if(todayEventState.scores[n]==null) todayEventState.scores[n]=0; });
+  todayLog(`${hour}시 친선 등록: 오늘의 맴버 ${todayMember} / ${players.join(', ')}`);
+  await todaySave();
+  modalRoot.innerHTML='';
+  renderTodayEvent();
+}
+async function deleteTodayMatch(matchId){
+  const pw=prompt('운영진 비밀번호를 입력하세요.');
+  if(pw!==EVENT_ADMIN_PASSWORD) return alert('운영진 비밀번호가 맞지 않습니다.');
+  await todayLoad();
+  const m=(todayEventState.matches||[]).find(x=>x.id===matchId);
+  if(!m) return alert('이미 삭제되었거나 경기를 찾을 수 없습니다.');
+  if(!confirm(`${m.hour}시 친선 기록을 삭제하시겠습니까?`)) return;
+  todayEventState.matches=(todayEventState.matches||[]).filter(x=>x.id!==matchId);
+  todayLog(`운영진이 ${m.hour}시 친선 기록을 삭제했습니다.`);
+  await todaySave();
+  renderTodayEvent();
+}
+async function todayAdminReset(){
+  if(!confirm('오늘의 맴버, 친선 기록, 누적 점수를 모두 초기화할까요?')) return;
+  todayEventState=todayDefaultState();
+  todayEnsureDay();
+  todayLog('운영진이 초기화를 진행했습니다.');
+  await todaySave();
+  modalRoot.innerHTML='';
+  renderTodayEvent();
+}
 async function eventAddMember(){
   const name=(document.getElementById('eventNewMemberName')?.value||'').trim();
   const pw=(document.getElementById('eventNewMemberPw')?.value||'').trim();
@@ -2490,16 +2644,14 @@ async function eventAddMember(){
   if(!/^\d{4}$/.test(pw)) return alert('비밀번호는 숫자 4자리로 입력해주세요.');
   await eventLoadMembers();
   if(eventMembers.some(m=>m.name===name)) return alert('이미 존재하는 맴버명입니다.');
-  const r=await sb.from('asia_event_members').insert({nickname:name,password:pw,score:0,chances:0}).select('id');
+  const r=await sb.from('asia_event_members').insert({nickname:name,password:pw,score:0,chances:0,level:0}).select('id');
   if(r.error) return alert('맴버 추가 실패: '+r.error.message);
   await eventLoadMembers();
-  if(scoreEventState){
-    scoreLog(`운영진이 새 맴버 ${name}님을 추가했습니다.`);
-    await scoreSave();
-  }
+  todayLog(`운영진이 새 맴버 ${name}님을 추가했습니다.`);
+  await todaySave();
   alert(`${name}님이 추가되었습니다.`);
   openEventAdmin();
-  renderScoreEvent();
+  renderTodayEvent();
 }
 
 boot();
