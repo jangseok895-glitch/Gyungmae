@@ -2323,108 +2323,27 @@ const TODAY_MEMBER_STATE_ID = 3;
 let todayEventState = null;
 let todayEventLoaded = false;
 
-const BALANCE_QUESTIONS = [
-  ['짜장면','짬뽕'],
-  ['치킨','피자'],
-  ['햄버거','돈가스'],
-  ['떡볶이','마라탕'],
-  ['라면','우동'],
-  ['김밥','샌드위치'],
-  ['초밥','파스타'],
-  ['족발','보쌈'],
-  ['갈비','삼겹살'],
-  ['닭갈비','찜닭'],
-  ['카레','오므라이스'],
-  ['볶음밥','비빔밥'],
-  ['김치볶음밥','새우볶음밥'],
-  ['크림파스타','토마토파스타'],
-  ['리조또','스테이크'],
-  ['군만두','찐만두'],
-  ['고기만두','김치만두'],
-  ['핫도그','토스트'],
-  ['와플','호떡'],
-  ['팥붕어빵','슈크림붕어빵'],
-  ['소금빵','크루아상'],
-  ['도넛','케이크'],
-  ['마카롱','에그타르트'],
-  ['아이스크림','빙수'],
-  ['팥빙수','망고빙수'],
-  ['초콜릿','젤리'],
-  ['사탕','쿠키'],
-  ['오레오','칙촉'],
-  ['빼빼로','포키'],
-  ['프링글스','포카칩'],
-  ['새우깡','꼬북칩'],
-  ['치토스','콘칩'],
-  ['팝콘','나초'],
-  ['치즈볼','치즈스틱'],
-  ['감자튀김','치킨너겟'],
-  ['떡꼬치','소떡소떡'],
-  ['콜라','사이다'],
-  ['환타','스프라이트'],
-  ['초코우유','딸기우유'],
-  ['바나나우유','밀크쉐이크'],
-  ['스무디','레몬에이드'],
-  ['아메리카노','카페라떼'],
-  ['복숭아','망고'],
-  ['샤인머스캣','체리'],
-  ['수박','멜론'],
-  ['귤','오렌지'],
-  ['사과','배'],
-  ['포도','파인애플'],
-  ['불닭볶음면','짜파게티'],
-  ['순대','오뎅'],
-
-  ['강아지','고양이'],
-  ['토끼','햄스터'],
-  ['사자','호랑이'],
-  ['판다','코알라'],
-  ['돌고래','펭귄'],
-  ['상어','악어'],
-  ['드래곤','유니콘'],
-  ['로봇','외계인'],
-  ['축구','농구'],
-  ['야구','배드민턴'],
-  ['탁구','테니스'],
-  ['수영','자전거'],
-  ['볼링','당구'],
-  ['줄넘기','롤러스케이트'],
-  ['놀이공원','워터파크'],
-  ['동물원','수족관'],
-  ['캠핑','호텔'],
-  ['기차','비행기'],
-  ['마인크래프트','로블록스'],
-  ['브롤스타즈','쿠키런'],
-  ['포켓몬','디지몬'],
-  ['마리오','소닉'],
-  ['피카츄','이브이'],
-  ['닌텐도','플레이스테이션'],
-  ['레고','퍼즐'],
-  ['보드게임','카드게임'],
-  ['유튜브','넷플릭스'],
-  ['영화','애니메이션'],
-  ['순간이동','하늘날기'],
-  ['시간멈추기','투명인간'],
-  ['미래보기','과거가기'],
-  ['마법사','닌자'],
-  ['기사','해적'],
-  ['우주여행','시간여행'],
-  ['공룡친구','로봇친구'],
-  ['빨간색','파란색'],
-  ['검은색','흰색'],
-  ['보라색','초록색'],
-  ['긴머리','짧은머리'],
-  ['운동화','슬리퍼'],
-  ['아침형','올빼미형'],
-  ['혼자놀기','친구랑놀기'],
-  ['미술','음악'],
-  ['체육','컴퓨터'],
-  ['쉬는시간','점심시간'],
-  ['봄','가을'],
-  ['여름','겨울'],
-  ['산','바다'],
-  ['사진찍기','영상찍기'],
-  ['시험면제','숙제면제']
+const FOOD_QUESTIONS = [
+  ['짜장면','짬뽕'],['탕수육 부먹','찍먹'],['치킨','피자'],['햄버거','돈가스'],['삼겹살','소고기'],
+  ['김치찌개','된장찌개'],['냉면','밀면'],['물냉면','비빔냉면'],['라면','우동'],['떡볶이','마라탕'],
+  ['순대','오뎅'],['족발','보쌈'],['갈비','불고기'],['제육볶음','오징어볶음'],['초밥','회'],
+  ['새우튀김','오징어튀김'],['돈가스','치킨까스'],['김밥','샌드위치'],['토스트','팬케이크'],['볶음밥','짬뽕밥'],
+  ['카레','하이라이스'],['파스타','리조또'],['스테이크','바비큐'],['아이스크림','빙수'],['케이크','도넛'],
+  ['초콜릿','젤리'],['콜라','사이다'],['커피','버블티'],['수박','멜론'],['복숭아','딸기'],
+  ['사과','배'],['포도','귤'],['망고','파인애플'],['치즈케이크','초코케이크'],['아메리카노','카페라떼'],
+  ['프라이드치킨','양념치킨'],['간장치킨','마늘치킨'],['후라이드감자','치즈감자'],['핫도그','핫바'],['김치볶음밥','새우볶음밥'],
+  ['비빔밥','돌솥비빔밥'],['닭갈비','찜닭'],['곱창','막창'],['양꼬치','양갈비'],['소금빵','크루아상'],
+  ['팥붕어빵','슈크림붕어빵'],['호떡','와플'],['팥빙수','망고빙수'],['샤인머스캣','체리'],['치즈볼','치즈스틱'],
+  ['김치','깍두기'],['오므라이스','볶음우동'],['쌀국수','분짜'],['월남쌈','반미'],['마파두부','깐풍기'],
+  ['유산슬','팔보채'],['깐쇼새우','칠리새우'],['양장피','고추잡채'],['짬뽕국물','짜장소스'],['오코노미야끼','타코야끼'],
+  ['규동','가츠동'],['장어덮밥','연어덮밥'],['텐동','사케동'],['샤브샤브','훠궈'],['부대찌개','감자탕'],
+  ['설렁탕','곰탕'],['순두부찌개','청국장'],['해장국','콩나물국밥'],['국밥','죽'],['칼국수','수제비'],
+  ['쫄면','비빔국수'],['잔치국수','칼비빔면'],['메밀국수','쌀국수'],['닭강정','닭꼬치'],['소떡소떡','떡꼬치'],
+  ['계란말이','계란후라이'],['스크램블에그','삶은계란'],['군만두','찐만두'],['고기만두','김치만두'],['찐빵','호빵'],
+  ['치즈피자','페퍼로니피자'],['불고기피자','고구마피자'],['스파게티','라자냐'],['크림파스타','토마토파스타'],['감자튀김','어니언링'],
+  ['나초','팝콘'],['프레첼','베이글'],['베이컨','소시지'],['크루아상','베이글'],['에그타르트','마카롱'],
+  ['티라미수','치즈케이크'],['요거트','푸딩'],['밀크쉐이크','스무디'],['레몬에이드','오렌지주스'],['탄산수','이온음료'],
+  ['녹차','홍차'],['밀크티','코코아'],['바나나','키위'],['오렌지','자몽'],['블루베리','라즈베리']
 ];
 
 function todayKstKey(){
@@ -2709,23 +2628,57 @@ async function openEventAdmin(){
   </div></div>`;
 }
 async function todayAdminCreateMatch(){
-  const hour=document.getElementById('todayHour')?.value;
-  const todayMember=document.getElementById('todayMainMember')?.value;
-  const multiplier=Number(document.getElementById('todayMultiplier')?.value||1)===2?2:1;
-  const result=document.getElementById('todayResult')?.value==='lose'?'lose':'win';
-  const questionCount=result==='lose'?8:10;
-  const players=[1,2,3].map(i=>document.getElementById('todayPlayer'+i)?.value).filter(Boolean);
-  if(!todayMember) return alert('오늘의 맴버를 선택해주세요.');
-  if(players.length!==3) return alert('1~3번 선수를 모두 선택해주세요.');
-  if(new Set([todayMember,...players]).size!==4) return alert('같은 사람을 중복 선택할 수 없습니다.');
-  await todayLoad();
-  const match={id:crypto.randomUUID(),hour,multiplier,result,questionCount,todayMember,players,questions:todayQuestionSet(questionCount),answers:{},revealed:false,createdAt:new Date().toISOString()};
-  todayEventState.matches=[...(todayEventState.matches||[]),match].slice(-100);
-  [todayMember,...players].forEach(n=>{ if(todayEventState.scores[n]==null) todayEventState.scores[n]=0; });
-  todayLog(`${hour}시 ${multiplier===2?'x2':'x1'} ${result==='lose'?'패배 8문항':'승리 10문항'} 친선 등록: 오늘의 맴버 ${todayMember} / ${players.join(', ')}`);
-  await todaySave();
-  modalRoot.innerHTML='';
-  renderTodayEvent();
+  const btn = event?.target || null;
+  try{
+    if(btn) btn.disabled = true;
+
+    const hour=document.getElementById('todayHour')?.value;
+    const todayMember=document.getElementById('todayMainMember')?.value;
+    const multiplier=Number(document.getElementById('todayMultiplier')?.value||1)===2?2:1;
+    const result=document.getElementById('todayResult')?.value==='lose'?'lose':'win';
+    const questionCount=result==='lose'?8:10;
+    const players=[1,2,3].map(i=>document.getElementById('todayPlayer'+i)?.value).filter(Boolean);
+
+    if(hour==null || hour==='') return alert('시간을 선택해주세요.');
+    if(!todayMember) return alert('오늘의 맴버를 선택해주세요.');
+    if(players.length!==3) return alert('1~3번 선수를 모두 선택해주세요.');
+    if(new Set([todayMember,...players]).size!==4) return alert('같은 사람을 중복 선택할 수 없습니다.');
+    if(!Array.isArray(FOOD_QUESTIONS) || FOOD_QUESTIONS.length < questionCount){
+      return alert('문항 목록이 부족합니다. FOOD_QUESTIONS 배열을 확인해주세요.');
+    }
+
+    await eventLoadMembers();
+    await todayLoad();
+
+    const match={
+      id:crypto.randomUUID(),
+      hour:String(hour),
+      multiplier,
+      result,
+      questionCount,
+      todayMember,
+      players,
+      questions:todayQuestionSet(questionCount),
+      answers:{},
+      revealed:false,
+      createdAt:new Date().toISOString()
+    };
+
+    todayEventState.matches=[...(todayEventState.matches||[]),match].slice(-100);
+    [todayMember,...players].forEach(n=>{ if(todayEventState.scores[n]==null) todayEventState.scores[n]=0; });
+    todayLog(`${hour}시 ${multiplier===2?'x2':'x1'} ${result==='lose'?'패배 8문항':'승리 10문항'} 친선 등록: 오늘의 맴버 ${todayMember} / ${players.join(', ')}`);
+
+    await todaySave();
+    await todayLoad();
+    modalRoot.innerHTML='';
+    renderTodayEvent();
+    alert('친선 등록이 완료되었습니다.');
+  }catch(e){
+    console.error('친선 등록 실패', e);
+    alert('친선 등록 실패: ' + (e.message || e));
+  }finally{
+    if(btn) btn.disabled = false;
+  }
 }
 async function deleteTodayMatch(matchId){
   const pw=prompt('운영진 비밀번호를 입력하세요.');
