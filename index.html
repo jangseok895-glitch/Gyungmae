@@ -2333,12 +2333,25 @@ const FOOD_QUESTIONS = [
   ['사과','배'],['포도','귤'],['망고','파인애플'],['치즈케이크','초코케이크'],['아메리카노','카페라떼'],
   ['프라이드치킨','양념치킨'],['간장치킨','마늘치킨'],['후라이드감자','치즈감자'],['핫도그','핫바'],['김치볶음밥','새우볶음밥'],
   ['비빔밥','돌솥비빔밥'],['닭갈비','찜닭'],['곱창','막창'],['양꼬치','양갈비'],['소금빵','크루아상'],
-  ['팥붕어빵','슈크림붕어빵'],['호떡','와플'],['팥빙수','망고빙수'],['샤인머스캣','체리'],['치즈볼','치즈스틱']
+  ['팥붕어빵','슈크림붕어빵'],['호떡','와플'],['팥빙수','망고빙수'],['샤인머스캣','체리'],['치즈볼','치즈스틱'],
+  ['김치','깍두기'],['오므라이스','볶음우동'],['쌀국수','분짜'],['월남쌈','반미'],['마파두부','깐풍기'],
+  ['유산슬','팔보채'],['깐쇼새우','칠리새우'],['양장피','고추잡채'],['짬뽕국물','짜장소스'],['오코노미야끼','타코야끼'],
+  ['규동','가츠동'],['장어덮밥','연어덮밥'],['텐동','사케동'],['샤브샤브','훠궈'],['부대찌개','감자탕'],
+  ['설렁탕','곰탕'],['순두부찌개','청국장'],['해장국','콩나물국밥'],['국밥','죽'],['칼국수','수제비'],
+  ['쫄면','비빔국수'],['잔치국수','칼비빔면'],['메밀국수','쌀국수'],['닭강정','닭꼬치'],['소떡소떡','떡꼬치'],
+  ['계란말이','계란후라이'],['스크램블에그','삶은계란'],['군만두','찐만두'],['고기만두','김치만두'],['찐빵','호빵'],
+  ['치즈피자','페퍼로니피자'],['불고기피자','고구마피자'],['스파게티','라자냐'],['크림파스타','토마토파스타'],['감자튀김','어니언링'],
+  ['나초','팝콘'],['프레첼','베이글'],['베이컨','소시지'],['크루아상','베이글'],['에그타르트','마카롱'],
+  ['티라미수','치즈케이크'],['요거트','푸딩'],['밀크쉐이크','스무디'],['레몬에이드','오렌지주스'],['탄산수','이온음료'],
+  ['녹차','홍차'],['밀크티','코코아'],['바나나','키위'],['오렌지','자몽'],['블루베리','라즈베리']
 ];
 
 function todayKstKey(){
+  // 오늘의 맴버 변경 기준: 한국시간 오전 08:00
+  // 00:00~07:59 사이에는 전날 멤버를 그대로 유지하고, 08:00 이후부터 새 날짜로 처리합니다.
   const now = new Date();
   const kst = new Date(now.getTime() + 9*60*60*1000);
+  if(kst.getUTCHours() < 8) kst.setUTCDate(kst.getUTCDate()-1);
   return kst.toISOString().slice(0,10);
 }
 function todayDefaultState(){
@@ -2360,8 +2373,11 @@ function todayShuffle(arr){
   for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];}
   return a;
 }
-function todayQuestionSet(){
-  return todayShuffle(FOOD_QUESTIONS.map((q,i)=>({id:i,a:q[0],b:q[1]}))).slice(0,10);
+function todayQuestionCount(m){
+  return Number(m?.questionCount || (m?.result==='lose'?8:10));
+}
+function todayQuestionSet(count=10){
+  return todayShuffle(FOOD_QUESTIONS.map((q,i)=>({id:i,a:q[0],b:q[1]}))).slice(0,count);
 }
 function todayLog(msg){
   todayEventState.logs=[`[${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}] ${msg}`,...(todayEventState.logs||[])].slice(0,200);
@@ -2373,7 +2389,7 @@ function todayEnsureDay(){
     todayEventState.dateKey=key;
     todayEventState.todayMembers=todayShuffle(names).slice(0,7);
     todayEventState.matches=[];
-    todayLog(`00시 기준 오늘의 맴버 7명이 새로 선정되었습니다.`);
+    todayLog(`08시 기준 오늘의 맴버 7명이 새로 선정되었습니다.`);
   }
   if(!todayEventState.todayMembers || todayEventState.todayMembers.length<7){
     const names=eventMembers.map(m=>m.name).filter(Boolean);
@@ -2434,12 +2450,12 @@ function renderTodayLogin(){
 function renderTodayEvent(){
   const title=document.querySelector('#eventPage .eventTop h1'); if(title) title.textContent='[아시아 EVENT] 오늘의 맴버';
   const h2=document.querySelector('#eventPage .eventPanel .sectionHead h2'); if(h2) h2.textContent='오늘의 맴버와 친선경기를 하세요!';
-  const badge=document.querySelector('#eventPage .eventPanel .sectionHead .tinyBadge'); if(badge) badge.textContent='매일 00시 오늘의 맴버 7명 자동 변경';
+  const badge=document.querySelector('#eventPage .eventPanel .sectionHead .tinyBadge'); if(badge) badge.textContent='매일 08시 오늘의 맴버 7명 자동 변경';
   const userBox=document.getElementById('eventUserBox'), main=document.getElementById('rpsGameBox'), side=document.getElementById('eventSide');
   if(!userBox||!main||!side) return;
   userBox.innerHTML=renderTodayLogin()+renderTodayMembersBox();
   main.innerHTML=`<div class="scoreCompactHead"><h2 style="margin:0;color:#facc15">등록된 친선</h2><button class="ghost" onclick="todayRefresh()">새로고침</button></div><div class="scoreMatchList">${renderTodayMatches()}</div>`;
-  side.innerHTML=`<div class="scoreCompactHead"><h2 style="margin:0;color:#facc15">누적 점수</h2></div>${renderTodayRank()}<h2 style="margin:14px 0 0;color:#facc15">LOG</h2><div class="scoreEventLog">${(todayEventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 LOG가 없습니다.</div>'}</div><div class="scoreSideHint">오늘의 맴버가 먼저 풀이를 완료해야 1~3번 선수 문제풀기가 열립니다.<br>1~3번 선수가 모두 풀면 오늘의 맴버 풀이와 점수가 전체 공개됩니다.<br>x2 친선은 일치 점수가 두 배로 누적됩니다.</div>`;
+  side.innerHTML=`<div class="scoreCompactHead"><h2 style="margin:0;color:#facc15">누적 점수</h2></div>${renderTodayRank()}<h2 style="margin:14px 0 0;color:#facc15">LOG</h2><div class="scoreEventLog">${(todayEventState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 LOG가 없습니다.</div>'}</div><div class="scoreSideHint">오늘의 맴버가 먼저 풀이를 완료해야 1~3번 선수 문제풀기가 열립니다.<br>1~3번 선수가 모두 풀면 오늘의 맴버 풀이와 점수가 전체 공개됩니다.<br>승리 친선은 10문항, 패배 친선은 8문항으로 진행됩니다.<br>x2 친선은 일치 점수가 두 배로 누적됩니다.</div>`;
 }
 function renderTodayMembersBox(){
   return `<div class="scoreHero"><div class="scoreHeroTitle">오늘의 맴버!</div><div class="scoreProbGrid">${(todayEventState.todayMembers||[]).map((n,i)=>`<div class="scoreProbItem"><div class="score">${i+1}번</div><div class="prob" style="font-size:18px">${escapeHtml(n)}</div></div>`).join('')}</div></div>`;
@@ -2463,7 +2479,7 @@ function renderTodayMatchCard(m){
   const allDone=todayAllPlayersSolved(m);
   const revealed=!!m.revealed || allDone;
   return `<div class="scoreMatchCard">
-    <div class="scoreMatchHead"><span>⏰ ${escapeHtml(m.hour)}시 · ${todayMultiplier(m)===2?'x2':'x1'} · 오늘의 맴버: ${escapeHtml(m.todayMember)}</span><button class="danger scoreDeleteBtn" onclick="deleteTodayMatch('${m.id}')">삭제</button></div>
+    <div class="scoreMatchHead"><span>⏰ ${escapeHtml(m.hour)}시 · ${todayMultiplier(m)===2?'x2':'x1'} · ${m.result==='lose'?'패배 8문항':'승리 10문항'} · 오늘의 맴버: ${escapeHtml(m.todayMember)}</span><button class="danger scoreDeleteBtn" onclick="deleteTodayMatch('${m.id}')">삭제</button></div>
     <div class="scoreMembers">
       <span class="scoreMemberChip" style="border-color:#facc15;color:#facc15">${escapeHtml(m.todayMember)} ${memberDone?'· 풀이 완료':'· 풀이 대기'}</span>
       ${players.map((p,i)=>`<span class="scoreMemberChip">${i+1}번 ${escapeHtml(p)} ${m.answers?.[p]?'· 완료':'· 대기'}</span>`).join('')}
@@ -2511,7 +2527,7 @@ function openTodayQuiz(matchId,name){
   if(name!==m.todayMember && !todayMemberSolved(m)) return alert('오늘의 맴버가 먼저 문제를 풀어야 합니다.');
   modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:720px;max-width:94vw;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
     <div class="sectionHead"><h2>${escapeHtml(name)} 문제풀기</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div>
-    <div class="eventHint">10개 문제를 모두 선택한 뒤 확인을 눌러주세요.</div>
+    <div class="eventHint">${todayQuestionCount(m)}개 문제를 모두 선택한 뒤 확인을 눌러주세요.</div>
     <div id="todayQuizList" style="display:grid;gap:8px;margin-top:10px">${(m.questions||[]).map((q,i)=>`<div class="awSlot" style="display:grid;grid-template-columns:34px 1fr 1fr;gap:8px">
       <b>${i+1}</b>
       <button class="ghost" id="q_${q.id}_a" onclick="todayPick(${q.id},'a')">${escapeHtml(q.a)}</button>
@@ -2533,7 +2549,7 @@ async function submitTodayQuiz(matchId,name){
   const m=(todayEventState.matches||[]).find(x=>x.id===matchId);
   if(!m) return alert('경기를 찾을 수 없습니다.');
   const ans=window.todayTempAnswers||{};
-  if((m.questions||[]).some(q=>!ans[q.id])) return alert('10개 문제를 모두 선택해주세요.');
+  if((m.questions||[]).some(q=>!ans[q.id])) return alert(`${todayQuestionCount(m)}개 문제를 모두 선택해주세요.`);
   await todayLoad();
   const idx=todayEventState.matches.findIndex(x=>x.id===matchId);
   if(idx<0) return alert('경기를 찾을 수 없습니다.');
@@ -2594,7 +2610,7 @@ async function openEventAdmin(){
     <div style="margin-top:12px;border:1px solid var(--line);background:#081525;border-radius:14px;padding:12px">
       <h3 style="margin:0 0 8px;color:#facc15">친선 등록</h3>
       <div class="scoreFriendForm">
-        <div class="scoreLine"><b>시간</b><select id="todayHour">${hourOpts}</select><select id="todayMultiplier"><option value="1" selected>x1</option><option value="2">x2</option></select><span></span></div>
+        <div class="scoreLine"><b>시간</b><select id="todayHour">${hourOpts}</select><select id="todayMultiplier"><option value="1" selected>x1</option><option value="2">x2</option></select><select id="todayResult"><option value="win" selected>승리</option><option value="lose">패배</option></select></div>
         <div class="scoreLine"><b>오늘의 맴버</b><select id="todayMainMember">${todayTodayMemberOptions()}</select><span></span><span></span></div>
         <b>같이 친선한 1~3번 선수</b>
         <div class="scoreMemberGrid">${[1,2,3].map(i=>`<select id="todayPlayer${i}"><option value="">${i}번 선수 선택</option>${todayMemberOptions()}</select>`).join('')}</div>
@@ -2615,15 +2631,17 @@ async function todayAdminCreateMatch(){
   const hour=document.getElementById('todayHour')?.value;
   const todayMember=document.getElementById('todayMainMember')?.value;
   const multiplier=Number(document.getElementById('todayMultiplier')?.value||1)===2?2:1;
+  const result=document.getElementById('todayResult')?.value==='lose'?'lose':'win';
+  const questionCount=result==='lose'?8:10;
   const players=[1,2,3].map(i=>document.getElementById('todayPlayer'+i)?.value).filter(Boolean);
   if(!todayMember) return alert('오늘의 맴버를 선택해주세요.');
   if(players.length!==3) return alert('1~3번 선수를 모두 선택해주세요.');
   if(new Set([todayMember,...players]).size!==4) return alert('같은 사람을 중복 선택할 수 없습니다.');
   await todayLoad();
-  const match={id:crypto.randomUUID(),hour,multiplier,todayMember,players,questions:todayQuestionSet(),answers:{},revealed:false,createdAt:new Date().toISOString()};
+  const match={id:crypto.randomUUID(),hour,multiplier,result,questionCount,todayMember,players,questions:todayQuestionSet(questionCount),answers:{},revealed:false,createdAt:new Date().toISOString()};
   todayEventState.matches=[...(todayEventState.matches||[]),match].slice(-100);
   [todayMember,...players].forEach(n=>{ if(todayEventState.scores[n]==null) todayEventState.scores[n]=0; });
-  todayLog(`${hour}시 ${multiplier===2?'x2':'x1'} 친선 등록: 오늘의 맴버 ${todayMember} / ${players.join(', ')}`);
+  todayLog(`${hour}시 ${multiplier===2?'x2':'x1'} ${result==='lose'?'패배 8문항':'승리 10문항'} 친선 등록: 오늘의 맴버 ${todayMember} / ${players.join(', ')}`);
   await todaySave();
   modalRoot.innerHTML='';
   renderTodayEvent();
