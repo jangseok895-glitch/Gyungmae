@@ -2755,7 +2755,16 @@ function leagueLineLog(msg){leagueLineState.logs=[`[${new Date().toLocaleTimeStr
 async function leagueLineLoadMembers(){const r=await sb.from('asia_event_members').select('nickname,password,level').order('level',{ascending:false}); if(r.error) throw new Error(r.error.message); leagueLineMembers=(r.data||[]).map(x=>({name:String(x.nickname||'').trim(),pw:String(x.password||'').trim(),level:Number(x.level||0)})).filter(x=>x.name);}
 async function leagueLineLoad(){const r=await sb.from(EVENT_TABLE).select('state').eq('id',LEAGUE_LINE_STATE_ID).maybeSingle(); if(r.error) throw new Error(r.error.message); leagueLineState=r.data?leagueLineNorm(r.data.state):leagueLineDefaultState();}
 async function leagueLineSave(){leagueLineState.updatedAt=new Date().toISOString(); const r=await sb.from(EVENT_TABLE).upsert({id:LEAGUE_LINE_STATE_ID,state:leagueLineState,updated_at:new Date().toISOString()},{onConflict:'id'}).select('id'); if(r.error) throw new Error(r.error.message);}
-function leagueLineOptions(){return leagueLineMembers.map(m=>`<option value="${leagueLineEsc(m.name)}">${leagueLineEsc(m.name)}</option>`).join('');}
+function leagueLineOptions(){
+
+  const sorted = [...leagueLineMembers].sort((a,b)=>
+    a.name.localeCompare(b.name,'ko')
+  );
+
+  return sorted.map(m =>
+    `<option value="${leagueLineEsc(m.name)}">${leagueLineEsc(m.name)}</option>`
+  ).join('');
+}
 function leagueLineSorted(){const map=new Map(leagueLineMembers.map(m=>[m.name,m])); const latest=new Map(); (leagueLineState?.applications||[]).forEach(a=>{if(a&&a.name) latest.set(a.name,a);}); return [...latest.values()].map(a=>({name:a.name,level:Number(map.get(a.name)?.level ?? a.level ?? 0),at:a.at||new Date().toISOString()})).sort((a,b)=>b.level-a.level||new Date(a.at)-new Date(b.at));}
 function leagueLineTop32(){return leagueLineSorted().slice(0,32);}
 function leagueLinePosition(name){const idx=leagueLineTop32().findIndex(a=>a.name===name); if(idx<0) return null; return {index:idx, line:Math.floor(idx/8)+1, group:(idx%8)+1};}
