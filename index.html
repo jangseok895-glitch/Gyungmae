@@ -402,6 +402,26 @@ html,body{min-width:0;width:100%}
 .scoreMatchCard .scoreSpinBox button{width:100%}
 .awSlot button.gold{background:var(--gold);color:#251a00}
 
+
+
+/* ===== 아시아리그 참가 라인표 ===== */
+.leagueLineWrap{width:1280px}
+.leagueLineInfo{display:grid;grid-template-columns:430px 1fr;gap:12px;margin-bottom:14px}
+.leagueLineLoginBox,.leagueLineNotice,.leagueLineBoardCard{border:1px solid rgba(250,204,21,.35);background:rgba(15,27,46,.95);border-radius:18px;padding:14px;box-shadow:0 18px 45px rgba(0,0,0,.28)}
+.leagueLineNotice{line-height:1.65;color:#dbeafe;font-weight:800}.leagueLineNotice b{color:#facc15}
+.leagueLineLoginGrid{display:grid;grid-template-columns:1fr 140px 92px;gap:8px;align-items:end}
+.leagueLineLoginGrid select,.leagueLineLoginGrid input{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:11px;font-size:15px}
+.leagueLineMyBox{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:center}
+.leagueLineMyStat{background:#081525;border:1px solid var(--line);border-radius:13px;padding:10px;text-align:center;font-weight:900;color:#b9d7ff}.leagueLineMyStat b{display:block;color:#facc15;font-size:20px;margin-top:4px}
+.leagueLineStatus{margin-bottom:14px;border:1px solid rgba(56,189,248,.35);background:#081525;border-radius:16px;padding:13px;text-align:center;font-size:18px;font-weight:1000;color:#dbeafe}.leagueLineStatus b{color:#facc15}
+.leagueLineBoard{display:grid;grid-template-columns:92px repeat(8,1fr);gap:8px}
+.leagueLineHead,.leagueLineRowTitle,.leagueLineSlot{min-height:58px;border:1px solid var(--line);border-radius:12px;background:#081525;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:1000}
+.leagueLineHead{color:#facc15;background:#10213a}.leagueLineRowTitle{color:#38bdf8;background:#10213a;font-size:18px}.leagueLineSlot{flex-direction:column;gap:4px;padding:8px;color:#53677f}.leagueLineSlot.filled{color:#fff;background:#0b1728}.leagueLineSlot.me{border-color:#facc15;box-shadow:0 0 0 2px rgba(250,204,21,.25);background:rgba(250,204,21,.10)}
+.leagueLineName{font-size:18px;color:#fff}.leagueLineLevel{font-size:12px;color:#9fb4cd}.leagueLineSlot.me .leagueLineName{color:#facc15}
+.leagueLineList{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-height:360px;overflow:auto}
+.leagueLineListItem{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#081525;border:1px solid var(--line);border-radius:12px;padding:10px;font-weight:900}.leagueLineListItem.in{border-color:rgba(52,211,153,.45)}.leagueLineListItem.wait{border-color:rgba(251,113,133,.45);opacity:.8}.leagueLineListItem.me{box-shadow:0 0 0 2px rgba(250,204,21,.22)}
+@media (max-width:768px){.leagueLineWrap{width:1280px}body.pcMode{min-width:1280px}}
+
 </style>
 </head>
 <body>
@@ -420,43 +440,45 @@ html,body{min-width:0;width:100%}
 </div>
 
 <div id="leaguePage" class="leaguePage" style="display:none">
-  <div class="leagueWrap">
+  <div class="leagueWrap leagueLineWrap">
     <div class="leagueTop">
-      <h1>아시아리그 [시즌39]</h1>
+      <h1>아시아리그 참가 라인표</h1>
       <div class="topBtns">
-        <button class="gold" onclick="openLeagueDraw()">조추첨하기</button>
         <button class="ghost" onclick="showLandingPage()">처음으로</button>
         <button class="ghost" onclick="showAuctionPage()">아시아리그 경매</button>
+        <button class="ghost" onclick="leagueLineRefresh()">새로고침</button>
       </div>
     </div>
 
-    <div class="leaguePosterBox">
-      <img class="leaguePosterImg" src="https://i.ibb.co/m5FQ8SgN/4472c0c0-72ab-4d13-8615-b70ca66748cf.jpg" alt="아시아리그 시즌39 대진표">
-      <div class="leagueGroupOverlay">
-        <div class="leagueGroupCard a"><div class="leagueGroupTitle" style="color:#ef4444">A조</div><div id="leagueMembers_A" class="leagueMembers">미정</div><div id="leagueTeam_A" class="leagueTeamName">( 팀 )</div></div>
-        <div class="leagueGroupCard b"><div class="leagueGroupTitle" style="color:#f59e0b">B조</div><div id="leagueMembers_B" class="leagueMembers">미정</div><div id="leagueTeam_B" class="leagueTeamName">( 팀 )</div></div>
-        <div class="leagueGroupCard c"><div class="leagueGroupTitle" style="color:#22c55e">C조</div><div id="leagueMembers_C" class="leagueMembers">미정</div><div id="leagueTeam_C" class="leagueTeamName">( 팀 )</div></div>
-        <div class="leagueGroupCard d"><div class="leagueGroupTitle" style="color:#38bdf8">D조</div><div id="leagueMembers_D" class="leagueMembers">미정</div><div id="leagueTeam_D" class="leagueTeamName">( 팀 )</div></div>
-        <div class="leagueGroupCard e"><div class="leagueGroupTitle" style="color:#a855f7">E조</div><div id="leagueMembers_E" class="leagueMembers">미정</div><div id="leagueTeam_E" class="leagueTeamName">( 팀 )</div></div>
+    <div class="leagueLineInfo">
+      <div class="leagueLineLoginBox" id="leagueLineLoginBox"></div>
+      <div class="leagueLineNotice">
+        <b>안내</b><br>
+        nickname 아이디를 선택하고 비밀번호로 로그인한 뒤 <b>아시아리그 참가하기</b> 버튼을 누르면 참가 리스트에 등록됩니다.<br>
+        등록된 인원은 <b>level 높은 순서</b>로 1라인부터 자동 배정되며, 더 높은 level 선수가 참가하면 낮은 level 선수는 뒤로 밀려납니다.<br>
+        최대 32명까지 1조~8조 / 1라인~4라인에 표시됩니다.
       </div>
     </div>
 
-    <div class="leaguePanel">
-      <h2>진행 시간</h2>
-      <div class="leagueTimeGrid">
-        <div>18:30</div><div>조추첨</div>
-        <div>19:00</div><div>A vs B / C vs D</div>
-        <div>19:25</div><div>E vs A / B vs C</div>
-        <div>19:50</div><div>D vs E</div>
-        <div>20:15</div><div>PLAY IN : 예선 4위 vs 예선 5위</div>
-        <div>20:45</div><div>준결승 1 : 예선 1위 vs PLAY IN 승자 / 준결승 2 : 예선 2위 vs 예선 3위</div>
-        <div>21:15</div><div>결승전 / 3,4위전 동시 진행</div>
+    <div class="leagueLineStatus" id="leagueLineStatus"></div>
+
+    <div class="leagueLineBoardCard">
+      <div class="sectionHead">
+        <h2>아시아리그 라인표</h2>
+        <span class="tinyBadge" id="leagueLineCountBadge">0 / 32</span>
       </div>
+      <div class="leagueLineBoard" id="leagueLineBoard"></div>
+    </div>
+
+    <div class="leagueLineBoardCard" style="margin-top:14px">
+      <div class="sectionHead">
+        <h2>참가 리스트</h2>
+        <span class="tinyBadge">level 높은 순서</span>
+      </div>
+      <div class="leagueLineList" id="leagueLineList"></div>
     </div>
   </div>
 </div>
-
-
 
 <div id="eventPage" class="eventPage" style="display:none">
   <div class="eventWrap">
@@ -2717,6 +2739,50 @@ async function eventAddMember(){
   openEventAdmin();
   renderTodayEvent();
 }
+
+
+/* ===== 아시아리그 참가 라인표 기능 ===== */
+const LEAGUE_LINE_STATE_ID = 4;
+let leagueLineMembers = [];
+let leagueLineState = null;
+let leagueLineMe = JSON.parse(localStorage.getItem('asia_league_line_me') || 'null');
+let leagueLineLoaded = false;
+
+function leagueLineEsc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function leagueLineDefaultState(){return {applications:[], logs:[], updatedAt:new Date().toISOString()};}
+function leagueLineNorm(st){st=st&&typeof st==='object'?st:{};return {applications:Array.isArray(st.applications)?st.applications:[],logs:Array.isArray(st.logs)?st.logs.slice(0,100):[],updatedAt:st.updatedAt||new Date().toISOString()};}
+function leagueLineLog(msg){leagueLineState.logs=[`[${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}] ${msg}`,...(leagueLineState.logs||[])].slice(0,100);}
+async function leagueLineLoadMembers(){const r=await sb.from('asia_event_members').select('nickname,password,level').order('level',{ascending:false}); if(r.error) throw new Error(r.error.message); leagueLineMembers=(r.data||[]).map(x=>({name:String(x.nickname||'').trim(),pw:String(x.password||'').trim(),level:Number(x.level||0)})).filter(x=>x.name);}
+async function leagueLineLoad(){const r=await sb.from(EVENT_TABLE).select('state').eq('id',LEAGUE_LINE_STATE_ID).maybeSingle(); if(r.error) throw new Error(r.error.message); leagueLineState=r.data?leagueLineNorm(r.data.state):leagueLineDefaultState();}
+async function leagueLineSave(){leagueLineState.updatedAt=new Date().toISOString(); const r=await sb.from(EVENT_TABLE).upsert({id:LEAGUE_LINE_STATE_ID,state:leagueLineState,updated_at:new Date().toISOString()},{onConflict:'id'}).select('id'); if(r.error) throw new Error(r.error.message);}
+function leagueLineOptions(){return leagueLineMembers.map(m=>`<option value="${leagueLineEsc(m.name)}">${leagueLineEsc(m.name)}</option>`).join('');}
+function leagueLineSorted(){const map=new Map(leagueLineMembers.map(m=>[m.name,m])); const latest=new Map(); (leagueLineState?.applications||[]).forEach(a=>{if(a&&a.name) latest.set(a.name,a);}); return [...latest.values()].map(a=>({name:a.name,level:Number(map.get(a.name)?.level ?? a.level ?? 0),at:a.at||new Date().toISOString()})).sort((a,b)=>b.level-a.level||new Date(a.at)-new Date(b.at));}
+function leagueLineTop32(){return leagueLineSorted().slice(0,32);}
+function leagueLinePosition(name){const idx=leagueLineTop32().findIndex(a=>a.name===name); if(idx<0) return null; return {index:idx, line:Math.floor(idx/8)+1, group:(idx%8)+1};}
+function leagueLineIsApplied(name){return leagueLineSorted().some(a=>a.name===name);}
+async function leagueLineBoot(){try{await leagueLineLoadMembers(); await leagueLineLoad(); if(!leagueLineLoaded){leagueLineLoaded=true; await leagueLineSave();} leagueLineRender();}catch(e){const box=document.getElementById('leagueLineLoginBox'); if(box) box.innerHTML=`<div class="errorBox">아시아리그 데이터를 불러오지 못했습니다.\n${leagueLineEsc(e.message||e)}</div>`;}}
+async function leagueLineRefresh(){await leagueLineBoot();}
+function leagueLineLogin(){const name=document.getElementById('leagueLineName')?.value; const pw=document.getElementById('leagueLinePw')?.value; const m=leagueLineMembers.find(x=>x.name===name && x.pw===pw); if(!m) return alert('아이디 또는 비밀번호가 맞지 않습니다.'); leagueLineMe={name:m.name}; localStorage.setItem('asia_league_line_me',JSON.stringify(leagueLineMe)); leagueLineRender();}
+function leagueLineLogout(){leagueLineMe=null; localStorage.removeItem('asia_league_line_me'); leagueLineRender();}
+async function leagueLineApply(){try{if(!leagueLineMe) return alert('먼저 로그인해주세요.'); await leagueLineLoadMembers(); await leagueLineLoad(); const m=leagueLineMembers.find(x=>x.name===leagueLineMe.name); if(!m) return alert('회원 정보를 찾을 수 없습니다.'); const applied=leagueLineIsApplied(m.name); if(applied){if(!confirm('아시아리그 참가를 취소하시겠습니까?')) return; leagueLineState.applications=(leagueLineState.applications||[]).filter(a=>a.name!==m.name); leagueLineLog(`${m.name}님이 참가를 취소했습니다.`);}else{leagueLineState.applications=[...(leagueLineState.applications||[]).filter(a=>a.name!==m.name),{name:m.name,level:m.level,at:new Date().toISOString()}]; leagueLineLog(`${m.name}님이 아시아리그에 참가했습니다.`);} await leagueLineSave(); leagueLineRender();}catch(e){alert('처리 실패: '+(e.message||e));}}
+function leagueLineRenderLogin(){const box=document.getElementById('leagueLineLoginBox'); if(!box) return; const apps=leagueLineSorted(); if(leagueLineMe){const m=leagueLineMembers.find(x=>x.name===leagueLineMe.name); const pos=leagueLinePosition(leagueLineMe.name); const applied=leagueLineIsApplied(leagueLineMe.name); box.innerHTML=`<div class="sectionHead"><h2>내 정보</h2><button class="ghost" onclick="leagueLineLogout()">로그아웃</button></div><div class="leagueLineMyBox"><div class="leagueLineMyStat">아이디<b>${leagueLineEsc(leagueLineMe.name)}</b></div><div class="leagueLineMyStat">내 level<b>${Number(m?.level||0)}</b></div><div class="leagueLineMyStat">현재 위치<b>${pos?`${pos.group}조 ${pos.line}라인`:applied?'대기':'미참가'}</b></div><button class="${applied?'danger':'gold'}" onclick="leagueLineApply()">${applied?'참가 취소':'아시아리그 참가하기'}</button></div>`; return;} box.innerHTML=`<div class="sectionHead"><h2>로그인</h2><span class="tinyBadge">nickname / password</span></div><div class="leagueLineLoginGrid"><select id="leagueLineName">${leagueLineOptions()}</select><input id="leagueLinePw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter') leagueLineLogin()"><button class="gold" onclick="leagueLineLogin()">로그인</button></div>`;}
+function leagueLineRenderBoard(){const board=document.getElementById('leagueLineBoard'); const badge=document.getElementById('leagueLineCountBadge'); if(!board) return; const top=leagueLineTop32(); const my=leagueLineMe?.name; if(badge) badge.textContent=`${top.length} / 32`; let html='<div class="leagueLineHead">구분</div>'+Array.from({length:8},(_,i)=>`<div class="leagueLineHead">${i+1}조</div>`).join(''); for(let line=1;line<=4;line++){html+=`<div class="leagueLineRowTitle">${line}라인</div>`; for(let g=1;g<=8;g++){const idx=(line-1)*8+(g-1); const p=top[idx]; html+=p?`<div class="leagueLineSlot filled ${p.name===my?'me':''}"><div class="leagueLineName">${leagueLineEsc(p.name)}</div><div class="leagueLineLevel">level ${Number(p.level||0)}</div></div>`:`<div class="leagueLineSlot">대기</div>`;}} board.innerHTML=html;}
+function leagueLineRenderStatus(){const el=document.getElementById('leagueLineStatus'); if(!el) return; const apps=leagueLineSorted(); if(!leagueLineMe){el.innerHTML=`현재 참가 신청 <b>${apps.length}명</b> · 로그인 후 본인 위치를 확인할 수 있습니다.`; return;} const pos=leagueLinePosition(leagueLineMe.name); if(pos) el.innerHTML=`${leagueLineEsc(leagueLineMe.name)}님은 현재 <b>${pos.group}조 ${pos.line}라인</b> 입니다.`; else if(leagueLineIsApplied(leagueLineMe.name)) el.innerHTML=`${leagueLineEsc(leagueLineMe.name)}님은 현재 32명 안에 들지 못해 <b>대기 상태</b>입니다.`; else el.innerHTML=`${leagueLineEsc(leagueLineMe.name)}님은 아직 <b>참가 신청 전</b>입니다.`;}
+function leagueLineRenderList(){const box=document.getElementById('leagueLineList'); if(!box) return; const apps=leagueLineSorted(); if(!apps.length){box.innerHTML='<div class="leagueLineListItem">아직 참가자가 없습니다.</div>'; return;} const my=leagueLineMe?.name; box.innerHTML=apps.map((a,i)=>{const pos=i<32?`${(i%8)+1}조 ${Math.floor(i/8)+1}라인`:'대기'; return `<div class="leagueLineListItem ${i<32?'in':'wait'} ${a.name===my?'me':''}"><span>${i+1}. ${leagueLineEsc(a.name)}</span><span>${pos}</span></div>`;}).join('');}
+function leagueLineRender(){leagueLineRenderLogin(); leagueLineRenderStatus(); leagueLineRenderBoard(); leagueLineRenderList();}
+
+(function(){
+  const oldShowLeaguePage = window.showLeaguePage;
+  window.showLeaguePage = function(){
+    try{asiaPushPage&&asiaPushPage('league');}catch(e){}
+    asiaCurrentPage='league';
+    setPageViewport('pc');
+    ['landingPage','app','eventPage','testPage','warPage'].forEach(id=>{const el=document.getElementById(id); if(el) el.style.display='none';});
+    const lp=document.getElementById('leaguePage'); if(lp) lp.style.display='block';
+    leagueLineBoot();
+  };
+})();
+
 
 boot();
 </script>
