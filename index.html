@@ -422,6 +422,34 @@ html,body{min-width:0;width:100%}
 .leagueLineListItem{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#081525;border:1px solid var(--line);border-radius:12px;padding:10px;font-weight:900}.leagueLineListItem.in{border-color:rgba(52,211,153,.45)}.leagueLineListItem.wait{border-color:rgba(251,113,133,.45);opacity:.8}.leagueLineListItem.me{box-shadow:0 0 0 2px rgba(250,204,21,.22)}
 @media (max-width:768px){.leagueLineWrap{width:1280px}body.pcMode{min-width:1280px}}
 
+
+/* ===== 아시아 EVENT / 캐치마인드 ===== */
+.catchGrid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;align-items:start}
+.catchInfoBar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.catchInfo{background:#081525;border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center;font-weight:900;color:#b9d7ff}
+.catchInfo b{display:block;color:#facc15;font-size:20px;margin-top:4px}
+.catchCanvasWrap{background:#081525;border:1px solid rgba(250,204,21,.35);border-radius:18px;padding:12px}
+.catchCanvas{display:block;width:100%;height:470px;background:#fff;border-radius:14px;touch-action:none;cursor:crosshair}
+.catchToolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.catchToolbar input[type=color]{width:46px;height:40px;padding:2px;border:1px solid var(--line);border-radius:10px;background:#081525}
+.catchToolbar input[type=range]{width:130px}
+.catchWordBox{background:linear-gradient(135deg,rgba(250,204,21,.18),rgba(251,113,133,.14));border:1px solid rgba(250,204,21,.45);border-radius:15px;padding:12px;text-align:center;font-weight:1000;margin-bottom:10px}
+.catchWordBox .word{font-size:30px;color:#facc15;margin-top:4px}
+.catchChat{height:260px;overflow:auto;background:#081525;border:1px solid var(--line);border-radius:14px;padding:8px}
+.catchChatLine{padding:7px 8px;border-bottom:1px dashed rgba(255,255,255,.08);line-height:1.4;font-weight:800}
+.catchChatLine.correct{background:rgba(52,211,153,.12);color:#86efac;border-radius:8px}
+.catchChatLine.system{color:#facc15}
+.catchChatForm{display:grid;grid-template-columns:1fr 90px;gap:8px;margin-top:8px}
+.catchChatForm input{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:white;padding:11px}
+.catchWarning{margin-top:7px;color:#fb7185;font-size:12px;font-weight:900;line-height:1.45}
+.catchDesc{background:#081525;border:1px solid var(--line);border-radius:14px;padding:12px;line-height:1.65;color:#dbeafe;font-weight:800;margin-bottom:12px}
+.catchDesc b{color:#facc15}
+.catchAdminMembers{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.catchAdminMembers select,.catchAdminRow select{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:white;padding:10px}
+.catchAdminRow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.catchDisabled{opacity:.55;pointer-events:none}
+@media(max-width:900px){.catchGrid{grid-template-columns:1fr}.catchInfoBar{grid-template-columns:repeat(2,1fr)}}
+
 </style>
 </head>
 <body>
@@ -483,7 +511,7 @@ html,body{min-width:0;width:100%}
 <div id="eventPage" class="eventPage" style="display:none">
   <div class="eventWrap">
     <div class="eventTop">
-      <h1>[아시아EVENT] O.X 게임</h1>
+      <h1>[아시아 EVENT] 아시아 캐치마인드</h1>
       <div class="topBtns">
         <button class="ghost" onclick="showLandingPage()">처음으로</button>
         <button class="ghost" onclick="showLeaguePage()">아시아리그 대진표</button>
@@ -493,8 +521,8 @@ html,body{min-width:0;width:100%}
     <div class="eventGrid">
       <div class="eventPanel">
         <div class="sectionHead">
-          <h2>4인 선착순 O.X 게임</h2>
-          <span class="tinyBadge">4명 모두 선택 시 자동 공개</span>
+          <h2>그림을 보고 정답을 맞혀보세요!</h2>
+          <span class="tinyBadge">승리 10회 · 패배 5회</span>
         </div>
         <div id="eventUserBox"></div>
         <div id="rpsGameBox"></div>
@@ -2791,6 +2819,353 @@ function leagueLineRender(){leagueLineRenderLogin(); leagueLineRenderStatus(); l
     leagueLineBoot();
   };
 })();
+
+
+
+/* ===== 최종 적용: 아시아 EVENT / 아시아 캐치마인드 ===== */
+const CATCH_STATE_ID = 5;
+const CATCH_WORDS = [
+  '냉장고','부엌','캐리어','타조알','자동문','소화기','신호등','세탁기','전자레인지','비상구',
+  '에스컬레이터','회전문','주차장','놀이공원','지하철역','공항검색대','택배상자','공중전화','분리수거함','자동판매기',
+  '스노보드','잠수함','열기구','굴착기','구급차','소방차','경찰서','동물병원','우주정거장','풍력발전기',
+  '선풍기','청소기','정수기','복사기','계산대','카메라','망원경','현미경','나침반','체온계',
+  '낙하산','구명조끼','등대','터널','현수교','캠핑카','텐트','침낭','도르래','풍차',
+  '아쿠아리움','동물원','도서관','미술관','영화관','볼링장','수영장','스케이트장','편의점','주유소'
+];
+let catchState = null;
+let catchTimer = null;
+let catchPollTimer = null;
+let catchDrawingLocal = false;
+let catchCurrentStroke = null;
+let catchLastCanvasSig = '';
+
+function catchDefaultState(){
+  return {
+    started:false, initialRound:false, drawer:null, word:null,
+    drawing:false, drawStartedAt:null, drawDuration:60,
+    scores:{}, chances:{}, lastDrawHour:{},
+    strokes:[], chats:[], logs:[], updatedAt:new Date().toISOString()
+  };
+}
+function catchNorm(st){
+  const b=catchDefaultState(); st=st&&typeof st==='object'?st:{};
+  return {
+    ...b,...st,
+    started:!!st.started, initialRound:!!st.initialRound, drawing:!!st.drawing,
+    scores:st.scores&&typeof st.scores==='object'?st.scores:{},
+    chances:st.chances&&typeof st.chances==='object'?st.chances:{},
+    lastDrawHour:st.lastDrawHour&&typeof st.lastDrawHour==='object'?st.lastDrawHour:{},
+    strokes:Array.isArray(st.strokes)?st.strokes.slice(-1500):[],
+    chats:Array.isArray(st.chats)?st.chats.slice(-150):[],
+    logs:Array.isArray(st.logs)?st.logs.slice(-150):[]
+  };
+}
+function catchHourKey(){
+  const d=new Date(Date.now()+9*60*60*1000);
+  return d.toISOString().slice(0,13);
+}
+function catchNextHourText(){
+  const d=new Date();
+  const k=new Date(d.getTime()+9*60*60*1000);
+  k.setUTCMinutes(0,0,0); k.setUTCHours(k.getUTCHours()+1);
+  return `${String(k.getUTCHours()).padStart(2,'0')}:00`;
+}
+function catchLog(msg){
+  catchState.logs=[`[${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}] ${msg}`,...(catchState.logs||[])].slice(0,150);
+}
+function catchSystemChat(msg){
+  catchState.chats=[...(catchState.chats||[]),{id:crypto.randomUUID(),name:'SYSTEM',text:msg,type:'system',at:new Date().toISOString()}].slice(-150);
+}
+async function catchLoad(){
+  const r=await sb.from(EVENT_TABLE).select('state').eq('id',CATCH_STATE_ID).maybeSingle();
+  if(r.error) throw new Error(r.error.message);
+  catchState=r.data?catchNorm(r.data.state):catchDefaultState();
+  if(!r.data) await catchSave();
+}
+async function catchSave(){
+  catchState.updatedAt=new Date().toISOString();
+  const r=await sb.from(EVENT_TABLE).upsert({id:CATCH_STATE_ID,state:catchState,updated_at:new Date().toISOString()},{onConflict:'id'}).select('id');
+  if(r.error) throw new Error(r.error.message);
+}
+async function eventLoad(){ return catchLoad(); }
+async function eventSave(){ return catchSave(); }
+
+function catchPickWord(prev=''){
+  const list=CATCH_WORDS.filter(w=>w!==prev);
+  return list[Math.floor(Math.random()*list.length)]||'냉장고';
+}
+function catchRemainingSeconds(){
+  if(!catchState?.drawing || !catchState.drawStartedAt) return 0;
+  const passed=Math.floor((Date.now()-new Date(catchState.drawStartedAt).getTime())/1000);
+  return Math.max(0,Number(catchState.drawDuration||60)-passed);
+}
+function catchCanDraw(name){
+  if(!name || catchState.drawer!==name || catchState.drawing) return false;
+  if(catchState.initialRound) return true;
+  return catchState.lastDrawHour?.[name]!==catchHourKey();
+}
+function catchCanvasSignature(){
+  const s=catchState?.strokes||[];
+  return `${s.length}_${s[s.length-1]?.id||''}_${catchState?.drawing?'1':'0'}`;
+}
+function catchRenderCanvas(){
+  const canvas=document.getElementById('catchCanvas'); if(!canvas) return;
+  const rect=canvas.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  const w=Math.max(300,Math.floor(rect.width)), h=470;
+  if(canvas.width!==Math.floor(w*dpr)||canvas.height!==Math.floor(h*dpr)){
+    canvas.width=Math.floor(w*dpr); canvas.height=Math.floor(h*dpr);
+  }
+  const ctx=canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,w,h);
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  (catchState.strokes||[]).forEach(st=>{
+    const pts=st.points||[]; if(pts.length<1) return;
+    ctx.beginPath(); ctx.strokeStyle=st.color||'#111111'; ctx.lineWidth=Number(st.size||5);
+    ctx.moveTo(pts[0].x*w,pts[0].y*h);
+    pts.slice(1).forEach(p=>ctx.lineTo(p.x*w,p.y*h));
+    if(pts.length===1) ctx.lineTo(pts[0].x*w+.01,pts[0].y*h+.01);
+    ctx.stroke();
+  });
+  catchLastCanvasSig=catchCanvasSignature();
+}
+function catchBindCanvas(){
+  const canvas=document.getElementById('catchCanvas'); if(!canvas) return;
+  catchRenderCanvas();
+  const canUse=()=>!!(eventMe&&catchState.drawing&&catchState.drawer===eventMe.name&&catchRemainingSeconds()>0);
+  const pos=e=>{
+    const r=canvas.getBoundingClientRect();
+    const t=e.touches?.[0]||e;
+    return {x:Math.max(0,Math.min(1,(t.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(t.clientY-r.top)/r.height))};
+  };
+  const start=e=>{
+    if(!canUse()) return;
+    e.preventDefault(); catchDrawingLocal=true;
+    catchCurrentStroke={id:crypto.randomUUID(),color:document.getElementById('catchColor')?.value||'#111111',size:Number(document.getElementById('catchSize')?.value||5),points:[pos(e)]};
+    catchState.strokes.push(catchCurrentStroke); catchRenderCanvas();
+  };
+  const move=e=>{
+    if(!catchDrawingLocal||!catchCurrentStroke||!canUse()) return;
+    e.preventDefault(); catchCurrentStroke.points.push(pos(e)); catchRenderCanvas();
+  };
+  const end=async e=>{
+    if(!catchDrawingLocal) return;
+    e?.preventDefault?.(); catchDrawingLocal=false; catchCurrentStroke=null;
+    try{await catchSave();}catch(err){console.warn(err);}
+  };
+  canvas.onpointerdown=start; canvas.onpointermove=move; canvas.onpointerup=end; canvas.onpointercancel=end; canvas.onpointerleave=end;
+}
+async function catchClearCanvas(){
+  if(!eventMe||catchState.drawer!==eventMe.name||!catchState.drawing) return;
+  if(!confirm('그림판을 모두 지울까요?')) return;
+  await catchLoad(); catchState.strokes=[]; await catchSave(); catchRenderSafe(true);
+}
+async function catchStartDrawing(){
+  if(!eventMe) return alert('로그인 후 이용해주세요.');
+  await catchLoad();
+  if(catchState.drawer!==eventMe.name) return alert('현재 출제자만 그림을 그릴 수 있습니다.');
+  if(!catchCanDraw(eventMe.name)) return alert(`${catchNextHourText()} 이후에 그림 그리기가 다시 활성화됩니다.`);
+  catchState.drawing=true;
+  catchState.drawDuration=catchState.initialRound?30:60;
+  catchState.drawStartedAt=new Date().toISOString();
+  catchState.strokes=[];
+  catchState.lastDrawHour[eventMe.name]=catchHourKey();
+  catchLog(`${eventMe.name}님이 그림 그리기를 시작했습니다. (${catchState.drawDuration}초)`);
+  catchSystemChat(`${eventMe.name}님이 그림을 그리기 시작했습니다.`);
+  await catchSave(); catchRenderSafe(true);
+}
+async function catchFinishDrawing(){
+  await catchLoad();
+  if(!catchState.drawing || catchRemainingSeconds()>0) return;
+  catchState.drawing=false; catchState.initialRound=false;
+  catchLog(`${catchState.drawer||'출제자'}님의 그림 그리기 시간이 종료되었습니다.`);
+  catchSystemChat('그림 그리기 시간이 종료되었습니다. 정답은 계속 입력할 수 있습니다.');
+  await catchSave(); catchRenderSafe(true);
+}
+function catchNormalizeAnswer(v){return String(v||'').replace(/\s+/g,'').toLowerCase();}
+async function catchSubmitChat(){
+  if(!eventMe) return alert('로그인 후 채팅할 수 있습니다.');
+  const input=document.getElementById('catchChatInput');
+  const text=(input?.value||'').trim(); if(!text) return;
+  await catchLoad();
+  const name=eventMe.name;
+  if(name===catchState.drawer){
+    catchState.chats.push({id:crypto.randomUUID(),name,text,type:'normal',at:new Date().toISOString()});
+  }else{
+    const chance=Number(catchState.chances?.[name]||0);
+    if(chance<=0) return alert('남은 정답 기회가 없습니다.');
+    catchState.chances[name]=chance-1;
+    const correct=catchState.started && catchNormalizeAnswer(text)===catchNormalizeAnswer(catchState.word);
+    catchState.chats.push({id:crypto.randomUUID(),name,text,type:correct?'correct':'normal',at:new Date().toISOString()});
+    if(correct){
+      catchState.scores[name]=Number(catchState.scores?.[name]||0)+1;
+      const oldDrawer=catchState.drawer;
+      catchState.drawer=name;
+      catchState.word=catchPickWord(catchState.word);
+      catchState.drawing=false; catchState.drawStartedAt=null; catchState.drawDuration=60;
+      catchState.strokes=[]; catchState.initialRound=false;
+      catchLog(`${name}님이 정답을 맞혀 +1점! 다음 출제자가 되었습니다.`);
+      catchSystemChat(`🎉 ${name}님 정답! +1점 · 다음 출제자는 ${name}님입니다.`);
+      if(oldDrawer) catchSystemChat(`이전 정답은 "${text}"였습니다.`);
+    }
+  }
+  catchState.chats=catchState.chats.slice(-150);
+  await catchSave();
+  if(input) input.value='';
+  catchRenderSafe(true);
+}
+function catchRankHtml(){
+  const names=new Set([...Object.keys(catchState.scores||{}),...Object.keys(catchState.chances||{})]);
+  const rows=[...names].sort((a,b)=>Number(catchState.scores[b]||0)-Number(catchState.scores[a]||0)||a.localeCompare(b,'ko'));
+  if(!rows.length) return '<div class="eventHint">아직 등록된 점수와 기회가 없습니다.</div>';
+  return `<table class="scoreTable"><thead><tr><th>순위</th><th>맴버</th><th>점수</th><th>남은 기회</th></tr></thead><tbody>${rows.map((n,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(n)}${catchState.drawer===n?' 🎨':''}</td><td>${Number(catchState.scores[n]||0)}점</td><td>${Number(catchState.chances[n]||0)}회</td></tr>`).join('')}</tbody></table>`;
+}
+function catchChatHtml(){
+  return (catchState.chats||[]).map(c=>`<div class="catchChatLine ${c.type||''}"><b>${c.type==='system'?'':escapeHtml(c.name)+': '}</b>${escapeHtml(c.text)}</div>`).join('')||'<div class="catchChatLine system">아직 채팅이 없습니다.</div>';
+}
+function catchLoginHtml(){
+  if(eventMe){
+    return `<div class="eventStatus"><div class="eventStat">로그인<b>${escapeHtml(eventMe.name)}</b></div><div class="eventStat">점수<b>${Number(catchState.scores?.[eventMe.name]||0)}점</b></div><div class="eventStat">남은 기회<b>${Number(catchState.chances?.[eventMe.name]||0)}회</b></div></div><button class="ghost" onclick="eventLogout()">로그아웃</button>`;
+  }
+  return `<div class="eventLogin"><select id="eventLoginName">${eventMemberOptions()}</select><input id="eventLoginPw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter') eventLogin()"><button class="gold" onclick="eventLogin()">로그인</button></div>`;
+}
+function catchRenderSafe(force=false){
+  const active=document.activeElement;
+  if(!force && active && ['INPUT','SELECT','TEXTAREA'].includes(active.tagName)) {
+    if(catchCanvasSignature()!==catchLastCanvasSig) catchRenderCanvas();
+    return;
+  }
+  renderEvent();
+}
+function renderEvent(){
+  if(!catchState) catchState=catchDefaultState();
+  const title=document.querySelector('#eventPage .eventTop h1'); if(title) title.textContent='[아시아 EVENT] 아시아 캐치마인드';
+  const h2=document.querySelector('#eventPage .eventPanel .sectionHead h2'); if(h2) h2.textContent='그림을 보고 정답을 맞혀보세요!';
+  const badge=document.querySelector('#eventPage .eventPanel .sectionHead .tinyBadge'); if(badge) badge.textContent='승리 10회 · 패배 5회';
+  const userBox=document.getElementById('eventUserBox'), main=document.getElementById('rpsGameBox'), side=document.getElementById('eventSide');
+  if(!userBox||!main||!side) return;
+  const rem=catchRemainingSeconds();
+  const isDrawer=!!(eventMe&&catchState.drawer===eventMe.name);
+  const canDraw=isDrawer&&catchCanDraw(eventMe.name);
+  userBox.innerHTML=catchLoginHtml()+`<div class="catchDesc"><b>게임 설명</b><br>출제자는 화면에 제시된 단어를 보고 그림을 그립니다. 다른 맴버는 아래 채팅창에 정답을 입력해 맞혀야 합니다.<br>정답을 맞힌 사람은 <b>+1점</b>을 받고 다음 출제자가 됩니다. 그림은 한 시간 구간마다 한 번, 1분간 그릴 수 있습니다. 최초 운영진 시작 그림은 30초입니다.</div>`;
+  main.innerHTML=`<div class="catchInfoBar">
+    <div class="catchInfo">게임 상태<b>${catchState.started?'진행중':'시작 대기'}</b></div>
+    <div class="catchInfo">현재 출제자<b>${escapeHtml(catchState.drawer||'미정')}</b></div>
+    <div class="catchInfo">그림 시간<b>${catchState.drawing?rem+'초':'대기'}</b></div>
+    <div class="catchInfo">다음 활성화<b>${isDrawer&&!canDraw&&!catchState.drawing?catchNextHourText():'-'}</b></div>
+  </div>
+  ${isDrawer?`<div class="catchWordBox">출제자에게만 보이는 문제<div class="word">${escapeHtml(catchState.word||'대기중')}</div></div>`:''}
+  <div class="catchCanvasWrap">
+    <canvas id="catchCanvas" class="catchCanvas"></canvas>
+    <div class="catchToolbar">
+      <button id="catchStartBtn" class="gold" onclick="catchStartDrawing()" ${canDraw?'':'disabled'}>${catchState.drawing?'그리는 중...':'그리기 시작'}</button>
+      <label>색상 <input id="catchColor" type="color" value="#111111"></label>
+      <label>굵기 <input id="catchSize" type="range" min="2" max="24" value="5"></label>
+      <button class="danger" onclick="catchClearCanvas()" ${isDrawer&&catchState.drawing?'':'disabled'}>그림 지우기</button>
+      <span class="eventHint">${isDrawer?(catchState.drawing?`남은 시간 ${rem}초`:canDraw?'지금 그림을 시작할 수 있습니다.':`${catchNextHourText()} 이후 다시 활성화됩니다.`):'현재 출제자만 그림을 그릴 수 있습니다.'}</span>
+    </div>
+  </div>
+  <div style="margin-top:12px"><div class="catchChat" id="catchChat">${catchChatHtml()}</div>
+  <div class="catchChatForm"><input id="catchChatInput" placeholder="채팅 또는 정답 입력" onkeydown="if(event.key==='Enter') catchSubmitChat()"><button class="ok" onclick="catchSubmitChat()">전송</button></div>
+  <div class="catchWarning">※ 출제자가 아닌 사람이 아래에 내용을 입력하면 정답 시도 1회가 차감됩니다. 출제자가 바뀌어도 남은 기회는 계속 유지됩니다.</div></div>`;
+  side.innerHTML=`<div class="sectionHead"><h2>점수 / 기회 목록</h2><button class="gold" onclick="openEventAdmin()">운영진 패널</button></div>${catchRankHtml()}<h2 style="margin:14px 0 0;color:#facc15">진행 LOG</h2><div class="eventLog">${(catchState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 LOG가 없습니다.</div>'}</div>`;
+  setTimeout(()=>{catchBindCanvas(); const c=document.getElementById('catchChat'); if(c)c.scrollTop=c.scrollHeight;},0);
+}
+async function eventBoot(){
+  try{
+    await eventLoadMembers(); await catchLoad(); renderEvent();
+    if(catchTimer) clearInterval(catchTimer);
+    catchTimer=setInterval(async()=>{
+      try{
+        if(catchState?.drawing&&catchRemainingSeconds()<=0) await catchFinishDrawing();
+        else{
+          const el=document.querySelector('.catchInfoBar .catchInfo:nth-child(3) b');
+          if(el&&catchState?.drawing) el.textContent=catchRemainingSeconds()+'초';
+        }
+      }catch(e){}
+    },1000);
+    if(catchPollTimer) clearInterval(catchPollTimer);
+    catchPollTimer=setInterval(async()=>{try{await catchLoad(); catchRenderSafe();}catch(e){}},2500);
+  }catch(e){
+    document.getElementById('eventUserBox').innerHTML=`<div class="errorBox">이벤트 데이터를 불러오지 못했습니다.\n${escapeHtml(e.message||e)}</div>`;
+  }
+}
+async function eventLogin(){
+  await eventLoadMembers();
+  const name=document.getElementById('eventLoginName')?.value;
+  const pw=document.getElementById('eventLoginPw')?.value;
+  const ok=eventMembers.find(m=>m.name===name&&String(m.pw)===String(pw||''));
+  if(!ok) return alert('맴버 또는 비밀번호가 맞지 않습니다.');
+  eventMe={name}; localStorage.setItem('asia_event_me',JSON.stringify(eventMe)); renderEvent();
+}
+function eventLogout(){eventMe=null; localStorage.removeItem('asia_event_me'); renderEvent();}
+
+async function openEventAdmin(){
+  const pw=prompt('운영진 비밀번호를 입력하세요.');
+  if(pw!==EVENT_ADMIN_PASSWORD) return alert('운영진 비밀번호가 맞지 않습니다.');
+  await eventLoadMembers(); await catchLoad();
+  const opts=`<option value="">맴버 선택</option>${eventMemberOptions()}`;
+  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:820px;max-width:94vw;max-height:92vh;overflow:auto">
+    <div class="sectionHead"><h2>아시아 캐치마인드 운영진 패널</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div>
+    <div class="eventAdmin"><button class="danger" onclick="catchAdminReset()">초기화</button><button class="gold" onclick="openEventAddMemberBox()">맴버추가하기</button></div>
+    <div style="margin-top:12px;border:1px solid var(--line);background:#081525;border-radius:14px;padding:12px">
+      <h3 style="margin:0 0 8px;color:#facc15">초기 게임 시작</h3>
+      <div class="catchAdminRow"><select id="catchFirstDrawer">${opts}</select><button class="gold" onclick="catchAdminInitialStart()">선택한 출제자로 30초 시작</button></div>
+      <div class="eventHint">초기화 후 또는 처음 시작할 때만 사용합니다.</div>
+    </div>
+    <div style="margin-top:12px;border:1px solid var(--line);background:#081525;border-radius:14px;padding:12px">
+      <h3 style="margin:0 0 8px;color:#facc15">친선 등록</h3>
+      <div class="catchAdminMembers">${[1,2,3,4].map(i=>`<select id="catchFriend${i}">${opts}</select>`).join('')}</div>
+      <div class="catchAdminRow"><button class="ok" onclick="catchAdminRegister('win')">승리 · 4명 모두 +10회</button><button class="warn" onclick="catchAdminRegister('lose')">패배 · 4명 모두 +5회</button></div>
+    </div>
+    <div id="eventAddMemberBox" style="display:none;margin-top:12px;border:1px solid var(--line);background:#081525;border-radius:14px;padding:12px">
+      <h3 style="margin:0 0 8px;color:#facc15">맴버 추가하기</h3>
+      <div class="eventAdminWide"><input id="eventNewMemberName" placeholder="맴버명"><input id="eventNewMemberPw" placeholder="비번 4자리" maxlength="4" inputmode="numeric"><button class="gold" onclick="eventAddMember()">추가하기</button></div>
+    </div>
+  </div></div>`;
+}
+async function catchAdminInitialStart(){
+  const name=document.getElementById('catchFirstDrawer')?.value;
+  if(!name) return alert('첫 출제자를 선택해주세요.');
+  await catchLoad();
+  catchState.started=true; catchState.initialRound=true; catchState.drawer=name;
+  catchState.word=catchPickWord(catchState.word); catchState.drawing=true;
+  catchState.drawStartedAt=new Date().toISOString(); catchState.drawDuration=30; catchState.strokes=[];
+  if(catchState.scores[name]==null) catchState.scores[name]=0;
+  if(catchState.chances[name]==null) catchState.chances[name]=0;
+  catchState.lastDrawHour[name]=catchHourKey();
+  catchLog(`운영진이 게임을 시작했습니다. 첫 출제자: ${name} (30초)`);
+  catchSystemChat(`게임 시작! 첫 출제자는 ${name}님입니다.`);
+  await catchSave(); modalRoot.innerHTML=''; renderEvent();
+}
+async function catchAdminRegister(result){
+  const names=[1,2,3,4].map(i=>document.getElementById('catchFriend'+i)?.value).filter(Boolean);
+  if(names.length!==4) return alert('친선을 진행한 맴버 4명을 모두 선택해주세요.');
+  if(new Set(names).size!==4) return alert('같은 맴버를 중복 선택할 수 없습니다.');
+  const add=result==='win'?10:5;
+  await catchLoad();
+  names.forEach(n=>{catchState.chances[n]=Number(catchState.chances?.[n]||0)+add;if(catchState.scores[n]==null)catchState.scores[n]=0;});
+  catchLog(`${result==='win'?'승리':'패배'} 친선 등록: ${names.join(', ')} · 각 +${add}회`);
+  catchSystemChat(`${names.join(', ')}님에게 정답 기회가 각각 ${add}회 지급되었습니다.`);
+  await catchSave(); modalRoot.innerHTML=''; renderEvent(); alert(`4명 모두에게 ${add}회씩 지급했습니다.`);
+}
+async function catchAdminReset(){
+  if(!confirm('캐치마인드의 점수, 기회, 그림, 채팅을 모두 초기화할까요?')) return;
+  catchState=catchDefaultState(); catchLog('운영진이 캐치마인드를 초기화했습니다.');
+  await catchSave(); modalRoot.innerHTML=''; renderEvent();
+}
+async function eventAddMember(){
+  const name=(document.getElementById('eventNewMemberName')?.value||'').trim();
+  const pw=(document.getElementById('eventNewMemberPw')?.value||'').trim();
+  if(!name) return alert('맴버명을 입력해주세요.');
+  if(!/^\d{4}$/.test(pw)) return alert('비밀번호는 숫자 4자리로 입력해주세요.');
+  await eventLoadMembers();
+  if(eventMembers.some(m=>m.name===name)) return alert('이미 존재하는 맴버명입니다.');
+  const r=await sb.from('asia_event_members').insert({nickname:name,password:pw,score:0,chances:0,level:0}).select('id');
+  if(r.error) return alert('맴버 추가 실패: '+r.error.message);
+  await eventLoadMembers(); alert(`${name}님이 추가되었습니다.`); openEventAdmin();
+}
 
 
 boot();
