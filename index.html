@@ -450,6 +450,46 @@ html,body{min-width:0;width:100%}
 .catchDisabled{opacity:.55;pointer-events:none}
 @media(max-width:900px){.catchGrid{grid-template-columns:1fr}.catchInfoBar{grid-template-columns:repeat(2,1fr)}}
 
+/* ===== 캐치마인드 귀여운 테마 / 실시간 게이지 ===== */
+#eventPage.eventPage{background:radial-gradient(circle at 12% 8%,rgba(255,205,225,.40),transparent 27%),radial-gradient(circle at 88% 12%,rgba(186,230,253,.38),transparent 25%),linear-gradient(145deg,#fff2f8,#eef8ff 48%,#fff9df);color:#4b3b52}
+#eventPage .eventWrap{width:1280px}
+#eventPage .eventTop{background:rgba(255,255,255,.78);border:2px solid rgba(244,114,182,.25);border-radius:26px;padding:14px 18px;box-shadow:0 14px 35px rgba(113,79,120,.13)}
+#eventPage .eventTop h1{color:#f05fa6;text-shadow:none;letter-spacing:-1px}
+#eventPage .eventPanel{background:rgba(255,255,255,.90);border:2px solid rgba(147,197,253,.35);border-radius:28px;box-shadow:0 16px 38px rgba(93,78,110,.14)}
+#eventPage .eventPanel h2{color:#7c5c92}
+#eventPage .tinyBadge{background:#fff0f7;border-color:#f9a8d4;color:#d9468f}
+#eventPage button{border-radius:16px;box-shadow:0 5px 0 rgba(89,64,101,.12);transition:transform .12s ease,filter .12s ease}
+#eventPage button:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.03)}
+#eventPage button:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 rgba(89,64,101,.10)}
+#eventPage .gold{background:linear-gradient(135deg,#ffd86b,#ffb86b);color:#5b3a16}
+#eventPage .ok{background:linear-gradient(135deg,#86efac,#5eead4);color:#17483d}
+#eventPage .danger{background:linear-gradient(135deg,#fda4af,#fb7185);color:white}
+#eventPage .ghost{background:#f4edff;color:#6d4e86;border:1px solid #d9c7f0}
+#eventPage .eventStat,#eventPage .catchInfo,#eventPage .catchDesc,#eventPage .catchChat,#eventPage .eventLog{background:#fff;border:2px solid #eadcf3;color:#75617f;border-radius:20px}
+#eventPage .eventStat b,#eventPage .catchInfo b{color:#ef6ca8}
+#eventPage .catchDesc b{color:#e05b9d}
+#eventPage .catchCanvasWrap{background:linear-gradient(145deg,#fff7fb,#f4fbff);border:3px solid #ffd2e6;border-radius:26px;padding:14px;box-shadow:inset 0 0 0 4px rgba(255,255,255,.7)}
+#eventPage .catchCanvas{border:3px solid #d9c7f0;border-radius:22px;box-shadow:0 8px 18px rgba(92,72,110,.10)}
+#eventPage .catchWordBox{background:linear-gradient(135deg,#fff1a8,#ffd3e7);border:2px solid #f9a8d4;border-radius:22px;color:#76516d}
+#eventPage .catchWordBox .word{color:#dc4f96;font-size:34px}
+#eventPage .catchChatLine{color:#66526f;border-color:#eee4f2}
+#eventPage .catchChatLine.system{color:#d34c91;background:#fff2f8;border-radius:12px;margin:3px 0}
+#eventPage .catchChatLine.correct{background:#dcfce7;color:#16805d;border-radius:12px;margin:3px 0}
+#eventPage .catchChatForm input,#eventPage .eventLogin input,#eventPage .eventLogin select{background:#fff;border:2px solid #ddcfea;color:#55455d;border-radius:16px}
+#eventPage .scoreTable{background:#fff;border:2px solid #eadcf3;border-radius:20px;color:#66526f}
+#eventPage .scoreTable th{background:#f8efff;color:#75558c}
+#eventPage .scoreTable td{border-color:#f0e7f4}
+.catchTimerCard{margin:10px 0 12px;background:linear-gradient(135deg,#fff3ba,#ffd9ec);border:2px solid #f9a8d4;border-radius:22px;padding:12px 14px;box-shadow:0 8px 18px rgba(214,92,151,.11)}
+.catchTimerTop{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:1000;color:#8a5575;margin-bottom:9px}
+.catchTimerTop b{font-size:18px;color:#d9468f}
+.catchProgressTrack{height:24px;background:rgba(255,255,255,.78);border:2px solid #f3b7d4;border-radius:999px;overflow:hidden;padding:3px;box-shadow:inset 0 2px 6px rgba(122,76,103,.10)}
+.catchProgressFill{width:0%;height:100%;border-radius:999px;background:linear-gradient(90deg,#79d8ff,#9ae6b4,#ffe680,#ff9fc7);transition:width .12s linear;box-shadow:0 0 12px rgba(244,114,182,.30)}
+.catchProgressFill.warning{background:linear-gradient(90deg,#ffd166,#ff8fab,#fb7185)}
+.catchProgressFill.done{width:0%!important;background:#e5dbea}
+.catchTimerHint{font-size:12px;font-weight:900;color:#a06a88;margin-top:7px;text-align:center}
+.catchToolbar{background:#fff;border:2px dashed #e4ccec;border-radius:18px;padding:9px}
+.catchWarning{background:#fff0f4;border:1px solid #f9a8b8;border-radius:14px;padding:9px 11px;color:#d44f72}
+
 </style>
 </head>
 <body>
@@ -1238,6 +1278,31 @@ function eventMemberOptions(){return eventMembers.map(m=>`<option value="${escap
 function eventLog(msg){eventState.logs=[`[${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}] ${msg}`,...(eventState.logs||[])].slice(0,120);}
 async function eventSave(){eventState.updatedAt=new Date().toISOString(); const r=await sb.from(EVENT_TABLE).upsert({id:1,state:eventState,updated_at:new Date().toISOString()},{onConflict:'id'}).select('id'); if(r.error) throw new Error(r.error.message);}
 async function eventLoad(){const r=await sb.from(EVENT_TABLE).select('state').eq('id',1).maybeSingle(); if(r.error) throw new Error(r.error.message); if(!r.data){eventState=defaultEventState(); await eventSave();} else eventState=normalizeEventState(r.data.state);}
+function catchUpdateTimerUI(){
+  const fill=document.getElementById('catchProgressFill');
+  const label=document.getElementById('catchTimerLabel');
+  const hint=document.getElementById('catchTimerHint');
+  const status=document.getElementById('catchTimerStatus');
+  if(!fill||!label) return;
+  if(!catchState?.drawing||!catchState.drawStartedAt){
+    fill.style.width='0%'; fill.classList.add('done'); fill.classList.remove('warning');
+    label.textContent='대기 중';
+    if(status) status.textContent='대기';
+    if(hint) hint.textContent='출제자가 [그리기 시작]을 누르면 막대가 움직입니다.';
+    return;
+  }
+  const duration=Math.max(1,Number(catchState.drawDuration||60));
+  const elapsed=Math.max(0,(Date.now()-new Date(catchState.drawStartedAt).getTime())/1000);
+  const remain=Math.max(0,duration-elapsed);
+  const pct=Math.max(0,Math.min(100,(remain/duration)*100));
+  fill.classList.remove('done');
+  fill.classList.toggle('warning',pct<=30);
+  fill.style.width=pct+'%';
+  label.textContent=pct>0?'진행 중':'시간 종료';
+  if(status) status.textContent=pct>0?'그리는 중':'종료';
+  if(hint) hint.textContent=pct>0?'막대가 모두 줄어들면 그림 시간이 종료됩니다.':'그림 시간이 종료되었습니다.';
+}
+
 async function eventBoot(){
   try{ if(!eventLoaded){await eventLoadMembers(); await eventLoad(); eventLoaded=true;} renderEvent(); }
   catch(e){document.getElementById('eventUserBox').innerHTML=`<div class="errorBox">이벤트 데이터를 불러오지 못했습니다.\n${escapeHtml(e.message||e)}</div>`;}
@@ -3041,7 +3106,7 @@ function catchRenderSafe(force=false){
 function renderEvent(){
   if(!catchState) catchState=catchDefaultState();
   const title=document.querySelector('#eventPage .eventTop h1'); if(title) title.textContent='[아시아 EVENT] 아시아 캐치마인드';
-  const h2=document.querySelector('#eventPage .eventPanel .sectionHead h2'); if(h2) h2.textContent='그림을 보고 정답을 맞혀보세요!';
+  const h2=document.querySelector('#eventPage .eventPanel .sectionHead h2'); if(h2) h2.textContent='🎨 그림을 보고 정답을 맞혀보세요!';
   const badge=document.querySelector('#eventPage .eventPanel .sectionHead .tinyBadge'); if(badge) badge.textContent='승리 10회 · 패배 5회';
   const userBox=document.getElementById('eventUserBox'), main=document.getElementById('rpsGameBox'), side=document.getElementById('eventSide');
   if(!userBox||!main||!side) return;
@@ -3052,10 +3117,15 @@ function renderEvent(){
   main.innerHTML=`<div class="catchInfoBar">
     <div class="catchInfo">게임 상태<b>${catchState.started?'진행중':'시작 대기'}</b></div>
     <div class="catchInfo">현재 출제자<b>${escapeHtml(catchState.drawer||'미정')}</b></div>
-    <div class="catchInfo">그림 시간<b>${catchState.drawing?rem+'초':'대기'}</b></div>
+    <div class="catchInfo">그림 상태<b id="catchTimerStatus">${catchState.drawing?'그리는 중':'대기'}</b></div>
     <div class="catchInfo">다음 활성화<b>${isDrawer&&!canDraw&&!catchState.drawing?catchNextHourText():'-'}</b></div>
   </div>
-  ${isDrawer?`<div class="catchWordBox">출제자에게만 보이는 문제<div class="word">${escapeHtml(catchState.word||'대기중')}</div></div>`:''}
+  <div class="catchTimerCard">
+    <div class="catchTimerTop"><span>🖍️ 그림 그리기 시간</span><b id="catchTimerLabel">${catchState.drawing?'진행 중':'대기 중'}</b></div>
+    <div class="catchProgressTrack"><div id="catchProgressFill" class="catchProgressFill ${!catchState.drawing?'done':''}" style="width:${catchState.drawing?Math.max(0,Math.min(100,rem/Number(catchState.drawDuration||60)*100)):0}%"></div></div>
+    <div id="catchTimerHint" class="catchTimerHint">${catchState.drawing?'막대가 모두 줄어들면 그림 시간이 종료됩니다.':'출제자가 [그리기 시작]을 누르면 막대가 움직입니다.'}</div>
+  </div>
+  ${isDrawer?`<div class="catchWordBox">🌟 출제자에게만 보이는 문제<div class="word">${escapeHtml(catchState.word||'대기중')}</div></div>`:''}
   <div class="catchCanvasWrap">
     <canvas id="catchCanvas" class="catchCanvas"></canvas>
     <div class="catchToolbar">
@@ -3069,8 +3139,8 @@ function renderEvent(){
   <div style="margin-top:12px"><div class="catchChat" id="catchChat">${catchChatHtml()}</div>
   <div class="catchChatForm"><input id="catchChatInput" placeholder="채팅 또는 정답 입력" onkeydown="if(event.key==='Enter') catchSubmitChat()"><button class="ok" onclick="catchSubmitChat()">전송</button></div>
   <div class="catchWarning">※ 출제자가 아닌 사람이 아래에 내용을 입력하면 정답 시도 1회가 차감됩니다. 출제자가 바뀌어도 남은 기회는 계속 유지됩니다.</div></div>`;
-  side.innerHTML=`<div class="sectionHead"><h2>점수 / 기회 목록</h2><button class="gold" onclick="openEventAdmin()">운영진 패널</button></div>${catchRankHtml()}<h2 style="margin:14px 0 0;color:#facc15">진행 LOG</h2><div class="eventLog">${(catchState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 LOG가 없습니다.</div>'}</div>`;
-  setTimeout(()=>{catchBindCanvas(); const c=document.getElementById('catchChat'); if(c)c.scrollTop=c.scrollHeight;},0);
+  side.innerHTML=`<div class="sectionHead"><h2>🏆 점수 / 기회 목록</h2></div>${catchRankHtml()}<h2 style="margin:14px 0 0;color:#d9468f">📖 진행 LOG</h2><div class="eventLog">${(catchState.logs||[]).map(l=>`<div>${escapeHtml(l)}</div>`).join('')||'<div>아직 LOG가 없습니다.</div>'}</div>`;
+  setTimeout(()=>{catchBindCanvas(); catchUpdateTimerUI(); const c=document.getElementById('catchChat'); if(c)c.scrollTop=c.scrollHeight;},0);
 }
 async function eventBoot(){
   try{
@@ -3078,13 +3148,10 @@ async function eventBoot(){
     if(catchTimer) clearInterval(catchTimer);
     catchTimer=setInterval(async()=>{
       try{
+        catchUpdateTimerUI();
         if(catchState?.drawing&&catchRemainingSeconds()<=0) await catchFinishDrawing();
-        else{
-          const el=document.querySelector('.catchInfoBar .catchInfo:nth-child(3) b');
-          if(el&&catchState?.drawing) el.textContent=catchRemainingSeconds()+'초';
-        }
       }catch(e){}
-    },1000);
+    },100);
     if(catchPollTimer) clearInterval(catchPollTimer);
     catchPollTimer=setInterval(async()=>{try{await catchLoad(); catchRenderSafe();}catch(e){}},2500);
   }catch(e){
