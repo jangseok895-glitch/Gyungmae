@@ -1567,7 +1567,7 @@ function getSyncKey(){
 function isFormActive(){
   const el=document.activeElement;
   if(!el) return false;
-  if(!['INPUT','SELECT','TEXTAREA'].includes(el.tagName)) return false;
+  if(!['INPUT','SELECT','TEXTAREA','BUTTON'].includes(el.tagName)) return false;
   return true;
 }
 function renderSafe(force=false){
@@ -1833,6 +1833,16 @@ async function auctionLoginHandler(ev){
 window.auctionLogin=auctionLoginHandler;
 window.login=auctionLoginHandler;
 
+// 로그인 버튼은 250ms 실시간 화면 갱신 중 DOM이 교체되어 일반 click 이벤트가 사라질 수 있습니다.
+// pointerdown 캡처 단계에서 먼저 로그인 함수를 실행하여 마우스/터치 클릭을 확실히 처리합니다.
+document.addEventListener('pointerdown',function(e){
+  const btn=e.target?.closest?.('#auctionLoginBtn');
+  if(!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  window.auctionLogin(e);
+},true);
+
 async function logout(){
   try{
     if(me) await q(sb.from('auction_captains').update({online:false,session_id:null}).eq('name',me.name).eq('session_id',me.sessionId),'로그아웃');
@@ -1922,8 +1932,11 @@ async function placeBid(){
     await loadAll();
   }catch(e){showErr('입찰 실패',e)}
 }
-async function customBid(){
-  const cap=myCaptain(); const raw=Number($('#customBid').value); const val=Math.floor(raw/10)*10;
+async function auctionCustomBid(){
+  const input=document.getElementById('customBidAmount');
+  const cap=myCaptain();
+  const raw=Number(input?.value);
+  const val=Math.floor(raw/10)*10;
   const hi=highestBid(); const min=hi?Number(hi.amount)+BID_STEP:BID_STEP;
   if(!val||val<min) return toast(`최소 ${min} coin 이상 입찰해야 합니다.`);
   if(!canBid()) return toast('입찰할 수 없습니다.');
@@ -1933,10 +1946,11 @@ async function customBid(){
     await q(sb.from('auction_bids').insert({player_name:currentPlayer(),captain_name:cap.name,amount:val}),'입찰 저장');
     await q(sb.from('auction_state').update({round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'시간 초기화');
     await addAuctionLog(`${cap.name}님 ${val} 입찰`);
-    const input=$('#customBid'); if(input) input.value='';
+    if(input) input.value='';
     await loadAll();
   }catch(e){showErr('입찰 실패',e)}
 }
+window.auctionCustomBid=auctionCustomBid;
 function groupNameByCaptain(name){return ['A조','B조','C조','D조','E조','F조','G조'][CAPTAINS.findIndex(c=>c.name===name)]||'미정'}
 
 async function getFreshSoldTeams(){
@@ -2294,7 +2308,7 @@ function renderAuthBox(){
   return `<div class="card">
     <div class="sectionHead"><h2>주장 로그인</h2><span class="tinyBadge">현재 접속자수 : ${visitorCount}</span></div>
     ${me&&cap?`<div class="topBtns"><span class="badge">접속: ${me.name}</span><span class="badge">내 coin: ${money(cap.coins)} coin</span><button class="ghost" onclick="logout()">로그아웃</button></div>`:
-    `<div class="loginRow"><div><label>주장 선택</label><select id="loginName">${CAPTAINS.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select></div><div><label>패스워드</label><input id="loginPw" type="password" placeholder="패스워드" autocomplete="current-password" onkeydown="if(event.key==='Enter'){event.preventDefault();window.auctionLogin(event)}"></div><button type="button" id="auctionLoginBtn" onclick="window.auctionLogin(event)">로그인</button><span class="muted">미로그인도 관람 가능 / 입찰은 로그인 필요</span></div>`}
+    `<div class="loginRow"><div><label>주장 선택</label><select id="loginName">${CAPTAINS.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select></div><div><label>패스워드</label><input id="loginPw" type="password" placeholder="패스워드" autocomplete="current-password" onkeydown="if(event.key==='Enter'){event.preventDefault();window.auctionLogin(event)}"></div><button type="button" id="auctionLoginBtn" onpointerdown="event.preventDefault();window.auctionLogin(event)" onclick="event.preventDefault()">로그인</button><span class="muted">미로그인도 관람 가능 / 입찰은 로그인 필요</span></div>`}
   </div>`;
 }
 function render(){
@@ -2319,7 +2333,7 @@ function render(){
           ${state.status==='waiting'?`<p class="muted" style="font-weight:900">대기중입니다. 위쪽 경매 시작 버튼 → 운영진 비밀번호 입력 시 시작됩니다.</p>`:
           state.status==='ended'?`<p class="muted" style="font-weight:900;color:#34d399">경매가 종료되었습니다.</p>`:
           (state.status==='processing'||finishing||rem<=0)?`<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">처리중</div><div class="highest">${adminAuthorized?'낙찰/유찰 처리 후 다음 선수로 이동 중입니다.':'DB에서 낙찰/유찰 및 다음 선수 이동을 처리 중입니다.'}</div></div></div>`:
-          `<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">${rem}초</div><div class="highest">현재 최고 입찰: ${hi?`<span class="highestName">${hi.captain_name}</span> / <span class="highestAmount">${money(hi.amount)}</span> coin`:'아직 없음'}</div>${me?`<div class="bidBox"><input id="customBid" type="number" step="10" placeholder="직접 입찰 금액"><button class="gold" onclick="customBid()" ${!canBid()?'disabled':''}>입찰하기</button><button onclick="placeBid()" ${!canBid()?'disabled':''}>+10 자동입찰</button></div>`:`<p class="muted">관람 중입니다. 입찰하려면 상단에서 주장 로그인하세요.</p>`}</div></div>`}
+          `<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">${rem}초</div><div class="highest">현재 최고 입찰: ${hi?`<span class="highestName">${hi.captain_name}</span> / <span class="highestAmount">${money(hi.amount)}</span> coin`:'아직 없음'}</div>${me?`<div class="bidBox"><input id="customBidAmount" type="number" step="10" min="10" inputmode="numeric" placeholder="직접 입찰 금액" onkeydown="if(event.key==='Enter'){event.preventDefault();window.auctionCustomBid();}"><button class="gold" onclick="window.auctionCustomBid()" ${!canBid()?'disabled':''}>입찰하기</button><button onclick="placeBid()" ${!canBid()?'disabled':''}>+10 자동입찰</button></div>`:`<p class="muted">관람 중입니다. 입찰하려면 상단에서 주장 로그인하세요.</p>`}</div></div>`}
         </div>
 
         <div class="card" style="margin-top:10px">
