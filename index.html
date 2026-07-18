@@ -35,7 +35,8 @@ html,body{min-width:0;width:100%}
     .loginRow input,.loginRow select,.bidBox input,.modal input,.adminGrid input{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:10px;font-size:14px}
     .loginRow label{display:block;margin:0 0 5px;color:var(--muted)}
     .mainGrid{display:grid;grid-template-columns:555px 1fr;gap:12px;margin-top:12px}
-    .captains{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+    .captains{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .captain.empty{display:flex;align-items:center;justify-content:center;min-height:88px;color:#64748b;font-size:42px;font-weight:1000}
     .captain{background:#0b1728;border:1px solid var(--line);border-radius:13px;padding:10px 6px;text-align:center}
     .captain.on{border-color:#ef4444;box-shadow:0 0 0 1px rgba(239,68,68,.58),0 0 13px rgba(239,68,68,.22)}
     .coin{font-size:22px;color:var(--gold);font-weight:1000;line-height:1}
@@ -2247,7 +2248,7 @@ function render(){
       <div>
         <div class="card">
           <div class="sectionHead"><h2>주장 접속 현황</h2><span class="tinyBadge">현재 접속중인 주장 수 : ${online}</span></div>
-          <div class="captains">${captains.map(c=>`<div class="captain ${c.online?'on':''}"><b>${c.name}</b><div class="coin">${money(c.coins)}</div><div class="small">${c.online?'🟢 접속중':'⚪ 오프라인'}</div></div>`).join('')}</div>
+          <div class="captains">${captains.map(c=>`<div class="captain ${c.online?'on':''}"><b>${c.name}</b><div class="coin">${money(c.coins)}</div><div class="small">${c.online?'🟢 접속중':'⚪ 오프라인'}</div></div>`).join('')}<div class="captain empty" aria-label="빈 자리">X</div></div>
         </div>
 
         <div class="card" style="margin-top:10px">
