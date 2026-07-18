@@ -1759,16 +1759,43 @@ function canBid(){
 }
 
 async function login(){
-  const name=$('#loginName').value,pw=$('#loginPw').value;
-  const ok=CAPTAINS.find(c=>c.name===name&&c.password===pw);
-  if(!ok) return toast('주장 선택 또는 비밀번호가 맞지 않습니다.');
+  const nameEl=document.getElementById('loginName');
+  const pwEl=document.getElementById('loginPw');
+  const btn=document.getElementById('auctionLoginBtn');
+  const name=String(nameEl?.value||'').trim();
+  const pw=String(pwEl?.value||'').trim();
+  const ok=CAPTAINS.find(c=>c.name===name && String(c.password)===pw);
+
+  if(!ok){
+    alert('주장 선택 또는 비밀번호가 맞지 않습니다.');
+    pwEl?.focus();
+    return;
+  }
+
+  if(btn){btn.disabled=true;btn.textContent='로그인 중...';}
   try{
-    const sessionId=crypto.randomUUID();
-    await q(sb.from('auction_captains').update({online:true,session_id:sessionId,last_seen:nowIso()}).eq('name',name),'로그인');
+    const sessionId=(crypto?.randomUUID?.() || ('session_'+Date.now()+'_'+Math.random().toString(36).slice(2)));
+    const r=await sb.from('auction_captains')
+      .update({online:true,session_id:sessionId,last_seen:nowIso()})
+      .eq('name',name)
+      .select('name,coins,online,session_id,last_seen');
+
+    if(r.error) throw new Error(r.error.message);
+    if(!r.data || !r.data.length){
+      throw new Error(name+' 주장 데이터가 auction_captains 테이블에 없거나 UPDATE 권한이 없습니다.');
+    }
+
     me={name,sessionId};
     localStorage.setItem('auction_me',JSON.stringify(me));
-    await loadAll();
-  }catch(e){showErr('로그인 실패',e)}
+    if(pwEl) pwEl.value='';
+    await loadAll(true);
+    renderSafe(true);
+  }catch(e){
+    console.error('로그인 실패',e);
+    alert('로그인 실패: '+(e.message||e));
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='로그인';}
+  }
 }
 async function logout(){
   try{
@@ -2231,7 +2258,7 @@ function renderAuthBox(){
   return `<div class="card">
     <div class="sectionHead"><h2>주장 로그인</h2><span class="tinyBadge">현재 접속자수 : ${visitorCount}</span></div>
     ${me&&cap?`<div class="topBtns"><span class="badge">접속: ${me.name}</span><span class="badge">내 coin: ${money(cap.coins)} coin</span><button class="ghost" onclick="logout()">로그아웃</button></div>`:
-    `<div class="loginRow"><div><label>주장 선택</label><select id="loginName">${CAPTAINS.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select></div><div><label>패스워드</label><input id="loginPw" type="password" placeholder="패스워드"></div><button onclick="login()">로그인</button><span class="muted">미로그인도 관람 가능 / 입찰은 로그인 필요</span></div>`}
+    `<div class="loginRow"><div><label>주장 선택</label><select id="loginName">${CAPTAINS.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select></div><div><label>패스워드</label><input id="loginPw" type="password" placeholder="패스워드" autocomplete="current-password" onkeydown="if(event.key==='Enter') login()"></div><button id="auctionLoginBtn" onclick="login()">로그인</button><span class="muted">미로그인도 관람 가능 / 입찰은 로그인 필요</span></div>`}
   </div>`;
 }
 function render(){
