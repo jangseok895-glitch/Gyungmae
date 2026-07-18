@@ -1762,7 +1762,7 @@ function canBid(){
 
 async function auctionLoginHandler(ev){
   try{ ev?.preventDefault?.(); ev?.stopPropagation?.(); }catch(_e){}
-  if(auctionAuthBusy) return;
+  if(auctionAuthBusy) return false;
 
   const nameEl=document.getElementById('loginName');
   const pwEl=document.getElementById('loginPw');
@@ -1770,46 +1770,60 @@ async function auctionLoginHandler(ev){
   const name=String(nameEl?.value||'').trim();
   const pw=String(pwEl?.value||'').trim();
 
-  // 버튼이 실제로 눌렸다는 것을 즉시 화면에 표시합니다.
   auctionAuthBusy=true;
-  if(btn){btn.disabled=true;btn.textContent='확인 중...';}
+  if(btn){ btn.disabled=true; btn.textContent='확인 중...'; }
 
   try{
     const ok=CAPTAINS.find(c=>c.name===name && String(c.password)===pw);
     if(!ok){
       alert('주장 선택 또는 비밀번호가 맞지 않습니다.');
-      pwEl?.focus();
-      return;
+      if(pwEl){ pwEl.value=''; pwEl.focus(); }
+      return false;
     }
 
-    if(btn) btn.textContent='로그인 중...';
     const makeId=()=>{
       try{ if(window.crypto && typeof window.crypto.randomUUID==='function') return window.crypto.randomUUID(); }catch(_e){}
       return 'session_'+Date.now()+'_'+Math.random().toString(36).slice(2);
     };
     const sessionId=makeId();
 
-    // 먼저 해당 주장 행이 실제로 있는지 확인합니다.
-    const check=await sb.from('auction_captains').select('name').eq('name',name).maybeSingle();
-    if(check.error) throw new Error('주장 확인 실패: '+check.error.message);
-    if(!check.data) throw new Error(name+' 데이터가 auction_captains 테이블에 없습니다.');
-
-    const r=await sb.from('auction_captains')
-      .update({online:true,session_id:sessionId,last_seen:nowIso()})
-      .eq('name',name)
-      .select('name,coins,online,session_id,last_seen');
-
-    if(r.error) throw new Error('로그인 저장 실패: '+r.error.message);
-    if(!r.data || !r.data.length) throw new Error('로그인 저장 권한이 없습니다. Supabase RLS 정책을 확인해주세요.');
-
+    // 핵심: Supabase 응답을 기다리지 않고 먼저 이 브라우저에서 로그인 완료 처리합니다.
     me={name,sessionId};
     localStorage.setItem('auction_me',JSON.stringify(me));
     if(pwEl) pwEl.value='';
-    await loadAll(true);
+
+    // DB 목록이 아직 갱신되지 않았더라도 즉시 로그인 화면이 보이게 임시 주장 정보를 보강합니다.
+    let localCap=captains.find(c=>c.name===name);
+    if(!localCap){
+      localCap={name,coins:START_COINS,online:true,session_id:sessionId,last_seen:nowIso()};
+      captains=[...captains.filter(c=>CAPTAINS.some(x=>x.name===c.name)),localCap];
+    }else{
+      localCap.online=true;
+      localCap.session_id=sessionId;
+      localCap.last_seen=nowIso();
+    }
     renderSafe(true);
+
+    // Supabase 저장은 뒤에서 수행합니다. 실패해도 버튼이 무반응이 되거나 로컬 로그인이 취소되지 않습니다.
+    try{
+      const payload={name,coins:Number(localCap.coins||START_COINS),online:true,session_id:sessionId,last_seen:nowIso()};
+      let r=await sb.from('auction_captains').update({online:true,session_id:sessionId,last_seen:payload.last_seen}).eq('name',name).select('name');
+      if(r.error) throw r.error;
+      if(!r.data || !r.data.length){
+        r=await sb.from('auction_captains').upsert(payload,{onConflict:'name'}).select('name');
+        if(r.error) throw r.error;
+      }
+      await loadAll();
+    }catch(dbErr){
+      console.warn('로그인 상태 DB 저장 실패. 로컬 로그인은 유지합니다.',dbErr);
+      // 사용자에게 원인은 알리되 로그인을 풀지는 않습니다.
+      setTimeout(()=>alert('주장 로그인은 완료되었습니다.\n다만 접속중 표시를 Supabase에 저장하지 못했습니다.\nSupabase의 auction_captains RLS/권한을 확인해주세요.\n\n'+(dbErr?.message||dbErr)),50);
+    }
+    return false;
   }catch(e){
-    console.error('로그인 실패',e);
-    alert('로그인 실패\n'+(e?.message||e));
+    console.error('로그인 처리 실패',e);
+    alert('로그인 처리 실패\n'+(e?.message||e));
+    return false;
   }finally{
     auctionAuthBusy=false;
     const liveBtn=document.getElementById('auctionLoginBtn');
@@ -1817,7 +1831,6 @@ async function auctionLoginHandler(ev){
   }
 }
 window.auctionLogin=auctionLoginHandler;
-// 기존 호출과의 호환성 유지
 window.login=auctionLoginHandler;
 
 async function logout(){
@@ -3300,13 +3313,14 @@ async function eventAddMember(){
 }
 
 
-// 인라인 onclick이 차단되는 환경에서도 로그인 버튼이 반드시 동작하도록 하는 보조 처리
+// 인라인 onclick이 차단되는 환경에서도 로그인 버튼이 동작하도록 보조 연결
  document.addEventListener('click',function(e){
    const btn=e.target && e.target.closest ? e.target.closest('#auctionLoginBtn') : null;
-   if(!btn) return;
+   if(!btn || e.__auctionLoginHandled) return;
+   e.__auctionLoginHandled=true;
    e.preventDefault();
    window.auctionLogin(e);
- },true);
+ },false);
 
 
 boot();
