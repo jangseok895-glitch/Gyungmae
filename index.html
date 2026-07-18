@@ -35,7 +35,7 @@ html,body{min-width:0;width:100%}
     .loginRow input,.loginRow select,.bidBox input,.modal input,.adminGrid input{width:100%;background:#081525;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:10px;font-size:14px}
     .loginRow label{display:block;margin:0 0 5px;color:var(--muted)}
     .mainGrid{display:grid;grid-template-columns:555px 1fr;gap:12px;margin-top:12px}
-    .captains{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+    .captains{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
     .captain{background:#0b1728;border:1px solid var(--line);border-radius:13px;padding:10px 6px;text-align:center}
     .captain.on{border-color:#ef4444;box-shadow:0 0 0 1px rgba(239,68,68,.58),0 0 13px rgba(239,68,68,.22)}
     .coin{font-size:22px;color:var(--gold);font-weight:1000;line-height:1}
@@ -53,7 +53,7 @@ html,body{min-width:0;width:100%}
     .highestName{color:#34d399;font-weight:1000}
     .highestAmount{color:#facc15;font-size:21px;font-weight:1000;text-shadow:0 0 8px rgba(250,204,21,.35)}
     .bidBox{display:grid;grid-template-columns:1fr 115px 115px;gap:8px;margin-top:12px}
-    .teams{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+    .teams{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
     .team{background:#0b1728;border:1px solid var(--line);border-radius:13px;padding:10px;min-height:110px}
     .team h3{margin:0 0 7px;color:#38bdf8}
     .member{padding:6px 8px;margin:5px 0;background:#13243d;border-radius:9px;display:flex;justify-content:space-between;gap:6px;font-weight:800}
@@ -1507,13 +1507,19 @@ const SUPABASE_ANON_KEY = 'sb_publishable_uvYqwDymxodcSdpT1zAWyg_PeVHh_ZO';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const CAPTAINS=[
-  {name:'노을',password:'1235'},
-  {name:'음',password:'5123'},
-  {name:'상호',password:'2635'},
-  {name:'구리',password:'7463'},
-  {name:'시크릿',password:'6352'}
+  {name:'재민',password:'0917'},
+  {name:'음',password:'5555'},
+  {name:'에넬',password:'9378'},
+  {name:'제로',password:'4441'},
+  {name:'류비',password:'5315'},
+  {name:'비밀',password:'5874'},
+  {name:'리아',password:'0050'}
 ];
-const PLAYERS=['둘리','로딩','제로','라곤','네오','줄리엣','키라','로버','흠','미신트','짱이','이뚜','헬츠','브칠','미또'];
+const PLAYERS=[
+  '토르','퀀터','레인','라오','은하수','지지','키라',
+  '네오','브칠','헬츠','아코','기사','예지','미신트',
+  '짱이','장어','노을','구리','트리','흠','라곤'
+];
 
 const MAP_LIST=['고가','남산','해변','싱가폴서킷','용의 운하','차이나 라사','쥐공무','차관문','코리아서킷','두바이','도야수','부산','서울','월드리오다운힐','쥐공결','문힐시티질주','메카닉','도검용의길','브로디','노전비','익스트림','에펠탑','뉴욕','서호','신화신들의세계','역로비','동마성','시청광장','궤도전차','공룡유적지','용광로','거인','상해서킷','스카이웨이','팬드래건캐슬','오딘','제우스시티','이탈리아','순찰로','소용돌이','정유공장','병마용','만리장성','해로비','님프','직잭','브라질','사빙공','대은지','황산','해숨보','붐힐터널','갈빙','비밀장치위협','네모산타','좌표','차골대','감시탑','협곡','팩두공','상어섬','포오공','대관령','쥐공대','랠리','헬기점프','바닷길','송수관','해골성','신전','스카이라인','동이문','노익','팩미5','공마초','설산','역직잭','문숨지','제련소','부빙'];
 let wheelMaps=[...MAP_LIST], wheelRotation=0, wheelSpinning=false, wheelLastResult='';
@@ -1658,7 +1664,7 @@ async function ensureData(){
     let st=await q(sb.from('auction_state').select('*').eq('id',1).maybeSingle(),'상태 확인');
     if(!st) await q(sb.from('auction_state').insert({id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS}),'상태 생성');
     const cs=await q(sb.from('auction_captains').select('*'),'주장 확인');
-    if(!cs||cs.length<5){
+    if(!cs||CAPTAINS.some(c=>!cs.some(x=>x.name===c.name))){
       for(const c of CAPTAINS){
         await q(sb.from('auction_captains').upsert({name:c.name,coins:START_COINS,online:false,session_id:null},{onConflict:'name'}),`${c.name} 생성`);
       }
@@ -1675,7 +1681,11 @@ async function loadAll(skipRender=false){
       q(sb.from('auction_teams').select('*').order('sold_order'),'팀 불러오기')
     ]);
     const prevRoundKey = state ? `${state.status}_${state.current_index}_${state.round_started_at||''}` : '';
-    state=st||state; captains=cs||[]; bids=bd||[]; logs=lg||[]; teams=tm||[];
+    state=st||state;
+    const allowedCaptainNames=new Set(CAPTAINS.map(c=>c.name));
+    captains=(cs||[]).filter(c=>allowedCaptainNames.has(c.name))
+      .sort((a,b)=>CAPTAINS.findIndex(x=>x.name===a.name)-CAPTAINS.findIndex(x=>x.name===b.name));
+    bids=bd||[]; logs=lg||[]; teams=tm||[];
     // 모든 화면은 DB의 주장 session_id를 기준으로 로그인 유효성을 맞춥니다.
     // 공장초기화로 session_id가 null이 되면 접속 중인 모든 주장이 자동 로그아웃됩니다.
     if(me){
@@ -1804,15 +1814,15 @@ function closeAdminPassword(ok){
   return resolve(true);
 }
 async function promptStart(){ if(await askAdminPassword()) await startAuction(); }
-async function authorizeAdminOnly(){ if(await askAdminPassword()){ toast('이 브라우저가 라운드 종료를 처리합니다.'); renderSafe(true); } }
+async function authorizeAdminOnly(){ if(await askAdminPassword()){ toast('운영진 권한이 확인되었습니다.'); renderSafe(true); } }
 function openAdmin(){
   // 운영진 패널 입장 자체는 비밀번호 없이 열립니다.
   // 실제 버튼을 누를 때마다 비밀번호를 확인합니다.
   modalRoot.innerHTML=`<div class="modalBg"><div class="modal">
-    <div class="sectionHead"><h2>운영진 패널</h2><span class="tinyBadge">라운드 처리: ${adminAuthorized?'운영진 브라우저':'비활성'}</span><button class="ghost" onclick="closeAdmin()">닫기</button></div>
+    <div class="sectionHead"><h2>운영진 패널</h2><span class="tinyBadge">운영진 권한: ${adminAuthorized?'확인됨':'미확인'}</span><button class="ghost" onclick="closeAdmin()">닫기</button></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="gold" onclick="promptStart()">경매 시작</button>
-      <button class="ok" onclick="authorizeAdminOnly()">이 브라우저로 진행처리</button>
+      <button class="ok" onclick="authorizeAdminOnly()">진행처리 권한 확인</button>
       <button class="danger" onclick="resetAll()">모든리셋</button>
       <button class="danger" onclick="factoryResetAll()" title="모든 주장 로그인까지 강제 해제">공장초기화</button>
       <button class="warn" onclick="pauseAuction()">정지</button>
@@ -1863,7 +1873,7 @@ async function customBid(){
     await loadAll();
   }catch(e){showErr('입찰 실패',e)}
 }
-function groupNameByCaptain(name){return ['A조','B조','C조','D조','E조'][CAPTAINS.findIndex(c=>c.name===name)]||'미정'}
+function groupNameByCaptain(name){return ['A조','B조','C조','D조','E조','F조','G조'][CAPTAINS.findIndex(c=>c.name===name)]||'미정'}
 
 async function getFreshSoldTeams(){
   const rows=await q(sb.from('auction_teams').select('*').not('captain_name','is',null).gt('price',0).order('sold_order'), '팀 최신 확인');
@@ -1968,9 +1978,9 @@ async function completeRoundAndMove(localIndex, reason='normal'){
 }
 
 async function finishRound(){
-  // 중요: 모든 접속자가 라운드 종료를 실행하면 화면이 갈라집니다.
-  // 운영진 비밀번호를 입력한 브라우저 1곳만 낙찰/유찰/다음 선수 이동을 처리합니다.
-  if(!adminAuthorized) return;
+  // 모든 접속자가 0초를 감지할 수 있지만, 아래 조건부 UPDATE가 DB 잠금 역할을 합니다.
+  // 같은 라운드의 상태값이 정확히 일치한 첫 브라우저 1곳만 처리하므로 화면이 갈라지지 않습니다.
+  // 운영진 브라우저가 꺼져 있어도 경매가 자동으로 다음 선수로 진행됩니다.
   if(state.status!=='running'||remainingSeconds()>0) return;
   if(finishing) return;
 
@@ -2230,7 +2240,7 @@ function render(){
     <div class="top">
       <div class="title"><h1>🏁 아시아리그 팀원 경매</h1><p>로그인 없이 관람 가능 · 주장 로그인 후 입찰 가능 · 최소 입찰 10 coin · 제한시간 30초</p></div>
       <div class="topBtns"><button class="ghost" onclick="showLandingPage()">처음으로</button><button class="gold" onclick="promptStart()">경매 시작</button><button class="ghost" onclick="openMapWheel()">맵돌리기</button>
-      <button class="ok" onclick="authorizeAdminOnly()">이 브라우저로 진행처리</button><button class="ghost" onclick="openAdmin()">운영진 패널</button>${adminAuthorized?`<span class="badge">운영진 진행처리 ON</span>`:''}${me?`<span class="badge">로그인: ${me.name}</span>`:`<span class="badge">미로그인</span>`}</div>
+      <button class="ok" onclick="authorizeAdminOnly()">진행처리 권한 확인</button><button class="ghost" onclick="openAdmin()">운영진 패널</button>${adminAuthorized?`<span class="badge">운영진 권한 ON</span>`:''}${me?`<span class="badge">로그인: ${me.name}</span>`:`<span class="badge">미로그인</span>`}</div>
     </div>
     ${renderAuthBox()}
     <div class="mainGrid">
@@ -2244,7 +2254,7 @@ function render(){
           <h2 style="margin-bottom:10px">현재 경매</h2>
           ${state.status==='waiting'?`<p class="muted" style="font-weight:900">대기중입니다. 위쪽 경매 시작 버튼 → 운영진 비밀번호 입력 시 시작됩니다.</p>`:
           state.status==='ended'?`<p class="muted" style="font-weight:900;color:#34d399">경매가 종료되었습니다.</p>`:
-          (state.status==='processing'||finishing||rem<=0)?`<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">처리중</div><div class="highest">${adminAuthorized?'낙찰/유찰 처리 후 다음 선수로 이동 중입니다.':'운영진 브라우저에서 다음 선수 이동을 처리 중입니다.'}</div></div></div>`:
+          (state.status==='processing'||finishing||rem<=0)?`<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">처리중</div><div class="highest">${adminAuthorized?'낙찰/유찰 처리 후 다음 선수로 이동 중입니다.':'DB에서 낙찰/유찰 및 다음 선수 이동을 처리 중입니다.'}</div></div></div>`:
           `<div class="auctionNow"><div class="playerBox">${player}</div><div><div class="muted">${PLAYERS.indexOf(player)+1} / ${PLAYERS.length} 번째 선수</div><div class="timer">${rem}초</div><div class="highest">현재 최고 입찰: ${hi?`<span class="highestName">${hi.captain_name}</span> / <span class="highestAmount">${money(hi.amount)}</span> coin`:'아직 없음'}</div>${me?`<div class="bidBox"><input id="customBid" type="number" step="10" placeholder="직접 입찰 금액"><button class="gold" onclick="customBid()" ${!canBid()?'disabled':''}>입찰하기</button><button onclick="placeBid()" ${!canBid()?'disabled':''}>+10 자동입찰</button></div>`:`<p class="muted">관람 중입니다. 입찰하려면 상단에서 주장 로그인하세요.</p>`}</div></div>`}
         </div>
 
@@ -2269,8 +2279,8 @@ function render(){
   </div>`;
 }
 async function recoverProcessingIfStuck(force=false){
-  // 처리중 복구도 운영진 브라우저만 실행합니다. 관람자/주장 브라우저는 보기만 합니다.
-  if(!adminAuthorized) { processingSeenAt=0; return; }
+  // 처리중 상태가 오래 지속되면 어느 접속자든 복구를 시도합니다.
+  // status='processing' 조건 때문에 실제 복구는 최초 1회만 반영됩니다.
   if(state.status!=='processing') { processingSeenAt=0; return; }
   if(!processingSeenAt) processingSeenAt=Date.now();
 
@@ -2382,15 +2392,21 @@ async function boot(){
     await visitorHeartbeat();
     await ensureData();
     await loadAll();
-    if(adminAuthorized && state.status==='processing') recoverProcessingIfStuck(true);
-    sb.channel('auction-live').on('postgres_changes',{event:'*',schema:'public'},()=>loadAll()).subscribe();
+    if(state.status==='processing') recoverProcessingIfStuck(true);
+    const auctionTables=['auction_state','auction_captains','auction_bids','auction_logs','auction_teams'];
+    const auctionChannel=sb.channel('auction-live-v2');
+    auctionTables.forEach(table=>{
+      auctionChannel.on('postgres_changes',{event:'*',schema:'public',table},()=>loadAll());
+    });
+    auctionChannel.subscribe();
     sb.channel('asia-event-live').on('postgres_changes',{event:'*',schema:'public',table:EVENT_TABLE},async()=>{ if(document.getElementById('eventPage')?.style.display!=='none'){ try{ await eventLoad(); renderEvent(); }catch(e){} } }).subscribe();
-    setInterval(()=>loadAll().catch(()=>{}),3000);
+    // Realtime이 잠깐 끊기거나 설정이 빠져 있어도 약 1초 안에 DB 기준 화면으로 맞춥니다.
+    setInterval(()=>loadAll().catch(()=>{}),1000);
   setInterval(()=>{
     try{
       if(finishRoundPromise && finishStartedAt && Date.now()-finishStartedAt>9000){
         finishRoundPromise=null; finishStartedAt=0; finishing=false;
-        if(adminAuthorized) recoverProcessingIfStuck();
+        recoverProcessingIfStuck();
       }
       const rem=remainingSeconds();
       if(state.status==='running'){
@@ -2401,18 +2417,16 @@ async function boot(){
         }
         if(rem<=0){
           renderSafe();
-          if(adminAuthorized){
-            if(!finishRoundPromise){
-              finishStartedAt=Date.now();
-              finishRoundPromise=finishRound().finally(()=>{finishRoundPromise=null; finishStartedAt=0;});
-            }
+          if(!finishRoundPromise){
+            finishStartedAt=Date.now();
+            finishRoundPromise=finishRound().finally(()=>{finishRoundPromise=null; finishStartedAt=0;});
           }
         }else{
           processingSeenAt=0;
           renderSafe();
         }
       }else if(state.status==='processing'){
-        if(adminAuthorized) recoverProcessingIfStuck();
+        recoverProcessingIfStuck();
         renderSafe();
       }else{
         processingSeenAt=0;
