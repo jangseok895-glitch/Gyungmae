@@ -1559,6 +1559,7 @@ const money=n=>Number(n||0).toLocaleString('ko-KR');
 const isEditing=()=>['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName);
 let lastRenderedSyncKey='';
 let pendingRender=false;
+let auctionAuthBusy=false;
 let lastUserInputAt=0;
 function getSyncKey(){
   return `${state?.status||''}_${state?.current_index??''}_${state?.round_started_at||''}_${teams.length}_${bids.length}_${captains.map(c=>`${c.name}:${c.coins}:${c.online}:${c.session_id||''}`).join('|')}`;
@@ -1570,6 +1571,7 @@ function isFormActive(){
   return true;
 }
 function renderSafe(force=false){
+  if(!force && auctionAuthBusy) return;
   // 중요: 로그인 드롭다운/비밀번호/입찰금 입력 중에는 DOM 전체를 다시 그리지 않습니다.
   // 250ms 자동 렌더링이 select/input을 갈아끼우면 드롭다운이 닫히고 비밀번호 숫자가 사라집니다.
   if(!force && isFormActive()){
@@ -1758,32 +1760,47 @@ function canBid(){
   return !!(me&&c&&state.status==='running'&&!soldPlayers().has(currentPlayer())&&Number(c.coins)>=BID_STEP&&captainTeamCount(c.name)<TEAM_SIZE);
 }
 
-async function login(){
+async function auctionLoginHandler(ev){
+  try{ ev?.preventDefault?.(); ev?.stopPropagation?.(); }catch(_e){}
+  if(auctionAuthBusy) return;
+
   const nameEl=document.getElementById('loginName');
   const pwEl=document.getElementById('loginPw');
   const btn=document.getElementById('auctionLoginBtn');
   const name=String(nameEl?.value||'').trim();
   const pw=String(pwEl?.value||'').trim();
-  const ok=CAPTAINS.find(c=>c.name===name && String(c.password)===pw);
 
-  if(!ok){
-    alert('주장 선택 또는 비밀번호가 맞지 않습니다.');
-    pwEl?.focus();
-    return;
-  }
+  // 버튼이 실제로 눌렸다는 것을 즉시 화면에 표시합니다.
+  auctionAuthBusy=true;
+  if(btn){btn.disabled=true;btn.textContent='확인 중...';}
 
-  if(btn){btn.disabled=true;btn.textContent='로그인 중...';}
   try{
-    const sessionId=(crypto?.randomUUID?.() || ('session_'+Date.now()+'_'+Math.random().toString(36).slice(2)));
+    const ok=CAPTAINS.find(c=>c.name===name && String(c.password)===pw);
+    if(!ok){
+      alert('주장 선택 또는 비밀번호가 맞지 않습니다.');
+      pwEl?.focus();
+      return;
+    }
+
+    if(btn) btn.textContent='로그인 중...';
+    const makeId=()=>{
+      try{ if(window.crypto && typeof window.crypto.randomUUID==='function') return window.crypto.randomUUID(); }catch(_e){}
+      return 'session_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    };
+    const sessionId=makeId();
+
+    // 먼저 해당 주장 행이 실제로 있는지 확인합니다.
+    const check=await sb.from('auction_captains').select('name').eq('name',name).maybeSingle();
+    if(check.error) throw new Error('주장 확인 실패: '+check.error.message);
+    if(!check.data) throw new Error(name+' 데이터가 auction_captains 테이블에 없습니다.');
+
     const r=await sb.from('auction_captains')
       .update({online:true,session_id:sessionId,last_seen:nowIso()})
       .eq('name',name)
       .select('name,coins,online,session_id,last_seen');
 
-    if(r.error) throw new Error(r.error.message);
-    if(!r.data || !r.data.length){
-      throw new Error(name+' 주장 데이터가 auction_captains 테이블에 없거나 UPDATE 권한이 없습니다.');
-    }
+    if(r.error) throw new Error('로그인 저장 실패: '+r.error.message);
+    if(!r.data || !r.data.length) throw new Error('로그인 저장 권한이 없습니다. Supabase RLS 정책을 확인해주세요.');
 
     me={name,sessionId};
     localStorage.setItem('auction_me',JSON.stringify(me));
@@ -1792,11 +1809,17 @@ async function login(){
     renderSafe(true);
   }catch(e){
     console.error('로그인 실패',e);
-    alert('로그인 실패: '+(e.message||e));
+    alert('로그인 실패\n'+(e?.message||e));
   }finally{
-    if(btn){btn.disabled=false;btn.textContent='로그인';}
+    auctionAuthBusy=false;
+    const liveBtn=document.getElementById('auctionLoginBtn');
+    if(liveBtn){liveBtn.disabled=false;liveBtn.textContent='로그인';}
   }
 }
+window.auctionLogin=auctionLoginHandler;
+// 기존 호출과의 호환성 유지
+window.login=auctionLoginHandler;
+
 async function logout(){
   try{
     if(me) await q(sb.from('auction_captains').update({online:false,session_id:null}).eq('name',me.name).eq('session_id',me.sessionId),'로그아웃');
@@ -2258,7 +2281,7 @@ function renderAuthBox(){
   return `<div class="card">
     <div class="sectionHead"><h2>주장 로그인</h2><span class="tinyBadge">현재 접속자수 : ${visitorCount}</span></div>
     ${me&&cap?`<div class="topBtns"><span class="badge">접속: ${me.name}</span><span class="badge">내 coin: ${money(cap.coins)} coin</span><button class="ghost" onclick="logout()">로그아웃</button></div>`:
-    `<div class="loginRow"><div><label>주장 선택</label><select id="loginName">${CAPTAINS.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select></div><div><label>패스워드</label><input id="loginPw" type="password" placeholder="패스워드" autocomplete="current-password" onkeydown="if(event.key==='Enter') login()"></div><button id="auctionLoginBtn" onclick="login()">로그인</button><span class="muted">미로그인도 관람 가능 / 입찰은 로그인 필요</span></div>`}
+    `<div class="loginRow"><div><label>주장 선택</label><select id="loginName">${CAPTAINS.map(c=>`<option value="${c.name}">${c.name}</option>`).join('')}</select></div><div><label>패스워드</label><input id="loginPw" type="password" placeholder="패스워드" autocomplete="current-password" onkeydown="if(event.key==='Enter'){event.preventDefault();window.auctionLogin(event)}"></div><button type="button" id="auctionLoginBtn" onclick="window.auctionLogin(event)">로그인</button><span class="muted">미로그인도 관람 가능 / 입찰은 로그인 필요</span></div>`}
   </div>`;
 }
 function render(){
@@ -3275,6 +3298,15 @@ async function eventAddMember(){
   if(r.error) return alert('맴버 추가 실패: '+r.error.message);
   await eventLoadMembers(); alert(`${name}님이 추가되었습니다.`); openEventAdmin();
 }
+
+
+// 인라인 onclick이 차단되는 환경에서도 로그인 버튼이 반드시 동작하도록 하는 보조 처리
+ document.addEventListener('click',function(e){
+   const btn=e.target && e.target.closest ? e.target.closest('#auctionLoginBtn') : null;
+   if(!btn) return;
+   e.preventDefault();
+   window.auctionLogin(e);
+ },true);
 
 
 boot();
