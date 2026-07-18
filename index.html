@@ -1567,8 +1567,7 @@ function getSyncKey(){
 function isFormActive(){
   const el=document.activeElement;
   if(!el) return false;
-  if(!['INPUT','SELECT','TEXTAREA','BUTTON'].includes(el.tagName)) return false;
-  return true;
+  return ['INPUT','SELECT','TEXTAREA'].includes(el.tagName);
 }
 function renderSafe(force=false){
   if(!force && auctionAuthBusy) return;
@@ -1587,6 +1586,19 @@ function flushPendingRenderSoon(){
   setTimeout(()=>{
     if(pendingRender && !isFormActive()) renderSafe(true);
   },80);
+}
+
+// 입찰 금액 입력창에 포커스가 있어 전체 화면 렌더링을 멈춘 동안에도
+// 남은 시간 숫자는 별도로 갱신합니다. 입력 중 타이머가 멈춰 보이는 현상을 방지합니다.
+function updateAuctionClockOnly(){
+  const timerEl=document.querySelector('#app .timer');
+  if(!timerEl) return;
+  if(state.status==='running'){
+    const rem=remainingSeconds();
+    timerEl.textContent=rem>0?`${rem}초`:'처리중';
+  }else if(state.status==='processing'){
+    timerEl.textContent='처리중';
+  }
 }
 window.addEventListener('focusout', flushPendingRenderSoon, true);
 window.addEventListener('change', flushPendingRenderSoon, true);
@@ -1704,8 +1716,8 @@ async function loadAll(skipRender=false){
       lastRoundKeyForCountSound='';
       playSound('next');
     }
-    await loadVisitorCount(); lastError='';
-    if(!skipRender) renderSafe();
+    lastError='';
+    if(!skipRender && getSyncKey()!==lastRenderedSyncKey) renderSafe();
   }catch(e){showErr('데이터 불러오기 실패',e)}
 }
 
@@ -1766,75 +1778,59 @@ async function auctionLoginHandler(ev){
 
   const nameEl=document.getElementById('loginName');
   const pwEl=document.getElementById('loginPw');
-  const btn=document.getElementById('auctionLoginBtn');
   const name=String(nameEl?.value||'').trim();
   const pw=String(pwEl?.value||'').trim();
+  const ok=CAPTAINS.find(c=>c.name===name && String(c.password)===pw);
+
+  if(!ok){
+    alert('주장 선택 또는 비밀번호가 맞지 않습니다.');
+    if(pwEl){pwEl.value='';pwEl.focus();}
+    return false;
+  }
 
   auctionAuthBusy=true;
-  if(btn){ btn.disabled=true; btn.textContent='확인 중...'; }
+  const makeId=()=>{
+    try{if(window.crypto&&typeof window.crypto.randomUUID==='function')return window.crypto.randomUUID();}catch(_e){}
+    return 'session_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+  };
+  const sessionId=makeId();
 
-  try{
-    const ok=CAPTAINS.find(c=>c.name===name && String(c.password)===pw);
-    if(!ok){
-      alert('주장 선택 또는 비밀번호가 맞지 않습니다.');
-      if(pwEl){ pwEl.value=''; pwEl.focus(); }
-      return false;
-    }
+  // 화면은 즉시 로그인 상태로 바꿉니다. 네트워크 응답을 기다리지 않습니다.
+  me={name,sessionId};
+  localStorage.setItem('auction_me',JSON.stringify(me));
+  let localCap=captains.find(c=>c.name===name);
+  if(!localCap){
+    localCap={name,coins:START_COINS,online:true,session_id:sessionId,last_seen:nowIso()};
+    captains=[...captains,localCap].sort((a,b)=>CAPTAINS.findIndex(x=>x.name===a.name)-CAPTAINS.findIndex(x=>x.name===b.name));
+  }else{
+    localCap.online=true;
+    localCap.session_id=sessionId;
+    localCap.last_seen=nowIso();
+  }
+  auctionAuthBusy=false;
+  renderSafe(true);
 
-    const makeId=()=>{
-      try{ if(window.crypto && typeof window.crypto.randomUUID==='function') return window.crypto.randomUUID(); }catch(_e){}
-      return 'session_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-    };
-    const sessionId=makeId();
-
-    // 핵심: Supabase 응답을 기다리지 않고 먼저 이 브라우저에서 로그인 완료 처리합니다.
-    me={name,sessionId};
-    localStorage.setItem('auction_me',JSON.stringify(me));
-    if(pwEl) pwEl.value='';
-
-    // DB 목록이 아직 갱신되지 않았더라도 즉시 로그인 화면이 보이게 임시 주장 정보를 보강합니다.
-    let localCap=captains.find(c=>c.name===name);
-    if(!localCap){
-      localCap={name,coins:START_COINS,online:true,session_id:sessionId,last_seen:nowIso()};
-      captains=[...captains.filter(c=>CAPTAINS.some(x=>x.name===c.name)),localCap];
-    }else{
-      localCap.online=true;
-      localCap.session_id=sessionId;
-      localCap.last_seen=nowIso();
-    }
-    renderSafe(true);
-
-    // Supabase 저장은 뒤에서 수행합니다. 실패해도 버튼이 무반응이 되거나 로컬 로그인이 취소되지 않습니다.
+  // DB 접속 표시는 뒤에서 저장합니다.
+  const payload={name,coins:Number(localCap.coins||START_COINS),online:true,session_id:sessionId,last_seen:nowIso()};
+  (async()=>{
     try{
-      const payload={name,coins:Number(localCap.coins||START_COINS),online:true,session_id:sessionId,last_seen:nowIso()};
-      let r=await sb.from('auction_captains').update({online:true,session_id:sessionId,last_seen:payload.last_seen}).eq('name',name).select('name');
+      let r=await sb.from('auction_captains')
+        .update({online:true,session_id:sessionId,last_seen:payload.last_seen})
+        .eq('name',name).select('name');
       if(r.error) throw r.error;
-      if(!r.data || !r.data.length){
+      if(!r.data?.length){
         r=await sb.from('auction_captains').upsert(payload,{onConflict:'name'}).select('name');
         if(r.error) throw r.error;
       }
-      await loadAll();
-    }catch(dbErr){
-      console.warn('로그인 상태 DB 저장 실패. 로컬 로그인은 유지합니다.',dbErr);
-      // 사용자에게 원인은 알리되 로그인을 풀지는 않습니다.
-      setTimeout(()=>alert('주장 로그인은 완료되었습니다.\n다만 접속중 표시를 Supabase에 저장하지 못했습니다.\nSupabase의 auction_captains RLS/권한을 확인해주세요.\n\n'+(dbErr?.message||dbErr)),50);
+    }catch(e){
+      console.warn('로그인 접속상태 저장 실패',e);
     }
-    return false;
-  }catch(e){
-    console.error('로그인 처리 실패',e);
-    alert('로그인 처리 실패\n'+(e?.message||e));
-    return false;
-  }finally{
-    auctionAuthBusy=false;
-    const liveBtn=document.getElementById('auctionLoginBtn');
-    if(liveBtn){liveBtn.disabled=false;liveBtn.textContent='로그인';}
-  }
+  })();
+  return false;
 }
 window.auctionLogin=auctionLoginHandler;
 window.login=auctionLoginHandler;
 
-// 로그인 버튼은 250ms 실시간 화면 갱신 중 DOM이 교체되어 일반 click 이벤트가 사라질 수 있습니다.
-// pointerdown 캡처 단계에서 먼저 로그인 함수를 실행하여 마우스/터치 클릭을 확실히 처리합니다.
 document.addEventListener('pointerdown',function(e){
   const btn=e.target?.closest?.('#auctionLoginBtn');
   if(!btn) return;
@@ -1843,11 +1839,30 @@ document.addEventListener('pointerdown',function(e){
   window.auctionLogin(e);
 },true);
 
-async function logout(){
-  try{
-    if(me) await q(sb.from('auction_captains').update({online:false,session_id:null}).eq('name',me.name).eq('session_id',me.sessionId),'로그아웃');
-  }catch(e){}
-  localStorage.removeItem('auction_me'); me=null; await loadAll();
+function logout(){
+  if(auctionAuthBusy) return;
+  auctionAuthBusy=true;
+  const oldMe=me;
+  localStorage.removeItem('auction_me');
+  me=null;
+  if(oldMe){
+    const cap=captains.find(c=>c.name===oldMe.name);
+    if(cap){cap.online=false;cap.session_id=null;}
+  }
+  auctionAuthBusy=false;
+
+  // 로그아웃 화면도 즉시 반영합니다.
+  renderSafe(true);
+
+  // DB 갱신은 백그라운드로 처리합니다.
+  if(oldMe){
+    sb.from('auction_captains')
+      .update({online:false,session_id:null})
+      .eq('name',oldMe.name)
+      .eq('session_id',oldMe.sessionId)
+      .then(()=>{})
+      .catch(e=>console.warn('로그아웃 상태 저장 실패',e));
+  }
 }
 async function heartbeat(){
   if(!me) return;
@@ -1925,30 +1940,64 @@ async function placeBid(){
   if(!canBid()) return toast('입찰할 수 없습니다.');
   if(Number(cap.coins)<next) return toast('보유 coin 이 부족합니다.');
   if(hi?.captain_name===cap.name) return toast('이미 본인이 최고 입찰자입니다.');
+
+  const player=currentPlayer();
+  const startedAt=nowIso();
+
+  // 화면과 타이머를 먼저 즉시 반영합니다.
+  bids=[{player_name:player,captain_name:cap.name,amount:next,created_at:startedAt,_local:true},...bids];
+  state={...state,round_started_at:startedAt,paused_remaining:ROUND_SECONDS};
+  renderSafe(true);
+
   try{
-    await q(sb.from('auction_bids').insert({player_name:currentPlayer(),captain_name:cap.name,amount:next}),'입찰 저장');
-    await q(sb.from('auction_state').update({round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'시간 초기화');
-    await addAuctionLog(`${cap.name}님 ${next} 입찰`);
+    const [bidResult,stateResult]=await Promise.all([
+      sb.from('auction_bids').insert({player_name:player,captain_name:cap.name,amount:next}),
+      sb.from('auction_state').update({round_started_at:startedAt,paused_remaining:ROUND_SECONDS}).eq('id',1)
+    ]);
+    if(bidResult.error) throw bidResult.error;
+    if(stateResult.error) throw stateResult.error;
+    addAuctionLog(`${cap.name}님 ${next} 입찰`);
+    loadAll(true).catch(()=>{});
+  }catch(e){
+    alert('입찰 실패: '+(e?.message||e));
     await loadAll();
-  }catch(e){showErr('입찰 실패',e)}
+  }
 }
+
 async function auctionCustomBid(){
   const input=document.getElementById('customBidAmount');
   const cap=myCaptain();
   const raw=Number(input?.value);
   const val=Math.floor(raw/10)*10;
   const hi=highestBid(); const min=hi?Number(hi.amount)+BID_STEP:BID_STEP;
+
   if(!val||val<min) return toast(`최소 ${min} coin 이상 입찰해야 합니다.`);
   if(!canBid()) return toast('입찰할 수 없습니다.');
   if(Number(cap.coins)<val) return toast('보유 coin 이 부족합니다.');
   if(hi?.captain_name===cap.name) return toast('이미 본인이 최고 입찰자입니다.');
+
+  const player=currentPlayer();
+  const startedAt=nowIso();
+  if(input) input.value='';
+
+  // 입력 직후 타이머와 최고입찰을 즉시 갱신합니다.
+  bids=[{player_name:player,captain_name:cap.name,amount:val,created_at:startedAt,_local:true},...bids];
+  state={...state,round_started_at:startedAt,paused_remaining:ROUND_SECONDS};
+  renderSafe(true);
+
   try{
-    await q(sb.from('auction_bids').insert({player_name:currentPlayer(),captain_name:cap.name,amount:val}),'입찰 저장');
-    await q(sb.from('auction_state').update({round_started_at:nowIso(),paused_remaining:ROUND_SECONDS}).eq('id',1),'시간 초기화');
-    await addAuctionLog(`${cap.name}님 ${val} 입찰`);
-    if(input) input.value='';
+    const [bidResult,stateResult]=await Promise.all([
+      sb.from('auction_bids').insert({player_name:player,captain_name:cap.name,amount:val}),
+      sb.from('auction_state').update({round_started_at:startedAt,paused_remaining:ROUND_SECONDS}).eq('id',1)
+    ]);
+    if(bidResult.error) throw bidResult.error;
+    if(stateResult.error) throw stateResult.error;
+    addAuctionLog(`${cap.name}님 ${val} 입찰`);
+    loadAll(true).catch(()=>{});
+  }catch(e){
+    alert('입찰 실패: '+(e?.message||e));
     await loadAll();
-  }catch(e){showErr('입찰 실패',e)}
+  }
 }
 window.auctionCustomBid=auctionCustomBid;
 function groupNameByCaptain(name){return ['A조','B조','C조','D조','E조','F조','G조'][CAPTAINS.findIndex(c=>c.name===name)]||'미정'}
@@ -2487,35 +2536,36 @@ async function boot(){
         recoverProcessingIfStuck();
       }
       const rem=remainingSeconds();
+
+      // 매 틱에는 타이머 글자만 바꿉니다. 전체 화면을 다시 만들지 않습니다.
+      updateAuctionClockOnly();
+
       if(state.status==='running'){
         const roundKey=`${state.current_index}_${state.round_started_at||''}`;
         if(rem===6 && lastRoundKeyForCountSound!==roundKey){
           lastRoundKeyForCountSound=roundKey;
           playSound('count');
         }
-        if(rem<=0){
-          renderSafe();
-          if(!finishRoundPromise){
-            finishStartedAt=Date.now();
-            finishRoundPromise=finishRound().finally(()=>{finishRoundPromise=null; finishStartedAt=0;});
-          }
-        }else{
+        if(rem<=0 && !finishRoundPromise){
+          finishStartedAt=Date.now();
+          finishRoundPromise=finishRound().finally(()=>{finishRoundPromise=null; finishStartedAt=0;});
+        }else if(rem>0){
           processingSeenAt=0;
-          renderSafe();
         }
       }else if(state.status==='processing'){
         recoverProcessingIfStuck();
-        renderSafe();
       }else{
         processingSeenAt=0;
-        renderSafe();
       }
     }catch(e){console.error(e)}
-  },250);
+  },100);
     setInterval(()=>{
       visitorHeartbeat();
       if(me) heartbeat();
-      loadVisitorCount().then(()=>{ if(!finishing) renderSafe(); }).catch(()=>{});
+      const before=visitorCount;
+      loadVisitorCount().then(()=>{
+        if(before!==visitorCount && !finishing && !isFormActive()) renderSafe(true);
+      }).catch(()=>{});
     },4000);
   }catch(e){
     console.error('boot failed',e);
@@ -3325,16 +3375,6 @@ async function eventAddMember(){
   if(r.error) return alert('맴버 추가 실패: '+r.error.message);
   await eventLoadMembers(); alert(`${name}님이 추가되었습니다.`); openEventAdmin();
 }
-
-
-// 인라인 onclick이 차단되는 환경에서도 로그인 버튼이 동작하도록 보조 연결
- document.addEventListener('click',function(e){
-   const btn=e.target && e.target.closest ? e.target.closest('#auctionLoginBtn') : null;
-   if(!btn || e.__auctionLoginHandled) return;
-   e.__auctionLoginHandled=true;
-   e.preventDefault();
-   window.auctionLogin(e);
- },false);
 
 
 boot();
