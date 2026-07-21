@@ -491,6 +491,29 @@ html,body{min-width:0;width:100%}
 .catchToolbar{background:#fff;border:2px dashed #e4ccec;border-radius:18px;padding:9px}
 .catchWarning{background:#fff0f4;border:1px solid #f9a8b8;border-radius:14px;padding:9px 11px;color:#d44f72}
 
+
+/* ===== 최종 적용: 아시아 리그 7인 소수게임 조 추첨 ===== */
+.leagueDrawPage{min-height:100vh;background:radial-gradient(circle at 16% 8%,rgba(250,204,21,.16),transparent 28%),radial-gradient(circle at 86% 12%,rgba(56,189,248,.12),transparent 25%),linear-gradient(145deg,#05070b,#091426 55%,#05070b);padding:18px 0 38px;color:#fff}
+.lgWrap{width:1280px;margin:0 auto}.lgTop{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:14px}.lgTop h1{margin:0;color:#facc15;font-size:38px;text-shadow:0 0 18px rgba(250,204,21,.28)}.lgTop p{margin:7px 0 0;color:#b9d7ff;font-weight:900}
+.lgPanel,.lgAssignmentBoard{background:rgba(15,27,46,.96);border:1px solid rgba(250,204,21,.32);border-radius:20px;padding:14px;box-shadow:0 18px 45px rgba(0,0,0,.30)}
+.lgAssignmentBoard{display:grid;grid-template-columns:110px 1fr 110px 1fr;gap:10px;align-items:stretch;margin-bottom:14px}.lgLeagueTitle{display:flex;align-items:center;justify-content:center;border-radius:15px;background:linear-gradient(135deg,#facc15,#f97316);color:#281500;font-size:22px;font-weight:1000}.lgLeagueTitle.second{background:linear-gradient(135deg,#38bdf8,#2563eb);color:#061426}
+.lgGroupGrid{display:grid;gap:8px}.lgGroupGrid.first{grid-template-columns:repeat(4,1fr)}.lgGroupGrid.second{grid-template-columns:repeat(3,1fr)}
+.lgGroupCard{min-height:86px;border:1px solid var(--line);background:#081525;border-radius:15px;padding:10px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:6px}.lgGroupCard b{font-size:22px;color:#facc15}.lgGroupCard span{font-size:17px;font-weight:1000;color:#fff}.lgGroupCard.empty span{color:#60758e}
+.lgMainNotice{margin:0 0 14px;border:1px solid rgba(56,189,248,.4);background:#081525;border-radius:18px;padding:14px;text-align:center;font-size:22px;font-weight:1000;color:#dbeafe}.lgMainNotice.good{border-color:#34d399;color:#86efac}.lgMainNotice.warn{border-color:#f59e0b;color:#fde68a}.lgMainNotice.done{border-color:#facc15;color:#facc15}
+.lgCompleteBanner{display:none;margin-bottom:14px;background:linear-gradient(135deg,#facc15,#f97316);color:#261300;border-radius:18px;padding:16px;text-align:center;font-size:30px;font-weight:1000;box-shadow:0 0 26px rgba(250,204,21,.25)}.lgCompleteBanner.on{display:block}
+.lgCountdown{position:fixed;z-index:60;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;font-size:180px;font-weight:1000;color:#facc15;text-shadow:0 0 35px rgba(250,204,21,.65)}
+.lgLayout{display:grid;grid-template-columns:430px 1fr;gap:14px;align-items:start}.lgLoginGrid{display:grid;grid-template-columns:1fr 140px 90px;gap:8px}.lgLoginGrid select,.lgLoginGrid input{width:100%;background:#081525;border:1px solid var(--line);border-radius:12px;color:white;padding:11px}
+.lgMeBox{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#081525;border:1px solid var(--line);border-radius:15px;padding:11px}.lgMeBox b{color:#facc15;font-size:20px}
+.lgPlayers{display:grid;grid-template-columns:1fr;gap:7px;margin-top:12px}.lgPlayer{display:grid;grid-template-columns:18px 1fr 95px 90px;gap:8px;align-items:center;background:#081525;border:1px solid var(--line);border-radius:13px;padding:9px 10px;font-weight:900}.lgPlayer.me{border-color:#facc15;box-shadow:0 0 0 2px rgba(250,204,21,.18)}.lgDot{width:13px;height:13px;border-radius:50%;background:#64748b;box-shadow:0 0 0 3px rgba(100,116,139,.14)}.lgDot.on{background:#22c55e;box-shadow:0 0 12px rgba(34,197,94,.75)}.lgState{font-size:12px;color:#9fb4cd}.lgRank{color:#facc15;text-align:right}
+.lgCardChoices,.lgRpsChoices{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}.lgChoice{height:150px;border-radius:20px;background:linear-gradient(145deg,#10213a,#1d3557);border:2px solid rgba(255,255,255,.10);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;font-size:20px}.lgChoice .emoji{font-size:60px}.lgChoice.selected{border-color:#facc15;background:linear-gradient(145deg,#1d4ed8,#7c3aed);box-shadow:0 0 0 3px rgba(250,204,21,.20),0 0 24px rgba(250,204,21,.18)}
+.lgActionRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.lgActionRow.one{grid-template-columns:1fr}.lgStatusBox{margin-top:12px;background:#081525;border:1px solid var(--line);border-radius:15px;padding:13px;text-align:center;font-weight:900;line-height:1.6;color:#dbeafe}
+.lgRevealGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.lgRevealCard{min-height:120px;border-radius:16px;background:#081525;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:1000}.lgRevealCard .emoji{font-size:45px}.lgRevealCard.out{border-color:#fb7185;background:rgba(251,113,133,.12)}.lgRevealCard.keep{border-color:#34d399;background:rgba(52,211,153,.10)}
+.lgPlaceGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:12px}.lgPlaceBtn{min-height:95px;border-radius:16px;background:#10213a;color:#fff;border:1px solid var(--line);font-size:18px}.lgPlaceBtn b{display:block;color:#facc15;font-size:24px;margin-bottom:5px}.lgPlaceBtn:disabled{opacity:.35}
+.lgOrderList{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin-top:12px}.lgOrderItem{background:#081525;border:1px solid var(--line);border-radius:13px;padding:9px;text-align:center;font-weight:900}.lgOrderItem.current{border-color:#facc15;background:rgba(250,204,21,.10)}.lgOrderItem b{display:block;color:#facc15;font-size:18px}
+.lgLogPanel{margin-top:14px}.lgLog{height:175px;overflow:auto;background:#081525;border:1px solid var(--line);border-radius:14px;padding:9px}.lgLog div{padding:7px;border-bottom:1px dashed rgba(255,255,255,.08);font-weight:900;color:#dbeafe}
+.lgAdminModal{width:430px;max-width:92vw;background:#0f1b2e;border:1px solid rgba(250,204,21,.45);border-radius:20px;padding:16px;box-shadow:0 20px 70px rgba(0,0,0,.62)}.lgAdminModal input{width:100%;background:#081525;border:1px solid var(--line);border-radius:12px;color:#fff;padding:12px;margin:8px 0 10px}
+@media(max-width:900px){.lgWrap{width:1280px}body.pcMode{min-width:1280px}}
+
 </style>
 </head>
 <body>
@@ -508,44 +531,58 @@ html,body{min-width:0;width:100%}
   </div>
 </div>
 
-<div id="leaguePage" class="leaguePage" style="display:none">
-  <div class="leagueWrap leagueLineWrap">
-    <div class="leagueTop">
-      <h1>아시아리그 참가 라인표</h1>
+
+<div id="leaguePage" class="leaguePage leagueDrawPage" style="display:none">
+  <div class="lgWrap">
+    <div class="lgTop">
+      <div>
+        <h1>아시아 리그 조 추첨</h1>
+        <p>7인 소수게임 · 선택 순서 결정 · 제1리그 A~D조 / 제2리그 E~G조</p>
+      </div>
       <div class="topBtns">
+        <button class="warn" onclick="lgOpenAdmin()">운영진 패널</button>
         <button class="ghost" onclick="showLandingPage()">처음으로</button>
-        <button class="ghost" onclick="showAuctionPage()">아시아리그 경매</button>
-        <button class="ghost" onclick="leagueLineRefresh()">새로고침</button>
       </div>
     </div>
 
-    <div class="leagueLineInfo">
-      <div class="leagueLineLoginBox" id="leagueLineLoginBox"></div>
-      <div class="leagueLineNotice">
-        <b>안내</b><br>
-        nickname 아이디를 선택하고 비밀번호로 로그인한 뒤 <b>아시아리그 참가하기</b> 버튼을 누르면 참가 리스트에 등록됩니다.<br>
-        등록된 인원은 <b>내부 실력 기준 순서</b>로 1라인부터 자동 배정되며, 더 높은 기준의 선수가 참가하면 기존 참가자는 뒤로 밀려납니다.<br>
-        최대 32명까지 1조~8조 / 1라인~4라인에 표시됩니다.
-      </div>
+    <div id="lgCompleteBanner" class="lgCompleteBanner">완료 · 7개 조 배정이 모두 끝났습니다.</div>
+
+    <div class="lgAssignmentBoard">
+      <div class="lgLeagueTitle">제1리그</div>
+      <div class="lgGroupGrid first" id="lgFirstLeague"></div>
+      <div class="lgLeagueTitle second">제2리그</div>
+      <div class="lgGroupGrid second" id="lgSecondLeague"></div>
     </div>
 
-    <div class="leagueLineStatus" id="leagueLineStatus"></div>
+    <div id="lgMainNotice" class="lgMainNotice">7명 전원 접속을 기다리고 있습니다.</div>
+    <div id="lgCountdown" class="lgCountdown" style="display:none"></div>
 
-    <div class="leagueLineBoardCard">
+    <div class="lgLayout">
+      <section class="lgPanel">
+        <div class="sectionHead">
+          <h2>로그인 / 접속 현황</h2>
+          <span id="lgOnlineBadge" class="tinyBadge">0 / 7 온라인</span>
+        </div>
+        <div id="lgLoginBox"></div>
+        <div id="lgPlayers" class="lgPlayers"></div>
+      </section>
+
+      <section class="lgPanel">
+        <div class="sectionHead">
+          <h2>게임 진행</h2>
+          <span id="lgPhaseBadge" class="tinyBadge">대기</span>
+        </div>
+        <div id="lgGameBox"></div>
+      </section>
+    </div>
+
+    <section class="lgPanel lgLogPanel">
       <div class="sectionHead">
-        <h2>아시아리그 라인표</h2>
-        <span class="tinyBadge" id="leagueLineCountBadge">0 / 32</span>
+        <h2>진행 기록</h2>
+        <button class="ghost" onclick="lgRefresh()">새로고침</button>
       </div>
-      <div class="leagueLineBoard" id="leagueLineBoard"></div>
-    </div>
-
-    <div class="leagueLineBoardCard" style="margin-top:14px">
-      <div class="sectionHead">
-        <h2>참가 리스트</h2>
-        <span class="tinyBadge">내부 기준 순서</span>
-      </div>
-      <div class="leagueLineList" id="leagueLineList"></div>
-    </div>
+      <div id="lgLog" class="lgLog"></div>
+    </section>
   </div>
 </div>
 
@@ -3376,6 +3413,441 @@ async function eventAddMember(){
   await eventLoadMembers(); alert(`${name}님이 추가되었습니다.`); openEventAdmin();
 }
 
+
+
+/* ===== 최종 적용: 아시아 리그 7인 소수게임 조 추첨 ===== */
+const LG_STATE_ID = 6;
+const LG_ADMIN_PW = '0473';
+const LG_GROUPS = ['A','B','C','D','E','F','G'];
+const LG_CARDS = [
+  {key:'star',label:'별카드',emoji:'⭐'},
+  {key:'moon',label:'달카드',emoji:'🌙'},
+  {key:'sun',label:'햇님카드',emoji:'☀️'}
+];
+const LG_RPS = [
+  {key:'rock',label:'바위',emoji:'✊'},
+  {key:'paper',label:'보',emoji:'✋'},
+  {key:'scissors',label:'가위',emoji:'✌️'}
+];
+const LG_PLAYERS = [
+  {name:'재민',pw:'0917'},{name:'음',pw:'5555'},{name:'에넬',pw:'9378'},
+  {name:'제로',pw:'4441'},{name:'류비',pw:'5315'},{name:'비밀',pw:'5874'},{name:'리아',pw:'0050'}
+];
+let lgState = null;
+let lgMe = JSON.parse(localStorage.getItem('asia_league_draw_me')||'null');
+let lgPollTimer = null, lgTickTimer = null, lgHeartbeatTimer = null, lgBusy = false;
+
+function lgEsc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function lgNow(){return new Date().toISOString();}
+function lgDefault(){
+  return {
+    phase:'waiting', round:1, active:LG_PLAYERS.map(x=>x.name), choices:{}, ready:{},
+    online:{}, reveal:null, revealUntil:null, eliminatedBatches:[], ranking:[],
+    rps:null, selectionOrder:[], pickerIndex:0, assignments:{}, logs:[], updatedAt:lgNow()
+  };
+}
+function lgNorm(st){
+  const b=lgDefault(); st=st&&typeof st==='object'?st:{};
+  return {
+    ...b,...st,
+    active:Array.isArray(st.active)?st.active:LG_PLAYERS.map(x=>x.name),
+    choices:st.choices&&typeof st.choices==='object'?st.choices:{},
+    ready:st.ready&&typeof st.ready==='object'?st.ready:{},
+    online:st.online&&typeof st.online==='object'?st.online:{},
+    eliminatedBatches:Array.isArray(st.eliminatedBatches)?st.eliminatedBatches:[],
+    ranking:Array.isArray(st.ranking)?st.ranking:[],
+    selectionOrder:Array.isArray(st.selectionOrder)?st.selectionOrder:[],
+    assignments:st.assignments&&typeof st.assignments==='object'?st.assignments:{},
+    logs:Array.isArray(st.logs)?st.logs.slice(0,150):[]
+  };
+}
+function lgLogPush(st,msg){st.logs=[`[${new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}] ${msg}`,...(st.logs||[])].slice(0,150);}
+async function lgLoad(){
+  const r=await sb.from(EVENT_TABLE).select('state,updated_at').eq('id',LG_STATE_ID).maybeSingle();
+  if(r.error) throw new Error(r.error.message);
+  if(!r.data){
+    const st=lgDefault();
+    const ins=await sb.from(EVENT_TABLE).upsert({id:LG_STATE_ID,state:st,updated_at:lgNow()},{onConflict:'id'}).select('id');
+    if(ins.error) throw new Error(ins.error.message);
+    lgState=st;
+  }else lgState=lgNorm(r.data.state);
+}
+async function lgMutate(mutator){
+  for(let attempt=0;attempt<10;attempt++){
+    const r=await sb.from(EVENT_TABLE).select('state,updated_at').eq('id',LG_STATE_ID).maybeSingle();
+    if(r.error) throw new Error(r.error.message);
+    const base=r.data?lgNorm(r.data.state):lgDefault();
+    const oldUpdated=r.data?.updated_at||null;
+    const next=lgNorm(JSON.parse(JSON.stringify(base)));
+    const changed=await mutator(next,base);
+    if(changed===false){lgState=base;return base;}
+    next.updatedAt=lgNow();
+    let qy=sb.from(EVENT_TABLE).update({state:next,updated_at:next.updatedAt}).eq('id',LG_STATE_ID);
+    if(oldUpdated) qy=qy.eq('updated_at',oldUpdated);
+    const u=await qy.select('id');
+    if(u.error) throw new Error(u.error.message);
+    if(u.data&&u.data.length){lgState=next;return next;}
+    await new Promise(r=>setTimeout(r,40+attempt*25));
+  }
+  throw new Error('동시 처리 충돌로 저장하지 못했습니다. 다시 시도해주세요.');
+}
+function lgSessionId(){
+  if(lgMe?.sessionId) return lgMe.sessionId;
+  return (crypto.randomUUID?crypto.randomUUID():'lg_'+Date.now()+'_'+Math.random().toString(36).slice(2));
+}
+function lgOnlineNames(st=lgState){
+  const cutoff=Date.now()-16000;
+  return LG_PLAYERS.filter(p=>{
+    const x=st?.online?.[p.name];
+    return x&&new Date(x.lastSeen||0).getTime()>=cutoff;
+  }).map(x=>x.name);
+}
+function lgAllOnline(st=lgState){return lgOnlineNames(st).length===LG_PLAYERS.length;}
+function lgMyActive(){return !!(lgMe&&lgState?.active?.includes(lgMe.name));}
+function lgCard(k){return LG_CARDS.find(x=>x.key===k)||LG_CARDS[0];}
+function lgRpsItem(k){return LG_RPS.find(x=>x.key===k)||LG_RPS[0];}
+function lgRpsWinner(a,b){
+  if(a===b) return 0;
+  if((a==='rock'&&b==='scissors')||(a==='scissors'&&b==='paper')||(a==='paper'&&b==='rock')) return 1;
+  return 2;
+}
+async function lgLogin(){
+  const name=document.getElementById('lgLoginName')?.value||'';
+  const pw=document.getElementById('lgLoginPw')?.value||'';
+  const ok=LG_PLAYERS.find(x=>x.name===name&&x.pw===pw);
+  if(!ok) return alert('아이디 또는 비밀번호가 맞지 않습니다.');
+  lgMe={name,sessionId:lgSessionId()}; localStorage.setItem('asia_league_draw_me',JSON.stringify(lgMe));
+  await lgHeartbeat(true); lgRender();
+}
+async function lgLogout(){
+  const old=lgMe; lgMe=null; localStorage.removeItem('asia_league_draw_me');
+  if(old) try{await lgMutate(st=>{const x=st.online?.[old.name]; if(x?.sessionId===old.sessionId) delete st.online[old.name];});}catch(e){}
+  lgRender();
+}
+async function lgHeartbeat(force=false){
+  if(!lgMe) return;
+  try{
+    await lgMutate(st=>{
+      st.online=st.online||{};
+      st.online[lgMe.name]={sessionId:lgMe.sessionId,lastSeen:lgNow()};
+      return true;
+    });
+    await lgAutoAdvance();
+    if(force) lgRender();
+  }catch(e){console.warn('리그 heartbeat',e);}
+}
+async function lgAutoAdvance(){
+  if(lgBusy||!lgState) return;
+  const all=lgAllOnline(lgState);
+  if(!all) return;
+  if(lgState.phase==='waiting'){
+    lgBusy=true;
+    try{await lgMutate(st=>{
+      if(st.phase!=='waiting'||!lgAllOnline(st)) return false;
+      st.phase='minority'; st.round=1; st.active=LG_PLAYERS.map(x=>x.name); st.choices={}; st.ready={};
+      lgLogPush(st,'7명 전원 접속 완료 · 소수게임을 시작합니다.');
+    });}finally{lgBusy=false;}
+  }else if(lgState.phase==='countdown'){
+    const start=new Date(lgState.countdownStartedAt||0).getTime();
+    if(start&&Date.now()-start>=5000) await lgResolveMinorityRound();
+  }else if(lgState.phase==='reveal'){
+    const until=new Date(lgState.revealUntil||0).getTime();
+    if(until&&Date.now()>=until) await lgAfterReveal();
+  }
+}
+async function lgPickCard(key){
+  if(!lgMe) return alert('로그인해주세요.');
+  if(!lgAllOnline()) return alert('7명이 모두 온라인이어야 진행할 수 있습니다.');
+  if(lgState.phase!=='minority'||!lgMyActive()) return;
+  await lgMutate(st=>{
+    if(st.phase!=='minority'||!st.active.includes(lgMe.name)) return false;
+    if(st.ready?.[lgMe.name]) return false;
+    st.choices[lgMe.name]=key; return true;
+  }); lgRender();
+}
+async function lgSubmitCard(){
+  if(!lgMe||!lgMyActive()) return;
+  if(!lgAllOnline()) return alert('7명이 모두 온라인이어야 진행할 수 있습니다.');
+  if(!lgState.choices?.[lgMe.name]) return alert('카드를 먼저 선택해주세요.');
+  await lgMutate(st=>{
+    if(st.phase!=='minority'||!st.active.includes(lgMe.name)) return false;
+    st.ready[lgMe.name]=true;
+    lgLogPush(st,`${lgMe.name}님이 ${st.round}라운드 선택을 완료했습니다.`);
+    const done=st.active.every(n=>st.ready?.[n]&&st.choices?.[n]);
+    if(done){st.phase='countdown';st.countdownStartedAt=lgNow();lgLogPush(st,'전원 선택 완료 · 5초 뒤 공개합니다.');}
+  }); lgRender();
+}
+async function lgResolveMinorityRound(){
+  if(lgBusy) return; lgBusy=true;
+  try{
+    await lgMutate(st=>{
+      if(st.phase!=='countdown'||!lgAllOnline(st)) return false;
+      const started=new Date(st.countdownStartedAt||0).getTime();
+      if(!started||Date.now()-started<4900) return false;
+      const counts={star:0,moon:0,sun:0};
+      st.active.forEach(n=>{const c=st.choices?.[n]; if(c) counts[c]++;});
+      const vals=Object.values(counts), max=Math.max(...vals);
+      const maxKeys=Object.keys(counts).filter(k=>counts[k]===max&&max>0);
+      let eliminated=[],continued=[...st.active],draw=false,special=null;
+      if(maxKeys.length!==1 || max===st.active.length){
+        draw=true;
+      }else{
+        eliminated=st.active.filter(n=>st.choices[n]===maxKeys[0]);
+        continued=st.active.filter(n=>st.choices[n]!==maxKeys[0]);
+        if(st.active.length===3&&continued.length===1&&eliminated.length===2){
+          special={minorityFinalist:continued[0],semifinalPlayers:[...eliminated]};
+        }
+      }
+      st.reveal={round:st.round,choices:{...st.choices},counts,eliminated,continued,draw,special};
+      st.phase='reveal'; st.revealUntil=new Date(Date.now()+5000).toISOString();
+      lgLogPush(st,draw?`${st.round}라운드 무승부 · 다시 선택합니다.`:`${st.round}라운드 공개 · 다수 선택 ${eliminated.join(', ')} 잠시 탈락`);
+    });
+  }finally{lgBusy=false;}
+}
+function lgPrepareRanking(st){
+  const tasks=[];
+  if(st.active.length===2) tasks.push({type:'final',players:[...st.active]});
+  else if(st.active.length===1) st.ranking.push(st.active[0]);
+  [...(st.eliminatedBatches||[])].reverse().forEach(b=>{
+    const names=[...(b.names||[])];
+    if(names.length===1) tasks.push({type:'single',players:names});
+    else if(names.length>1) tasks.push({type:'tie',pool:names,ordered:[]});
+  });
+  st.rankTasks=tasks;
+  lgStartNextRankTask(st);
+}
+function lgStartNextRankTask(st){
+  while(st.rankTasks?.length){
+    const t=st.rankTasks.shift();
+    if(t.type==='single'){if(!st.ranking.includes(t.players[0]))st.ranking.push(t.players[0]);continue;}
+    if(t.type==='final'){
+      st.rps={purpose:'final',players:t.players,choices:{},task:t};
+      st.phase='rps'; return;
+    }
+    if(t.type==='tie'){
+      if(t.pool.length===1){st.ranking.push(t.pool[0]);continue;}
+      st.rps={purpose:'tie',players:t.pool.slice(0,2),choices:{},task:t};
+      st.phase='rps'; return;
+    }
+  }
+  st.selectionOrder=[...st.ranking];
+  st.pickerIndex=0; st.phase='placement';
+  lgLogPush(st,'1번부터 7번까지 선택 순서가 확정되었습니다.');
+}
+async function lgAfterReveal(){
+  if(lgBusy) return; lgBusy=true;
+  try{
+    await lgMutate(st=>{
+      if(st.phase!=='reveal'||!st.reveal) return false;
+      const rv=st.reveal;
+      if(rv.draw){
+        st.phase='minority'; st.choices={}; st.ready={}; st.reveal=null; st.revealUntil=null;
+        return true;
+      }
+      if(rv.special){
+        st.preRankAfterFinal=[...(st.preRankAfterFinal||[]),rv.special.semifinalPlayers[1]];
+        st.rps={purpose:'semifinal',players:rv.special.semifinalPlayers,choices:{},minorityFinalist:rv.special.minorityFinalist};
+        st.phase='rps'; st.reveal=null; st.revealUntil=null;
+        lgLogPush(st,`${rv.special.minorityFinalist}님은 소수 선택으로 결승 진출 · 나머지 2명은 준결승 가위바위보`);
+        return true;
+      }
+      st.eliminatedBatches.push({round:rv.round,names:[...rv.eliminated]});
+      st.active=[...rv.continued];
+      st.round=Number(st.round||1)+1; st.choices={}; st.ready={}; st.reveal=null; st.revealUntil=null;
+      if(st.active.length<=2){st.ranking=[];lgPrepareRanking(st);}
+      else st.phase='minority';
+      return true;
+    });
+  }finally{lgBusy=false;}
+}
+async function lgPickRps(key){
+  if(!lgMe||lgState.phase!=='rps'||!lgState.rps?.players?.includes(lgMe.name)) return;
+  if(!lgAllOnline()) return alert('7명이 모두 온라인이어야 진행할 수 있습니다.');
+  await lgMutate(st=>{
+    if(st.phase!=='rps'||!st.rps?.players?.includes(lgMe.name)) return false;
+    st.rps.choices=st.rps.choices||{};
+    if(st.rps.choices[lgMe.name]) return false;
+    st.rps.choices[lgMe.name]=key; return true;
+  }); lgRender();
+}
+async function lgSubmitRps(){
+  if(!lgMe||lgState.phase!=='rps'||!lgState.rps?.players?.includes(lgMe.name)) return;
+  const picked=lgState.rps.choices?.[lgMe.name];
+  if(!picked) return alert('가위바위보를 선택해주세요.');
+  await lgMutate(st=>{
+    if(st.phase!=='rps'||!st.rps?.players?.includes(lgMe.name)) return false;
+    st.rps.ready=st.rps.ready||{}; st.rps.ready[lgMe.name]=true;
+    const [a,b]=st.rps.players;
+    if(!(st.rps.ready[a]&&st.rps.ready[b]&&st.rps.choices[a]&&st.rps.choices[b])) return true;
+    const cmp=lgRpsWinner(st.rps.choices[a],st.rps.choices[b]);
+    if(cmp===0){
+      lgLogPush(st,`${a} vs ${b} 가위바위보 무승부 · 다시 선택`);
+      st.rps.choices={};st.rps.ready={};return true;
+    }
+    const winner=cmp===1?a:b, loser=cmp===1?b:a, purpose=st.rps.purpose, task=st.rps.task;
+    lgLogPush(st,`${a} vs ${b} · ${winner} 승리`);
+    if(purpose==='semifinal'){
+      const finalist=st.rps.minorityFinalist;
+      st.preRankAfterFinal=[loser];
+      st.rps={purpose:'final',players:[finalist,winner],choices:{},ready:{}};
+      return true;
+    }
+    if(purpose==='final'){
+      st.ranking=[winner,loser,...(st.preRankAfterFinal||[])];
+      st.preRankAfterFinal=[];
+      st.rps=null;
+      if(!st.rankTasks){
+        [...(st.eliminatedBatches||[])].reverse().forEach(b=>{
+          const names=(b.names||[]).filter(n=>!st.ranking.includes(n));
+          if(names.length===1) st.rankTasks=(st.rankTasks||[]).concat([{type:'single',players:names}]);
+          else if(names.length>1) st.rankTasks=(st.rankTasks||[]).concat([{type:'tie',pool:names,ordered:[]}]);
+        });
+      }
+      lgStartNextRankTask(st); return true;
+    }
+    if(purpose==='tie'){
+      task.ordered=task.ordered||[]; task.pool=task.pool||[];
+      task.ordered.push(winner);
+      task.pool=task.pool.filter(n=>n!==winner);
+      if(task.pool.length===1){
+        task.ordered.push(task.pool[0]);
+        task.ordered.forEach(n=>{if(!st.ranking.includes(n))st.ranking.push(n);});
+        st.rps=null; lgStartNextRankTask(st);
+      }else{
+        st.rps={purpose:'tie',players:task.pool.slice(0,2),choices:{},ready:{},task};
+      }
+    }
+    return true;
+  }); lgRender();
+}
+async function lgChooseGroup(group){
+  if(!lgMe||lgState.phase!=='placement') return;
+  const current=lgState.selectionOrder?.[lgState.pickerIndex];
+  if(current!==lgMe.name) return alert('현재 본인의 선택 차례가 아닙니다.');
+  await lgMutate(st=>{
+    if(st.phase!=='placement'||st.selectionOrder?.[st.pickerIndex]!==lgMe.name) return false;
+    if(st.assignments?.[group]) return false;
+    st.assignments[group]=lgMe.name;
+    lgLogPush(st,`${st.pickerIndex+1}번 선택권 ${lgMe.name}님이 ${group}조를 선택했습니다.`);
+    st.pickerIndex=Number(st.pickerIndex||0)+1;
+    if(st.pickerIndex>=7){st.phase='complete';lgLogPush(st,'7개 조 배정 완료');}
+    return true;
+  }); lgRender();
+}
+function lgPhaseText(){
+  return ({waiting:'접속 대기',minority:'소수게임',countdown:'공개 카운트',reveal:'카드 공개',rps:'가위바위보',placement:'조 선택',complete:'완료'})[lgState?.phase]||'대기';
+}
+function lgRenderAssignments(){
+  const card=g=>`<div class="lgGroupCard ${lgState?.assignments?.[g]?'':'empty'}"><b>${g}조</b><span>${lgState?.assignments?.[g]?lgEsc(lgState.assignments[g])+' 팀':'미정'}</span></div>`;
+  const f=document.getElementById('lgFirstLeague'),s=document.getElementById('lgSecondLeague');
+  if(f)f.innerHTML=['A','B','C','D'].map(card).join('');
+  if(s)s.innerHTML=['E','F','G'].map(card).join('');
+}
+function lgRenderLogin(){
+  const box=document.getElementById('lgLoginBox'); if(!box)return;
+  if(lgMe) box.innerHTML=`<div class="lgMeBox"><div>로그인: <b>${lgEsc(lgMe.name)}</b></div><button class="ghost" onclick="lgLogout()">로그아웃</button></div>`;
+  else box.innerHTML=`<div class="lgLoginGrid"><select id="lgLoginName">${LG_PLAYERS.map(p=>`<option value="${lgEsc(p.name)}">${lgEsc(p.name)}</option>`).join('')}</select><input id="lgLoginPw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter')lgLogin()"><button class="gold" onclick="lgLogin()">로그인</button></div>`;
+}
+function lgRenderPlayers(){
+  const box=document.getElementById('lgPlayers');if(!box)return;
+  const online=new Set(lgOnlineNames()), ranking=lgState?.selectionOrder||lgState?.ranking||[];
+  box.innerHTML=LG_PLAYERS.map(p=>{
+    const rank=ranking.indexOf(p.name);
+    let state='대기';
+    if(lgState?.phase==='minority'||lgState?.phase==='countdown') state=lgState.active.includes(p.name)?(lgState.ready?.[p.name]?'선택 완료':'게임 중'):'잠시 탈락';
+    else if(rank>=0) state=`${rank+1}번 선택권`;
+    return `<div class="lgPlayer ${lgMe?.name===p.name?'me':''}"><span class="lgDot ${online.has(p.name)?'on':''}"></span><span>${lgEsc(p.name)}</span><span class="lgState">${online.has(p.name)?'온라인':'오프라인'} · ${state}</span><span class="lgRank">${rank>=0?rank+1+'위':''}</span></div>`;
+  }).join('');
+}
+function lgRenderMinority(){
+  const active=lgState.active||[], meActive=lgMe&&active.includes(lgMe.name), myChoice=lgState.choices?.[lgMe?.name], myReady=lgState.ready?.[lgMe?.name];
+  return `<div class="lgStatusBox">${lgState.round}라운드 · 생존 ${active.length}명<br>${active.map(lgEsc).join(', ')}<br>다수가 선택한 카드의 사람들은 잠시 탈락하고, 소수 선택자들이 다음 라운드로 진행합니다.</div>
+  <div class="lgCardChoices">${LG_CARDS.map(c=>`<button class="lgChoice ${myChoice===c.key?'selected':''}" onclick="lgPickCard('${c.key}')" ${!meActive||myReady?'disabled':''}><span class="emoji">${c.emoji}</span><span>${c.label}</span></button>`).join('')}</div>
+  <div class="lgActionRow one"><button class="gold" onclick="lgSubmitCard()" ${!meActive||!myChoice||myReady?'disabled':''}>${myReady?'완료됨':'완료'}</button></div>
+  <div class="lgStatusBox">선택 완료 ${active.filter(n=>lgState.ready?.[n]).length} / ${active.length}</div>`;
+}
+function lgRenderReveal(){
+  const rv=lgState.reveal||{choices:{},eliminated:[],continued:[],counts:{}};
+  return `<div class="lgStatusBox">${rv.draw?'무승부입니다. 잠시 후 다시 선택합니다.':'다수 선택자는 잠시 탈락합니다.'}<br>별 ${rv.counts?.star||0} · 달 ${rv.counts?.moon||0} · 햇님 ${rv.counts?.sun||0}</div><div class="lgRevealGrid">${Object.entries(rv.choices||{}).map(([n,k])=>`<div class="lgRevealCard ${rv.draw?'':rv.eliminated.includes(n)?'out':'keep'}"><b>${lgEsc(n)}</b><span class="emoji">${lgCard(k).emoji}</span><span>${lgCard(k).label}</span></div>`).join('')}</div>`;
+}
+function lgRenderRps(){
+  const r=lgState.rps||{players:[],choices:{},ready:{}}, mine=r.players.includes(lgMe?.name), my=r.choices?.[lgMe?.name], ready=r.ready?.[lgMe?.name];
+  const purpose=r.purpose==='final'?'1·2번 선택권 결정전':r.purpose==='semifinal'?'결승 진출 결정전':'동시 탈락자 순위 결정전';
+  return `<div class="lgStatusBox"><b>${purpose}</b><br>${r.players.map(lgEsc).join(' VS ')}<br>두 사람이 모두 완료하면 결과가 공개됩니다.</div>
+  <div class="lgRpsChoices">${LG_RPS.map(x=>`<button class="lgChoice ${my===x.key?'selected':''}" onclick="lgPickRps('${x.key}')" ${!mine||ready?'disabled':''}><span class="emoji">${x.emoji}</span><span>${x.label}</span></button>`).join('')}</div>
+  <div class="lgActionRow one"><button class="gold" onclick="lgSubmitRps()" ${!mine||!my||ready?'disabled':''}>${ready?'완료됨':'완료'}</button></div>
+  <div class="lgStatusBox">${r.players.map(n=>`${lgEsc(n)}: ${r.ready?.[n]?'선택 완료':'대기'}`).join(' · ')}</div>`;
+}
+function lgRenderPlacement(){
+  const current=lgState.selectionOrder?.[lgState.pickerIndex], mine=current===lgMe?.name;
+  return `<div class="lgStatusBox">현재 ${Number(lgState.pickerIndex||0)+1}번 선택권 · <b>${lgEsc(current||'')}</b><br>${mine?'원하는 조를 선택해주세요.':'현재 선택을 기다리고 있습니다.'}</div>
+  <div class="lgOrderList">${(lgState.selectionOrder||[]).map((n,i)=>`<div class="lgOrderItem ${i===lgState.pickerIndex?'current':''}"><b>${i+1}번</b>${lgEsc(n)}<br>${Object.entries(lgState.assignments||{}).find(x=>x[1]===n)?.[0]||'대기'}</div>`).join('')}</div>
+  <div class="lgPlaceGrid">${LG_GROUPS.map(g=>`<button class="lgPlaceBtn" onclick="lgChooseGroup('${g}')" ${!mine||lgState.assignments?.[g]?'disabled':''}><b>${g}조</b>${g<='D'?'제1리그':'제2리그'}<br>${lgState.assignments?.[g]?lgEsc(lgState.assignments[g])+' 팀':'선택 가능'}</button>`).join('')}</div>`;
+}
+function lgRenderGame(){
+  const box=document.getElementById('lgGameBox'); if(!box)return;
+  if(!lgState){box.innerHTML='<div class="lgStatusBox">불러오는 중...</div>';return;}
+  if(!lgAllOnline()&&lgState.phase!=='complete') box.innerHTML=`<div class="lgStatusBox">7명 전원이 온라인이어야 게임이 진행됩니다.<br>현재 ${lgOnlineNames().length}/7명 접속</div>`;
+  else if(lgState.phase==='waiting') box.innerHTML='<div class="lgStatusBox">7명 전원 접속 시 자동으로 시작됩니다.</div>';
+  else if(lgState.phase==='minority'||lgState.phase==='countdown') box.innerHTML=lgRenderMinority();
+  else if(lgState.phase==='reveal') box.innerHTML=lgRenderReveal();
+  else if(lgState.phase==='rps') box.innerHTML=lgRenderRps();
+  else if(lgState.phase==='placement') box.innerHTML=lgRenderPlacement();
+  else box.innerHTML=`<div class="lgStatusBox"><b>모든 조 배정이 완료되었습니다.</b><br>운영진 리셋 전까지 더 이상 진행할 수 없습니다.</div>`;
+}
+function lgRenderCountdown(){
+  const el=document.getElementById('lgCountdown');if(!el)return;
+  if(lgState?.phase!=='countdown'){el.style.display='none';return;}
+  const passed=(Date.now()-new Date(lgState.countdownStartedAt||0).getTime())/1000;
+  const n=Math.max(1,5-Math.floor(passed));
+  el.style.display='flex'; el.textContent=n;
+}
+function lgRenderNotice(){
+  const n=document.getElementById('lgMainNotice'), b=document.getElementById('lgOnlineBadge'), p=document.getElementById('lgPhaseBadge'), done=document.getElementById('lgCompleteBanner');
+  const on=lgOnlineNames().length;
+  if(b)b.textContent=`${on} / 7 온라인`; if(p)p.textContent=lgPhaseText(); if(done)done.classList.toggle('on',lgState?.phase==='complete');
+  if(!n)return;
+  n.className='lgMainNotice';
+  if(lgState?.phase==='complete'){n.classList.add('done');n.textContent='완료 · 모든 팀의 조 배정이 끝났습니다.';}
+  else if(on<7){n.classList.add('warn');n.textContent=`7명 전원 접속 대기 · 현재 ${on}/7명 온라인`;}
+  else if(lgState?.phase==='placement'){n.classList.add('good');n.textContent=`${lgState.pickerIndex+1}번 선택권 ${lgState.selectionOrder?.[lgState.pickerIndex]}님 차례입니다.`;}
+  else{n.classList.add('good');n.textContent=`7명 전원 온라인 · ${lgPhaseText()} 진행 중`;}
+}
+function lgRender(){
+  lgRenderAssignments();lgRenderLogin();lgRenderPlayers();lgRenderGame();lgRenderNotice();lgRenderCountdown();
+  const log=document.getElementById('lgLog');if(log)log.innerHTML=(lgState?.logs||[]).map(x=>`<div>${lgEsc(x)}</div>`).join('')||'<div>아직 기록이 없습니다.</div>';
+}
+async function lgRefresh(){try{await lgLoad();lgRender();}catch(e){alert('새로고침 실패: '+(e.message||e));}}
+async function lgBoot(){
+  try{
+    await lgLoad(); lgRender();
+    if(lgPollTimer)clearInterval(lgPollTimer);
+    lgPollTimer=setInterval(async()=>{try{await lgLoad();await lgAutoAdvance();lgRender();}catch(e){}},1200);
+    if(lgTickTimer)clearInterval(lgTickTimer);
+    lgTickTimer=setInterval(()=>{lgRenderCountdown();lgAutoAdvance().catch(()=>{});},100);
+    if(lgHeartbeatTimer)clearInterval(lgHeartbeatTimer);
+    lgHeartbeatTimer=setInterval(()=>lgHeartbeat(false),5000);
+    if(lgMe)await lgHeartbeat(true);
+  }catch(e){const box=document.getElementById('lgGameBox');if(box)box.innerHTML=`<div class="errorBox">리그 데이터를 불러오지 못했습니다.<br>${lgEsc(e.message||e)}</div>`;}
+}
+function lgOpenAdmin(){
+  modalRoot.innerHTML=`<div class="modalBg"><div class="lgAdminModal"><div class="sectionHead"><h2>운영진 패널</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><input id="lgAdminPw" type="password" placeholder="운영진 비밀번호 0473"><button class="danger" style="width:100%" onclick="lgAdminReset()">전체 리셋</button><div class="eventHint" style="margin-top:9px">로그인, 온라인 표시, 게임 결과, 선택 순서, 조 배정을 모두 초기화합니다.</div></div></div>`;
+}
+async function lgAdminReset(){
+  if(document.getElementById('lgAdminPw')?.value!==LG_ADMIN_PW)return alert('운영진 비밀번호가 맞지 않습니다.');
+  if(!confirm('아시아 리그 조 추첨의 모든 내용을 초기화할까요?'))return;
+  const st=lgDefault();lgLogPush(st,'운영진이 모든 내용을 초기화했습니다.');
+  const r=await sb.from(EVENT_TABLE).upsert({id:LG_STATE_ID,state:st,updated_at:lgNow()},{onConflict:'id'}).select('id');
+  if(r.error)return alert('리셋 실패: '+r.error.message);
+  lgState=st; modalRoot.innerHTML=''; lgRender();
+}
+window.showLeaguePage=function(){
+  try{asiaPushPage&&asiaPushPage('league');}catch(e){}
+  asiaCurrentPage='league';setPageViewport('pc');
+  ['landingPage','app','eventPage','testPage','warPage'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  const page=document.getElementById('leaguePage');if(page)page.style.display='block';
+  lgBoot();
+};
 
 boot();
 </script>
