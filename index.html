@@ -3433,6 +3433,25 @@ const LG_PLAYERS = [
   {name:'재민',pw:'0917'},{name:'음',pw:'5555'},{name:'에넬',pw:'9378'},
   {name:'제로',pw:'4441'},{name:'류비',pw:'5315'},{name:'비밀',pw:'5874'},{name:'리아',pw:'0050'}
 ];
+async function lgLoadPlayerPasswords(){
+  // 로그인할 때마다 Supabase의 최신 nickname/password를 읽어옵니다.
+  // DB 조회가 실패할 때만 위 기본값을 임시로 사용합니다.
+  try{
+    const allowed=new Set(LG_PLAYERS.map(x=>x.name));
+    const r=await sb.from('asia_event_members')
+      .select('nickname,password')
+      .in('nickname',LG_PLAYERS.map(x=>x.name));
+    if(r.error) throw r.error;
+    (r.data||[]).forEach(row=>{
+      const name=String(row.nickname||'').trim();
+      if(!allowed.has(name)) return;
+      const player=LG_PLAYERS.find(x=>x.name===name);
+      if(player) player.pw=String(row.password??'').trim();
+    });
+  }catch(e){
+    console.warn('리그 로그인 비밀번호 최신화 실패',e);
+  }
+}
 let lgState = null;
 let lgMe = JSON.parse(localStorage.getItem('asia_league_draw_me')||'null');
 let lgPollTimer = null, lgTickTimer = null, lgHeartbeatTimer = null, lgRealtimeChannel = null, lgBusy = false;
@@ -3513,6 +3532,7 @@ function lgRpsWinner(a,b){
   return 2;
 }
 async function lgLogin(){
+  await lgLoadPlayerPasswords();
   const name=document.getElementById('lgLoginName')?.value||'';
   const pw=document.getElementById('lgLoginPw')?.value||'';
   const ok=LG_PLAYERS.find(x=>x.name===name&&x.pw===pw);
@@ -3859,7 +3879,7 @@ async function lgBoot(){
   }catch(e){const box=document.getElementById('lgGameBox');if(box)box.innerHTML=`<div class="errorBox">리그 데이터를 불러오지 못했습니다.<br>${lgEsc(e.message||e)}</div>`;}
 }
 function lgOpenAdmin(){
-  modalRoot.innerHTML=`<div class="modalBg"><div class="lgAdminModal"><div class="sectionHead"><h2>운영진 패널</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><input id="lgAdminPw" type="password" placeholder="운영진 비밀번호 0473"><button class="danger" style="width:100%" onclick="lgAdminReset()">전체 리셋</button><div class="eventHint" style="margin-top:9px">로그인, 온라인 표시, 게임 결과, 선택 순서, 조 배정을 모두 초기화합니다.</div></div></div>`;
+  modalRoot.innerHTML=`<div class="modalBg"><div class="lgAdminModal"><div class="sectionHead"><h2>운영진 패널</h2><button class="ghost" onclick="modalRoot.innerHTML=''">닫기</button></div><input id="lgAdminPw" type="password" placeholder="운영진 비밀번호 입력"><button class="danger" style="width:100%" onclick="lgAdminReset()">전체 리셋</button><div class="eventHint" style="margin-top:9px">로그인, 온라인 표시, 게임 결과, 선택 순서, 조 배정을 모두 초기화합니다.</div></div></div>`;
 }
 async function lgAdminReset(){
   if(document.getElementById('lgAdminPw')?.value!==LG_ADMIN_PW)return alert('운영진 비밀번호가 맞지 않습니다.');
