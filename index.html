@@ -3435,7 +3435,8 @@ const LG_PLAYERS = [
 ];
 let lgState = null;
 let lgMe = JSON.parse(localStorage.getItem('asia_league_draw_me')||'null');
-let lgPollTimer = null, lgTickTimer = null, lgHeartbeatTimer = null, lgBusy = false;
+let lgPollTimer = null, lgTickTimer = null, lgHeartbeatTimer = null, lgRealtimeChannel = null, lgBusy = false;
+let lgLoginRenderSignature = '';
 
 function lgEsc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function lgNow(){return new Date().toISOString();}
@@ -3517,12 +3518,12 @@ async function lgLogin(){
   const ok=LG_PLAYERS.find(x=>x.name===name&&x.pw===pw);
   if(!ok) return alert('아이디 또는 비밀번호가 맞지 않습니다.');
   lgMe={name,sessionId:lgSessionId()}; localStorage.setItem('asia_league_draw_me',JSON.stringify(lgMe));
-  await lgHeartbeat(true); lgRender();
+  await lgHeartbeat(true); lgRenderLogin(true); lgRender();
 }
 async function lgLogout(){
   const old=lgMe; lgMe=null; localStorage.removeItem('asia_league_draw_me');
   if(old) try{await lgMutate(st=>{const x=st.online?.[old.name]; if(x?.sessionId===old.sessionId) delete st.online[old.name];});}catch(e){}
-  lgRender();
+  lgRenderLogin(true); lgRender();
 }
 async function lgHeartbeat(force=false){
   if(!lgMe) return;
@@ -3743,10 +3744,27 @@ function lgRenderAssignments(){
   if(f)f.innerHTML=['A','B','C','D'].map(card).join('');
   if(s)s.innerHTML=['E','F','G'].map(card).join('');
 }
-function lgRenderLogin(){
+function lgRenderLogin(force=false){
   const box=document.getElementById('lgLoginBox'); if(!box)return;
-  if(lgMe) box.innerHTML=`<div class="lgMeBox"><div>로그인: <b>${lgEsc(lgMe.name)}</b></div><button class="ghost" onclick="lgLogout()">로그아웃</button></div>`;
-  else box.innerHTML=`<div class="lgLoginGrid"><select id="lgLoginName">${LG_PLAYERS.map(p=>`<option value="${lgEsc(p.name)}">${lgEsc(p.name)}</option>`).join('')}</select><input id="lgLoginPw" type="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter')lgLogin()"><button class="gold" onclick="lgLogin()">로그인</button></div>`;
+  const active=document.activeElement;
+  const editing=!!(active&&box.contains(active)&&['SELECT','INPUT','TEXTAREA'].includes(active.tagName));
+  const signature=lgMe?`in:${lgMe.name}`:'out';
+
+  // PC에서 드롭다운을 펼치거나 비밀번호를 입력하는 동안 주기적 동기화가
+  // 로그인 DOM을 다시 만들지 않도록 막습니다. 이 재렌더링이 드롭다운이 닫히는 원인이었습니다.
+  if(!force&&editing&&box.dataset.rendered==='1') return;
+  if(!force&&box.dataset.rendered==='1'&&lgLoginRenderSignature===signature) return;
+
+  const oldName=document.getElementById('lgLoginName')?.value||LG_PLAYERS[0]?.name||'';
+  const oldPw=document.getElementById('lgLoginPw')?.value||'';
+  lgLoginRenderSignature=signature;
+  box.dataset.rendered='1';
+
+  if(lgMe){
+    box.innerHTML=`<div class="lgMeBox"><div>로그인: <b>${lgEsc(lgMe.name)}</b></div><button class="ghost" onclick="lgLogout()">로그아웃</button></div>`;
+  }else{
+    box.innerHTML=`<div class="lgLoginGrid"><select id="lgLoginName">${LG_PLAYERS.map(p=>`<option value="${lgEsc(p.name)}" ${oldName===p.name?'selected':''}>${lgEsc(p.name)}</option>`).join('')}</select><input id="lgLoginPw" type="password" placeholder="비밀번호" value="${lgEsc(oldPw)}" autocomplete="current-password" onkeydown="if(event.key==='Enter'){event.preventDefault();lgLogin()}"><button type="button" class="gold" onclick="lgLogin()">로그인</button></div>`;
+  }
 }
 function lgRenderPlayers(){
   const box=document.getElementById('lgPlayers');if(!box)return;
@@ -3827,6 +3845,16 @@ async function lgBoot(){
     lgTickTimer=setInterval(()=>{lgRenderCountdown();lgAutoAdvance().catch(()=>{});},100);
     if(lgHeartbeatTimer)clearInterval(lgHeartbeatTimer);
     lgHeartbeatTimer=setInterval(()=>lgHeartbeat(false),5000);
+
+    // Supabase Realtime으로 다른 PC/휴대폰의 변경을 즉시 반영합니다.
+    // Realtime 설정이 잠시 끊겨도 위 1.2초 폴링이 보조 동기화합니다.
+    if(!lgRealtimeChannel){
+      lgRealtimeChannel=sb.channel('asia-league-minority-live-v1')
+        .on('postgres_changes',{event:'*',schema:'public',table:EVENT_TABLE,filter:`id=eq.${LG_STATE_ID}`},async()=>{
+          try{await lgLoad();await lgAutoAdvance();lgRender();}catch(e){console.warn('리그 realtime',e);}
+        })
+        .subscribe();
+    }
     if(lgMe)await lgHeartbeat(true);
   }catch(e){const box=document.getElementById('lgGameBox');if(box)box.innerHTML=`<div class="errorBox">리그 데이터를 불러오지 못했습니다.<br>${lgEsc(e.message||e)}</div>`;}
 }
