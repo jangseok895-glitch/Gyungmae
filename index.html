@@ -1544,7 +1544,7 @@ const SUPABASE_URL = 'https://xyibdanmecakevhtdajl.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_uvYqwDymxodcSdpT1zAWyg_PeVHh_ZO';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const CAPTAINS=[
+const DEFAULT_CAPTAINS=[
   {name:'재민',password:'0917'},
   {name:'음',password:'5555'},
   {name:'에넬',password:'9378'},
@@ -1553,11 +1553,39 @@ const CAPTAINS=[
   {name:'비밀',password:'5874'},
   {name:'리아',password:'0050'}
 ];
-const PLAYERS=[
+const DEFAULT_PLAYERS=[
   '토르','퀀터','레인','라오','은하수','지지','키라',
   '네오','브칠','헬츠','아코','기사','예지','미신트',
   '짱이','장어','노을','구리','트리','흠','라곤'
 ];
+// 운영진이 변경하는 경매 설정입니다. 실제 값은 auction_state의 captain_names / player_names에 저장됩니다.
+let CAPTAINS=DEFAULT_CAPTAINS.map(x=>({...x}));
+let PLAYERS=[...DEFAULT_PLAYERS];
+let auctionEventMembers=[];
+function normalizeAuctionNames(values,max){
+  const out=[], seen=new Set();
+  for(const raw of Array.isArray(values)?values:[]){
+    const name=String(raw||'').trim();
+    if(name && !seen.has(name)){seen.add(name);out.push(name);}
+    if(out.length>=max) break;
+  }
+  return out;
+}
+function applyAuctionSettings(source){
+  const captainNames=normalizeAuctionNames(source?.captain_names,8);
+  const players=normalizeAuctionNames(source?.player_names,25);
+  if(captainNames.length) CAPTAINS=captainNames.map(name=>({name,password:''}));
+  if(players.length) PLAYERS=players;
+}
+async function loadAuctionEventMembers(){
+  const r=await sb.from('asia_event_members').select('nickname,password').order('nickname');
+  if(r.error) throw new Error('아시아 이벤트 맴버 불러오기: '+r.error.message);
+  auctionEventMembers=(r.data||[]).map(m=>({name:String(m.nickname||'').trim(),password:String(m.password||'').trim()})).filter(m=>m.name);
+  return auctionEventMembers;
+}
+function auctionEventMemberOptions(selected=''){
+  return `<option value="">주장 선택</option>${auctionEventMembers.map(m=>`<option value="${escapeHtml(m.name)}" ${m.name===selected?'selected':''}>${escapeHtml(m.name)}</option>`).join('')}`;
+}
 
 const MAP_LIST=['고가','남산','해변','싱가폴서킷','용의 운하','차이나 라사','쥐공무','차관문','코리아서킷','두바이','도야수','부산','서울','월드리오다운힐','쥐공결','문힐시티질주','메카닉','도검용의길','브로디','노전비','익스트림','에펠탑','뉴욕','서호','신화신들의세계','역로비','동마성','시청광장','궤도전차','공룡유적지','용광로','거인','상해서킷','스카이웨이','팬드래건캐슬','오딘','제우스시티','이탈리아','순찰로','소용돌이','정유공장','병마용','만리장성','해로비','님프','직잭','브라질','사빙공','대은지','황산','해숨보','붐힐터널','갈빙','비밀장치위협','네모산타','좌표','차골대','감시탑','협곡','팩두공','상어섬','포오공','대관령','쥐공대','랠리','헬기점프','바닷길','송수관','해골성','신전','스카이라인','동이문','노익','팩미5','공마초','설산','역직잭','문숨지','제련소','부빙'];
 let wheelMaps=[...MAP_LIST], wheelRotation=0, wheelSpinning=false, wheelLastResult='';
@@ -1714,7 +1742,14 @@ async function loadVisitorCount(){
 async function ensureData(){
   try{
     let st=await q(sb.from('auction_state').select('*').eq('id',1).maybeSingle(),'상태 확인');
-    if(!st) await q(sb.from('auction_state').insert({id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS}),'상태 생성');
+    if(!st) await q(sb.from('auction_state').insert({id:1,current_index:0,status:'waiting',round_started_at:null,paused_remaining:ROUND_SECONDS,captain_names:CAPTAINS.map(c=>c.name),player_names:PLAYERS}),'상태 생성');
+    if(st){
+      applyAuctionSettings(st);
+      if(!Array.isArray(st.captain_names)||!st.captain_names.length||!Array.isArray(st.player_names)||!st.player_names.length){
+        await q(sb.from('auction_state').update({captain_names:CAPTAINS.map(c=>c.name),player_names:PLAYERS}).eq('id',1),'경매 기본 설정 저장');
+      }
+    }
+    await loadAuctionEventMembers();
     const cs=await q(sb.from('auction_captains').select('*'),'주장 확인');
     if(!cs||CAPTAINS.some(c=>!cs.some(x=>x.name===c.name))){
       for(const c of CAPTAINS){
@@ -1734,6 +1769,7 @@ async function loadAll(skipRender=false){
     ]);
     const prevRoundKey = state ? `${state.status}_${state.current_index}_${state.round_started_at||''}` : '';
     state=st||state;
+    applyAuctionSettings(state);
     const allowedCaptainNames=new Set(CAPTAINS.map(c=>c.name));
     captains=(cs||[]).filter(c=>allowedCaptainNames.has(c.name))
       .sort((a,b)=>CAPTAINS.findIndex(x=>x.name===a.name)-CAPTAINS.findIndex(x=>x.name===b.name));
@@ -1817,7 +1853,10 @@ async function auctionLoginHandler(ev){
   const pwEl=document.getElementById('loginPw');
   const name=String(nameEl?.value||'').trim();
   const pw=String(pwEl?.value||'').trim();
-  const ok=CAPTAINS.find(c=>c.name===name && String(c.password)===pw);
+  if(!auctionEventMembers.length){
+    try{await loadAuctionEventMembers();}catch(e){alert(e.message||e);return false;}
+  }
+  const ok=auctionEventMembers.find(c=>c.name===name && String(c.password)===pw) && CAPTAINS.some(c=>c.name===name);
 
   if(!ok){
     alert('주장 선택 또는 비밀번호가 맞지 않습니다.');
@@ -1944,7 +1983,7 @@ async function authorizeAdminOnly(){ if(await askAdminPassword()){ toast('운영
 function openAdmin(){
   // 운영진 패널 입장 자체는 비밀번호 없이 열립니다.
   // 실제 버튼을 누를 때마다 비밀번호를 확인합니다.
-  modalRoot.innerHTML=`<div class="modalBg"><div class="modal">
+  modalRoot.innerHTML=`<div class="modalBg"><div class="modal" style="width:860px;max-height:92vh;overflow:auto">
     <div class="sectionHead"><h2>운영진 패널</h2><span class="tinyBadge">운영진 권한: ${adminAuthorized?'확인됨':'미확인'}</span><button class="ghost" onclick="closeAdmin()">닫기</button></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="gold" onclick="promptStart()">경매 시작</button>
@@ -1955,9 +1994,58 @@ function openAdmin(){
       <button class="ok" onclick="resumeAuction()">재개</button>
     </div>
     <div class="adminGrid">${captains.map(c=>`<div><label>${c.name}</label><input id="coin_${c.name}" type="number" value="${c.coins}"><button onclick="editCoin('${c.name}')">수정</button></div>`).join('')}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
+      <button class="ghost" onclick="toggleAuctionCaptainEditor()">주장 변경</button>
+      <button class="ghost" onclick="toggleAuctionPlayerEditor()">경매출품선수 변경</button>
+    </div>
+    <div id="auctionCaptainEditor" style="display:none;margin-top:10px"></div>
+    <div id="auctionPlayerEditor" style="display:none;margin-top:10px"></div>
   </div></div>`;
 }
 function closeAdmin(){modalRoot.innerHTML=''}
+function toggleAuctionCaptainEditor(){
+  const box=document.getElementById('auctionCaptainEditor'); if(!box) return;
+  const opening=box.style.display==='none'; box.style.display=opening?'block':'none';
+  if(!opening) return;
+  const selected=CAPTAINS.map(c=>c.name);
+  box.innerHTML=`<div style="padding:12px;border:1px solid var(--line);border-radius:14px;background:#081525"><h3 style="margin:0 0 6px;color:#facc15">주장 변경 <span class="muted" style="font-size:12px">최대 8명 · 아시아 이벤트 맴버에서 선택</span></h3><p class="muted" style="margin:0 0 10px">주장 로그인 비밀번호는 아시아 이벤트 맴버에 등록된 비밀번호를 사용합니다. 경매 대기 상태에서만 변경할 수 있습니다.</p><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${Array.from({length:8},(_,i)=>`<select id="auctionCaptain_${i}" style="width:100%;background:#0b1728;border:1px solid var(--line);border-radius:9px;color:white;padding:9px">${auctionEventMemberOptions(selected[i]||'')}</select>`).join('')}</div><button class="gold" style="margin-top:10px" onclick="saveAuctionCaptains()">주장 저장</button></div>`;
+}
+function toggleAuctionPlayerEditor(){
+  const box=document.getElementById('auctionPlayerEditor'); if(!box) return;
+  const opening=box.style.display==='none'; box.style.display=opening?'block':'none';
+  if(!opening) return;
+  box.innerHTML=`<div style="padding:12px;border:1px solid var(--line);border-radius:14px;background:#081525"><h3 style="margin:0 0 6px;color:#facc15">경매출품선수 변경 <span class="muted" style="font-size:12px">최대 25명 · 직접 입력</span></h3><p class="muted" style="margin:0 0 10px">현재 명단의 글자를 바로 수정한 뒤 저장하세요. 빈 칸은 출품선수에서 제외됩니다.</p><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">${Array.from({length:25},(_,i)=>`<input id="auctionPlayer_${i}" maxlength="30" value="${escapeHtml(PLAYERS[i]||'')}" placeholder="출품선수 ${i+1}" style="width:100%;background:#0b1728;border:1px solid var(--line);border-radius:9px;color:white;padding:9px">`).join('')}</div><button class="gold" style="margin-top:10px" onclick="saveAuctionPlayers()">출품선수 저장</button></div>`;
+}
+async function saveAuctionConfig(nextCaptains,nextPlayers,label){
+  if(!await askAdminPassword()) return;
+  await loadAll(true);
+  if(state.status!=='waiting') return alert('경매가 대기 상태일 때만 명단을 변경할 수 있습니다. 먼저 모든리셋을 해주세요.');
+  const captainNames=normalizeAuctionNames(nextCaptains,8), playerNames=normalizeAuctionNames(nextPlayers,25);
+  if(!captainNames.length) return alert('주장은 최소 1명 이상 지정해주세요.');
+  if(!playerNames.length) return alert('출품선수는 최소 1명 이상 입력해주세요.');
+  if(captainNames.length!==nextCaptains.filter(Boolean).length) return alert('주장에는 같은 맴버를 중복 지정할 수 없습니다.');
+  if(playerNames.length!==nextPlayers.filter(Boolean).length) return alert('출품선수 이름은 중복 입력할 수 없습니다.');
+  try{
+    await q(sb.from('auction_state').update({captain_names:captainNames,player_names:playerNames,current_index:0}).eq('id',1),'경매 설정 저장');
+    await q(sb.from('auction_captains').update({online:false,session_id:null,last_seen:null}).neq('id',0),'기존 주장 접속 해제');
+    for(const name of captainNames){
+      await q(sb.from('auction_captains').upsert({name,coins:START_COINS,online:false,session_id:null,last_seen:null},{onConflict:'name'}),'새 주장 저장');
+    }
+    localStorage.removeItem('auction_me'); me=null;
+    await addAuctionLog(`운영진이 ${label}을(를) 변경했습니다.`);
+    closeAdmin(); await loadAll(); alert(`${label} 저장이 완료되었습니다.`);
+  }catch(e){showErr(`${label} 저장 실패`,e)}
+}
+async function saveAuctionCaptains(){
+  try{await loadAuctionEventMembers();}catch(e){return alert(e.message||e);}
+  const names=Array.from({length:8},(_,i)=>(document.getElementById('auctionCaptain_'+i)?.value||'').trim()).filter(Boolean);
+  if(names.some(name=>!auctionEventMembers.some(m=>m.name===name))) return alert('아시아 이벤트 맴버에 없는 이름은 주장으로 지정할 수 없습니다.');
+  await saveAuctionConfig(names,[...PLAYERS],'주장 명단');
+}
+async function saveAuctionPlayers(){
+  const names=Array.from({length:25},(_,i)=>(document.getElementById('auctionPlayer_'+i)?.value||'').trim()).filter(Boolean);
+  await saveAuctionConfig(CAPTAINS.map(c=>c.name),names,'경매출품선수 명단');
+}
 
 async function startAuction(){
   try{
